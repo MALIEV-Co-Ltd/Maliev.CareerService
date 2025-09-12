@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Text;
+using System.Text; 
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -98,23 +98,51 @@ try
         .Bind(builder.Configuration.GetSection(RateLimitOptions.SectionName))
         .ValidateDataAnnotations();
 
-    builder.Services.AddOptions<CacheOptions>()
-        .Bind(builder.Configuration.GetSection(CacheOptions.SectionName))
-        .ValidateDataAnnotations();
+    // Configure Cache options - register both as IOptions<T> and as concrete type for DI
+    builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
+    builder.Services.AddSingleton<CacheOptions>(provider =>
+        provider.GetRequiredService<IOptions<CacheOptions>>().Value);
 
-    builder.Services.AddOptions<UploadServiceOptions>()
-        .Bind(builder.Configuration.GetSection(UploadServiceOptions.SectionName))
-        .ValidateDataAnnotations();
+    // Configure service options with fallbacks for Development
+    if (builder.Environment.IsDevelopment())
+    {
+        // Provide default configurations for local development
+        builder.Services.Configure<UploadServiceOptions>(options =>
+        {
+            options.BaseUrl = "http://localhost:8080";
+            options.TimeoutSeconds = 30;
+        });
+        builder.Services.Configure<GcsConfiguration>(options =>
+        {
+            options.BasePath = "careers";
+        });
+    }
+    else
+    {
+        builder.Services.AddOptions<UploadServiceOptions>()
+            .Bind(builder.Configuration.GetSection(UploadServiceOptions.SectionName))
+            .ValidateDataAnnotations();
 
-    builder.Services.AddOptions<GcsConfiguration>()
-        .Bind(builder.Configuration.GetSection(GcsConfiguration.SectionName))
-        .ValidateDataAnnotations();
+        builder.Services.AddOptions<GcsConfiguration>()
+            .Bind(builder.Configuration.GetSection(GcsConfiguration.SectionName))
+            .ValidateDataAnnotations();
+    }
 
     // Configure Career DbContext
-    if (builder.Environment.IsEnvironment("Testing"))
+    if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsDevelopment())
     {
-        builder.Services.AddDbContext<CareerDbContext>(options =>
-            options.UseInMemoryDatabase("TestDb"));
+        // Use in-memory database for Testing and Development (when no connection string available)
+        var connectionString = builder.Configuration.GetConnectionString("CareerDbContext");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            builder.Services.AddDbContext<CareerDbContext>(options =>
+                options.UseInMemoryDatabase(builder.Environment.IsDevelopment() ? "DevDb" : "TestDb"));
+        }
+        else
+        {
+            builder.Services.AddDbContext<CareerDbContext>(options =>
+                options.UseNpgsql(connectionString));
+        }
     }
     else
     {
