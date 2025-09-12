@@ -303,8 +303,26 @@ public class JobPositionService : IJobPositionService
         if (position == null)
             return false;
 
-        _context.JobPositions.Remove(position);
-        await _context.SaveChangesAsync(cancellationToken);
+        // Check if position has related data (applications, locations, skills)
+        var hasApplications = await _context.JobApplications
+            .AnyAsync(ja => ja.JobPositionId == id, cancellationToken);
+        var hasLocations = await _context.JobPositionLocations
+            .AnyAsync(jpl => jpl.JobPositionId == id, cancellationToken);
+        var hasSkills = await _context.JobPositionSkills
+            .AnyAsync(jps => jps.JobPositionId == id, cancellationToken);
+
+        if (hasApplications || hasLocations || hasSkills)
+        {
+            // Soft delete - mark as inactive instead of removing
+            position.IsActive = false;
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            // Hard delete if not referenced
+            _context.JobPositions.Remove(position);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         // Clear cache
         var cacheKey = $"jobposition_{id}";
