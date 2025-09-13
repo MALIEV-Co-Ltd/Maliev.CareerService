@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 using Serilog;
 using Serilog.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -321,6 +322,7 @@ try
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseHttpsRedirection();
+    app.UseHttpMetrics();
 
     app.UseRateLimiter();
     app.UseCors();
@@ -345,6 +347,7 @@ try
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     }).AllowAnonymous();
 
+    app.MapMetrics("/careers/metrics");
     app.MapControllers();
 
     app.Run();
