@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Serilog;
 using Serilog.Filters;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text; 
 using System.Threading.RateLimiting;
@@ -107,7 +108,7 @@ try
     
     // Register Redis connection multiplexer for health checks
     builder.Services.AddSingleton<IConnectionMultiplexer>(
-        ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+        _ => ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 
     // Register Redis cache service
     builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
