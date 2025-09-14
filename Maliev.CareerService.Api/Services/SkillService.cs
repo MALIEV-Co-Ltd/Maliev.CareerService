@@ -10,19 +10,22 @@ public class SkillService : ISkillService
 {
     private readonly CareerDbContext _context;
     private readonly IMemoryCache _cache;
-    private readonly ILogger<SkillService> _logger;
     private readonly CacheOptions _cacheOptions;
+    private readonly ILogger<SkillService> _logger;
+    private readonly ICacheInvalidationService _cacheInvalidationService;
 
     public SkillService(
         CareerDbContext context,
         IMemoryCache cache,
+        CacheOptions cacheOptions,
         ILogger<SkillService> logger,
-        CacheOptions cacheOptions)
+        ICacheInvalidationService cacheInvalidationService)
     {
         _context = context;
         _cache = cache;
-        _logger = logger;
         _cacheOptions = cacheOptions;
+        _logger = logger;
+        _cacheInvalidationService = cacheInvalidationService;
     }
 
     public async Task<SkillDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -127,8 +130,8 @@ public class SkillService : ISkillService
         _context.Skills.Add(skill);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Clear caches
-        ClearSkillCaches();
+        // Clear caches using the cache invalidation service
+        _cacheInvalidationService.InvalidateRelatedCachesForSkill(id);
 
         _logger.LogInformation("Created skill: {Name} in category {Category} with ID {Id}", skill.Name, skill.Category, skill.Id);
 
@@ -148,10 +151,8 @@ public class SkillService : ISkillService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Clear caches
-        ClearSkillCaches();
-        var cacheKey = $"skill_{id}";
-        _cache.Remove(cacheKey);
+        // Clear caches using the cache invalidation service
+        _cacheInvalidationService.InvalidateRelatedCachesForSkill(id);
 
         _logger.LogInformation("Updated skill: {Name} in category {Category} with ID {Id}", skill.Name, skill.Category, skill.Id);
 
