@@ -189,8 +189,14 @@ try
 
         // Career endpoint rate limiting
         options.AddPolicy("CareerPolicy", context =>
-            RateLimitPartition.GetSlidingWindowLimiter(
-                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        {
+            // Get client IP considering proxies
+            var clientIP = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                          ?? context.Connection.RemoteIpAddress?.ToString() 
+                          ?? "unknown";
+                          
+            return RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey: clientIP,
                 factory: _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = rateLimitOptions.CareerEndpoint.PermitLimit,
@@ -198,12 +204,19 @@ try
                     SegmentsPerWindow = 2,
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = rateLimitOptions.CareerEndpoint.QueueLimit
-                }));
+                });
+        });
 
         // Global rate limiting
         options.AddPolicy("GlobalPolicy", context =>
-            RateLimitPartition.GetSlidingWindowLimiter(
-                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        {
+            // Get client IP considering proxies
+            var clientIP = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                          ?? context.Connection.RemoteIpAddress?.ToString() 
+                          ?? "unknown";
+                          
+            return RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey: clientIP,
                 factory: _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = rateLimitOptions.Global.PermitLimit,
@@ -211,7 +224,8 @@ try
                     SegmentsPerWindow = 4,
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = rateLimitOptions.Global.QueueLimit
-                }));
+                });
+        });
 
         options.OnRejected = async (context, token) =>
         {
