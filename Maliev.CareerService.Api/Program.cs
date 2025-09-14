@@ -186,6 +186,7 @@ try
     builder.Services.AddScoped<IBusinessEventLogger, BusinessEventLogger>();
     builder.Services.AddScoped<IFileValidationService, FileValidationService>();
     builder.Services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
+    builder.Services.AddHostedService<CacheWarmingService>();
 
     // Configure Rate Limiting
     builder.Services.AddRateLimiter(options =>
