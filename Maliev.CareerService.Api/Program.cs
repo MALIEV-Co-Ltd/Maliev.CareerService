@@ -83,6 +83,7 @@ try
     builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
     builder.Services.Configure<UploadServiceOptions>(builder.Configuration.GetSection(UploadServiceOptions.SectionName));
     builder.Services.Configure<GcsConfiguration>(builder.Configuration.GetSection(GcsConfiguration.SectionName));
+    builder.Services.Configure<CorsOptions>(builder.Configuration.GetSection(CorsOptions.SectionName));
 
     // Configure JWT options only if available (to allow local development without secrets)
     var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
@@ -235,11 +236,10 @@ try
         options.AddDefaultPolicy(
             policy =>
             {
-                policy.WithOrigins(
-                    "https://maliev.com",
-                    "https://*.maliev.com",
-                    "http://maliev.com",
-                    "http://*.maliev.com")
+                var corsOptions = new CorsOptions();
+                builder.Configuration.GetSection(CorsOptions.SectionName).Bind(corsOptions);
+                
+                policy.WithOrigins(corsOptions.AllowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod();
             });
