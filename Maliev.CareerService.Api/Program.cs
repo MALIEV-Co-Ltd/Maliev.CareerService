@@ -33,11 +33,15 @@ try
 {
     Log.Information("Starting Maliev Career Service");
 
-    // Load secrets.yaml
+    // Load secrets from multiple sources for flexibility across environments
+    // 1. YAML file (if exists)
     builder.Configuration.AddYamlFile("secrets.yaml", optional: true, reloadOnChange: true);
 
-    // Load secrets from mounted volume in GKE
-    var secretsPath = "/mnt/secrets";
+    // 2. Environment variables (highest priority)
+    builder.Configuration.AddEnvironmentVariables();
+
+    // 3. Key-per-file from mounted volume (for containerized environments)
+    var secretsPath = Environment.GetEnvironmentVariable("SECRETS_PATH") ?? "/mnt/secrets";
     if (Directory.Exists(secretsPath))
     {
         builder.Configuration.AddKeyPerFile(directoryPath: secretsPath, optional: true);
