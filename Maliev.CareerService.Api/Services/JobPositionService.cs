@@ -10,19 +10,22 @@ public class JobPositionService : IJobPositionService
 {
     private readonly CareerDbContext _context;
     private readonly IMemoryCache _cache;
-    private readonly ILogger<JobPositionService> _logger;
     private readonly CacheOptions _cacheOptions;
+    private readonly ILogger<JobPositionService> _logger;
+    private readonly ICacheInvalidationService _cacheInvalidationService;
 
     public JobPositionService(
         CareerDbContext context,
         IMemoryCache cache,
+        CacheOptions cacheOptions,
         ILogger<JobPositionService> logger,
-        CacheOptions cacheOptions)
+        ICacheInvalidationService cacheInvalidationService)
     {
         _context = context;
         _cache = cache;
-        _logger = logger;
         _cacheOptions = cacheOptions;
+        _logger = logger;
+        _cacheInvalidationService = cacheInvalidationService;
     }
 
     public async Task<JobPositionDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -282,9 +285,8 @@ public class JobPositionService : IJobPositionService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Clear cache
-        var cacheKey = $"jobposition_{id}";
-        _cache.Remove(cacheKey);
+        // Clear cache using the cache invalidation service
+        _cacheInvalidationService.InvalidateRelatedCachesForJobPosition(id);
 
         // Load updated entity with relationships
         var updatedPosition = await _context.JobPositions
@@ -329,8 +331,7 @@ public class JobPositionService : IJobPositionService
         }
 
         // Clear cache
-        var cacheKey = $"jobposition_{id}";
-        _cache.Remove(cacheKey);
+        _cacheInvalidationService.InvalidateRelatedCachesForJobPosition(id);
 
         _logger.LogInformation("Deleted job position with ID {Id}", id);
 
