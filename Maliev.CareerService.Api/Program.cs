@@ -140,7 +140,11 @@ try
         });
     }
 
-    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+    // Add Database Developer Page Exception Filter only in Development environment
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+    }
 
     // Configure Memory Cache
     builder.Services.AddMemoryCache(options =>
