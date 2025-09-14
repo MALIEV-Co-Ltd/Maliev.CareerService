@@ -15,6 +15,7 @@ public class JobPositionServiceTests : IDisposable
 {
     private readonly CareerDbContext _context;
     private readonly Mock<ILogger<JobPositionService>> _mockLogger;
+    private readonly Mock<ILogger<CacheInvalidationService>> _mockCacheInvalidationLogger;
     private readonly IMemoryCache _cache;
     private readonly CacheOptions _cacheOptions;
     private readonly JobPositionService _jobPositionService;
@@ -27,6 +28,7 @@ public class JobPositionServiceTests : IDisposable
 
         _context = new CareerDbContext(options);
         _mockLogger = new Mock<ILogger<JobPositionService>>();
+        _mockCacheInvalidationLogger = new Mock<ILogger<CacheInvalidationService>>();
         _cache = new MemoryCache(new MemoryCacheOptions());
         _cacheOptions = new CacheOptions 
         { 
@@ -38,8 +40,9 @@ public class JobPositionServiceTests : IDisposable
         _jobPositionService = new JobPositionService(
             _context,
             _cache,
+            _cacheOptions,
             _mockLogger.Object,
-            _cacheOptions);
+            new CacheInvalidationService(_cache, _mockCacheInvalidationLogger.Object));
 
         SeedTestData();
     }

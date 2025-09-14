@@ -15,6 +15,7 @@ public class SkillServiceTests : IDisposable
 {
     private readonly CareerDbContext _context;
     private readonly Mock<ILogger<SkillService>> _mockLogger;
+    private readonly Mock<ILogger<CacheInvalidationService>> _mockCacheInvalidationLogger;
     private readonly IMemoryCache _cache;
     private readonly CacheOptions _cacheOptions;
     private readonly SkillService _skillService;
@@ -27,6 +28,7 @@ public class SkillServiceTests : IDisposable
 
         _context = new CareerDbContext(options);
         _mockLogger = new Mock<ILogger<SkillService>>();
+        _mockCacheInvalidationLogger = new Mock<ILogger<CacheInvalidationService>>();
         _cache = new MemoryCache(new MemoryCacheOptions());
         _cacheOptions = new CacheOptions 
         { 
@@ -38,8 +40,9 @@ public class SkillServiceTests : IDisposable
         _skillService = new SkillService(
             _context,
             _cache,
+            _cacheOptions,
             _mockLogger.Object,
-            _cacheOptions);
+            new CacheInvalidationService(_cache, _mockCacheInvalidationLogger.Object));
 
         SeedTestData();
     }
