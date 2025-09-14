@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace Maliev.CareerService.Api.Controllers;
 
+/// <summary>
+/// Controller for managing job positions in the career service.
+/// </summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("careers/v{version:apiVersion}/positions")]
@@ -16,6 +19,11 @@ public class JobPositionController : ControllerBase
     private readonly IJobPositionService _jobPositionService;
     private readonly ILogger<JobPositionController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JobPositionController"/> class.
+    /// </summary>
+    /// <param name="jobPositionService">The job position service.</param>
+    /// <param name="logger">The logger.</param>
     public JobPositionController(
         IJobPositionService jobPositionService,
         ILogger<JobPositionController> logger)
@@ -24,6 +32,12 @@ public class JobPositionController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets a job position by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the job position to retrieve.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The job position with the specified ID, or NotFound if not found.</returns>
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<JobPositionDto>> GetJobPosition(int id, CancellationToken cancellationToken = default)
@@ -38,6 +52,12 @@ public class JobPositionController : ControllerBase
         return Ok(position);
     }
 
+    /// <summary>
+    /// Searches for job positions based on the provided search criteria.
+    /// </summary>
+    /// <param name="request">The search request containing filter criteria.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A paged result of job positions matching the search criteria.</returns>
     [HttpGet("search")]
     [AllowAnonymous]
     public async Task<ActionResult<PagedResult<JobPositionDto>>> SearchJobPositions(
@@ -48,6 +68,12 @@ public class JobPositionController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Gets publicly available job positions based on the provided search criteria.
+    /// </summary>
+    /// <param name="request">The search request containing filter criteria.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A paged result of public job positions matching the search criteria.</returns>
     [HttpGet("public")]
     [AllowAnonymous]
     public async Task<ActionResult<PagedResult<JobPositionDto>>> GetPublicJobPositions(
@@ -58,6 +84,11 @@ public class JobPositionController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Gets a list of unique departments from all job positions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A list of department names.</returns>
     [HttpGet("departments")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<string>>> GetDepartments(CancellationToken cancellationToken = default)
@@ -66,6 +97,12 @@ public class JobPositionController : ControllerBase
         return Ok(departments);
     }
 
+    /// <summary>
+    /// Creates a new job position.
+    /// </summary>
+    /// <param name="request">The request containing job position details.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created job position.</returns>
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<JobPositionDto>> CreateJobPosition(
@@ -99,6 +136,13 @@ public class JobPositionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates an existing job position.
+    /// </summary>
+    /// <param name="id">The ID of the job position to update.</param>
+    /// <param name="request">The request containing updated job position details.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated job position, or NotFound if the position doesn't exist.</returns>
     [HttpPut("{id:int}")]
     [Authorize]
     public async Task<ActionResult<JobPositionDto>> UpdateJobPosition(
@@ -135,6 +179,12 @@ public class JobPositionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a job position (marks it as inactive).
+    /// </summary>
+    /// <param name="id">The ID of the job position to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>NoContent if successful, or NotFound if the position doesn't exist.</returns>
     [HttpDelete("{id:int}")]
     [Authorize]
     public async Task<ActionResult> DeleteJobPosition(int id, CancellationToken cancellationToken = default)
@@ -159,6 +209,12 @@ public class JobPositionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Checks if a job position with the specified ID exists.
+    /// </summary>
+    /// <param name="id">The ID of the job position to check.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if the job position exists, false otherwise.</returns>
     [HttpGet("{id:int}/exists")]
     [Authorize]
     public async Task<ActionResult<bool>> CheckJobPositionExists(int id, CancellationToken cancellationToken = default)
@@ -167,6 +223,14 @@ public class JobPositionController : ControllerBase
         return Ok(exists);
     }
 
+    /// <summary>
+    /// Validates if a job position with the specified title and department already exists.
+    /// </summary>
+    /// <param name="title">The title to validate.</param>
+    /// <param name="department">The department to validate.</param>
+    /// <param name="excludeId">Optional ID to exclude from validation (for updates).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if the job position is valid (doesn't exist), false otherwise.</returns>
     [HttpGet("validate")]
     [Authorize]
     public async Task<ActionResult<bool>> ValidateJobPosition(
