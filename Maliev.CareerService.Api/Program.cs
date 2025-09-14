@@ -48,7 +48,10 @@ try
     }
 
     // Add services to the container
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<Maliev.CareerService.Api.Filters.ValidationFilter>();
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddOpenApi();
     
@@ -180,6 +183,9 @@ try
     builder.Services.AddScoped<IWorkLocationService, WorkLocationService>();
     builder.Services.AddScoped<ISkillService, SkillService>();
     builder.Services.AddScoped<IDocumentService, DocumentService>();
+    builder.Services.AddScoped<IBusinessEventLogger, BusinessEventLogger>();
+    builder.Services.AddScoped<IFileValidationService, FileValidationService>();
+    builder.Services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
 
     // Configure Rate Limiting
     builder.Services.AddRateLimiter(options =>
@@ -187,7 +193,8 @@ try
         var rateLimitOptions = new RateLimitOptions 
         { 
             CareerEndpoint = new RateLimitOptions.CareerEndpointOptions(),
-            Global = new RateLimitOptions.GlobalOptions()
+            Global = new RateLimitOptions.GlobalOptions(),
+            User = new RateLimitOptions.UserOptions()
         };
         builder.Configuration.GetSection(RateLimitOptions.SectionName).Bind(rateLimitOptions);
 
@@ -230,11 +237,43 @@ try
                     QueueLimit = rateLimitOptions.Global.QueueLimit
                 });
         });
+        
+        // User-based rate limiting (for authenticated users)
+        options.AddPolicy("UserPolicy", context =>
+        {
+            // Get user ID from claims, fallback to IP
+            var userId = context.User?.Identity?.IsAuthenticated == true 
+                ? context.User.FindFirst("sub")?.Value 
+                : context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
+                  ?? context.Connection.RemoteIpAddress?.ToString() 
+                  ?? "unknown";
+                          
+            return RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey: userId,
+                factory: _ => new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = rateLimitOptions.User.PermitLimit,
+                    Window = rateLimitOptions.User.Window,
+                    SegmentsPerWindow = 3,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = rateLimitOptions.User.QueueLimit
+                });
+        });
 
         options.OnRejected = async (context, token) =>
         {
             context.HttpContext.Response.StatusCode = 429;
             await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
+            
+            // Log rate limit exceeded event as a security event
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            var businessEventLogger = context.HttpContext.RequestServices.GetRequiredService<IBusinessEventLogger>();
+            var clientIP = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            
+            businessEventLogger.LogSecurityEvent(
+                "RateLimitExceeded", 
+                $"Rate limit exceeded for client {clientIP}", 
+                new { ClientIP = clientIP, Path = context.HttpContext.Request.Path });
         };
     });
 
@@ -300,18 +339,37 @@ try
         options.KnownNetworks.Clear();
         options.KnownProxies.Clear();
     });
+    
+    // Configure request size limits
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = 104857600; // 100MB
+    });
 
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<CareerDbContext>("CareerDbContext", tags: new[] { "readiness" })
         .AddCheck<DatabaseHealthCheck>("Database Health Check", tags: new[] { "readiness" })
-        .AddCheck<UploadServiceHealthCheck>("UploadService Health Check", tags: new[] { "readiness" });
+        .AddCheck<UploadServiceHealthCheck>("UploadService Health Check", tags: new[] { "readiness" })
+        .AddCheck<GcsHealthCheck>("GCS Health Check", tags: new[] { "readiness" })
+        .AddCheck<MemoryHealthCheck>("Memory Health Check", tags: new[] { "readiness", "liveness" })
+        .AddCheck<ResponseTimeHealthCheck>("Response Time Health Check", tags: new[] { "readiness" })
+        .AddCheck<BusinessMetricsHealthCheck>("Business Metrics Health Check", tags: new[] { "readiness" });
 
     var app = builder.Build();
 
     app.UseForwardedHeaders();
 
+    // Add response time monitoring early in pipeline
+    app.UseResponseTimeMonitoring();
+
     // Add correlation ID middleware early in pipeline
     app.UseCorrelationId();
+    
+    // Add logging context middleware to enrich all logs with request information
+    app.UseLoggingContext();
+    
+    // Add security headers and input sanitization
+    app.UseSecurityHeaders();
 
     // Configure the HTTP request pipeline
     app.UseSwagger(c => 
