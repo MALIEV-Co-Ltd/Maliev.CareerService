@@ -8,8 +8,27 @@ namespace Maliev.CareerService.Tests.IntegrationTests;
 
 public class CareerServiceWebApplicationFactory : WebApplicationFactory<Program>
 {
+    public async Task ClearDatabaseAsync()
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
+        
+        // Clear all data from the database
+        context.JobPositionSkills.RemoveRange(context.JobPositionSkills);
+        context.JobPositionLocations.RemoveRange(context.JobPositionLocations);
+        context.JobApplications.RemoveRange(context.JobApplications);
+        context.ApplicationDocuments.RemoveRange(context.ApplicationDocuments);
+        context.JobPositions.RemoveRange(context.JobPositions);
+        context.WorkLocations.RemoveRange(context.WorkLocations);
+        context.Skills.RemoveRange(context.Skills);
+        
+        await context.SaveChangesAsync();
+    }
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
+        
         builder.ConfigureServices(services =>
         {
             // Remove the existing DbContext registration
@@ -23,10 +42,10 @@ public class CareerServiceWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // Add a database context (CareerDbContext) using an in-memory 
-            // database for testing with a unique database name for each instance.
+            // database for testing with the same database name as the API uses in Testing environment.
             services.AddDbContext<CareerDbContext>(options =>
             {
-                options.UseInMemoryDatabase(Guid.NewGuid().ToString());
+                options.UseInMemoryDatabase("TestDb");
             });
         });
     }

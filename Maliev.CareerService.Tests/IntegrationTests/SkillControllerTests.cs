@@ -26,6 +26,9 @@ public class SkillControllerTests : IClassFixture<CareerServiceWebApplicationFac
         // Arrange
         var client = _factory.CreateClient();
         
+        // Clear database before seeding
+        await _factory.ClearDatabaseAsync();
+        
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         
@@ -64,6 +67,9 @@ public class SkillControllerTests : IClassFixture<CareerServiceWebApplicationFac
     {
         // Arrange
         var client = _factory.CreateClient();
+        
+        // Clear database before seeding
+        await _factory.ClearDatabaseAsync();
         
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
