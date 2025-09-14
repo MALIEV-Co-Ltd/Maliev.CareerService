@@ -1,0 +1,44 @@
+# .NET
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+
+# Build artifacts
+**/publish/
+**/TestResults/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Git
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# Documentation
+**/README.md
+**/CHANGELOG.md
+**/*.md
+
+# IDE
+**/.idea/
+**/.vs/
+**/.vscode/
+
+# Logs
+**/logs/
+**/*.log
+
+# Temporary files
+**/tmp/
+**/temp/
+**/.tmp/
+
+# Node modules (if any)
+**/node_modules/
+
+# Package files
+**/*.nupkg
+**/*.snupkg
