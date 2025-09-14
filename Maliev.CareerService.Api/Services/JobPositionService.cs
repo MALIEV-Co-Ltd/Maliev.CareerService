@@ -47,7 +47,11 @@ public class JobPositionService : IJobPositionService
 
         var dto = MapToDto(position);
         
-        _cache.Set(cacheKey, dto, _cacheOptions.DefaultExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.DefaultExpiration)
+            .SetSize(1); // Simple size for single object
+        
+        _cache.Set(cacheKey, dto, cacheEntryOptions);
         
         return dto;
     }
@@ -366,7 +370,11 @@ public class JobPositionService : IJobPositionService
             .OrderBy(d => d)
             .ToListAsync(cancellationToken);
 
-        _cache.Set(cacheKey, departments, _cacheOptions.LongExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.LongExpiration)
+            .SetSize(departments.Count > 0 ? departments.Count : 1); // Size based on number of departments
+        
+        _cache.Set(cacheKey, departments, cacheEntryOptions);
 
         return departments;
     }

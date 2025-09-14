@@ -42,7 +42,11 @@ public class SkillService : ISkillService
 
         var dto = MapToDto(skill);
         
-        _cache.Set(cacheKey, dto, _cacheOptions.DefaultExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.DefaultExpiration)
+            .SetSize(1); // Simple size for single object
+        
+        _cache.Set(cacheKey, dto, cacheEntryOptions);
         
         return dto;
     }
@@ -70,7 +74,11 @@ public class SkillService : ISkillService
 
         var dtos = skills.Select(MapToDto).ToList();
         
-        _cache.Set(cacheKey, dtos, _cacheOptions.LongExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.LongExpiration)
+            .SetSize(dtos.Count > 0 ? dtos.Count : 1); // Size based on number of skills
+        
+        _cache.Set(cacheKey, dtos, cacheEntryOptions);
         
         return dtos;
     }
@@ -98,7 +106,11 @@ public class SkillService : ISkillService
 
         var dtos = skills.Select(MapToDto).ToList();
         
-        _cache.Set(cacheKey, dtos, _cacheOptions.DefaultExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.DefaultExpiration)
+            .SetSize(dtos.Count > 0 ? dtos.Count : 1); // Size based on number of skills
+        
+        _cache.Set(cacheKey, dtos, cacheEntryOptions);
         
         return dtos;
     }
@@ -213,7 +225,11 @@ public class SkillService : ISkillService
             .OrderBy(c => c)
             .ToListAsync(cancellationToken);
 
-        _cache.Set(cacheKey, categories, _cacheOptions.LongExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.LongExpiration)
+            .SetSize(categories.Count > 0 ? categories.Count : 1); // Size based on number of categories
+        
+        _cache.Set(cacheKey, categories, cacheEntryOptions);
 
         return categories;
     }

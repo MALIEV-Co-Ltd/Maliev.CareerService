@@ -42,7 +42,11 @@ public class WorkLocationService : IWorkLocationService
 
         var dto = MapToDto(location);
         
-        _cache.Set(cacheKey, dto, _cacheOptions.DefaultExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.DefaultExpiration)
+            .SetSize(1); // Simple size for single object
+        
+        _cache.Set(cacheKey, dto, cacheEntryOptions);
         
         return dto;
     }
@@ -69,7 +73,11 @@ public class WorkLocationService : IWorkLocationService
 
         var dtos = locations.Select(MapToDto).ToList();
         
-        _cache.Set(cacheKey, dtos, _cacheOptions.DefaultExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.DefaultExpiration)
+            .SetSize(dtos.Count > 0 ? dtos.Count : 1); // Size based on number of locations
+        
+        _cache.Set(cacheKey, dtos, cacheEntryOptions);
         
         return dtos;
     }
@@ -192,7 +200,11 @@ public class WorkLocationService : IWorkLocationService
             .OrderBy(c => c)
             .ToListAsync(cancellationToken);
 
-        _cache.Set(cacheKey, cities, _cacheOptions.LongExpiration);
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(_cacheOptions.LongExpiration)
+            .SetSize(cities.Count > 0 ? cities.Count : 1); // Size based on number of cities
+        
+        _cache.Set(cacheKey, cities, cacheEntryOptions);
 
         return cities;
     }
