@@ -98,6 +98,20 @@ try
     builder.Services.AddSingleton<CacheOptions>(provider =>
         provider.GetRequiredService<IOptions<CacheOptions>>().Value);
 
+    // Configure Redis caching
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        options.InstanceName = "MalievCareerService_";
+    });
+    
+    // Register Redis connection multiplexer for health checks
+    builder.Services.AddSingleton<IConnectionMultiplexer>(
+        ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+
+    // Register Redis cache service
+    builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
+
     // Configure service options with fallbacks for Development
     if (builder.Environment.IsDevelopment())
     {
@@ -354,7 +368,8 @@ try
         .AddCheck<GcsHealthCheck>("GCS Health Check", tags: new[] { "readiness" })
         .AddCheck<MemoryHealthCheck>("Memory Health Check", tags: new[] { "readiness", "liveness" })
         .AddCheck<ResponseTimeHealthCheck>("Response Time Health Check", tags: new[] { "readiness" })
-        .AddCheck<BusinessMetricsHealthCheck>("Business Metrics Health Check", tags: new[] { "readiness" });
+        .AddCheck<BusinessMetricsHealthCheck>("Business Metrics Health Check", tags: new[] { "readiness" })
+        .AddCheck<RedisHealthCheck>("Redis Health Check", tags: new[] { "readiness" });
 
     var app = builder.Build();
 
