@@ -112,6 +112,11 @@ try
 
     // Register Redis cache service
     builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
+    
+    // Register cache monitoring service
+    builder.Services.AddSingleton<ICacheMonitoringService, CacheMonitoringService>();
+    builder.Services.AddHealthChecks()
+        .AddCheck<CacheMonitoringService>("Cache Monitoring Health Check", tags: new[] { "readiness" });
 
     // Configure service options with fallbacks for Development
     if (builder.Environment.IsDevelopment())
