@@ -66,10 +66,10 @@ public class FallbackCacheService : IFallbackCacheService
         }
 
         // Fall back to in-memory cache if enabled
-        if (_cacheOptions.FallbackEnabled && _memoryCache.TryGetValue(key, out T? memoryValue))
+        if (_cacheOptions.FallbackEnabled && _memoryCache.TryGetValue(key, out T? fallbackValue))
         {
             _logger.LogDebug("Cache hit in in-memory cache for key: {Key}", key);
-            return memoryValue;
+            return fallbackValue;
         }
 
         _logger.LogDebug("Cache miss for key: {Key}", key);
