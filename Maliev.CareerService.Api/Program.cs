@@ -117,6 +117,9 @@ try
     builder.Services.AddSingleton<ICacheMonitoringService, CacheMonitoringService>();
     builder.Services.AddHealthChecks()
         .AddCheck<CacheMonitoringService>("Cache Monitoring Health Check", tags: new[] { "readiness" });
+        
+    // Register fallback cache service
+    builder.Services.AddScoped<IFallbackCacheService, FallbackCacheService>();
 
     // Configure service options with fallbacks for Development
     if (builder.Environment.IsDevelopment())
