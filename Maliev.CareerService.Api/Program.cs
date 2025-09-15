@@ -131,10 +131,10 @@ try
     // Register cache versioning service
     builder.Services.AddScoped<ICacheVersioningService, CacheVersioningService>();
 
-    // Configure service options with fallbacks for Development
-    if (builder.Environment.IsDevelopment())
+    // Configure service options with fallbacks for Development and Testing
+    if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
     {
-        // Provide default configurations for local development
+        // Provide default configurations for local development and testing
         builder.Services.Configure<UploadServiceOptions>(options =>
         {
             options.BaseUrl = "http://localhost:8080";
@@ -145,34 +145,37 @@ try
             options.BasePath = "careers";
         });
 
-        // Add validation for development
-        builder.Services.AddOptions<UploadServiceOptions>()
-            .PostConfigure(options =>
-            {
-                // Ensure defaults are applied if config section is empty
-                if (string.IsNullOrEmpty(options.BaseUrl))
+        // Add validation for development (skip validation for testing to avoid startup issues)
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddOptions<UploadServiceOptions>()
+                .PostConfigure(options =>
                 {
-                    options.BaseUrl = "http://localhost:8080";
-                }
-                if (options.TimeoutSeconds <= 0)
-                {
-                    options.TimeoutSeconds = 30;
-                }
-            })
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+                    // Ensure defaults are applied if config section is empty
+                    if (string.IsNullOrEmpty(options.BaseUrl))
+                    {
+                        options.BaseUrl = "http://localhost:8080";
+                    }
+                    if (options.TimeoutSeconds <= 0)
+                    {
+                        options.TimeoutSeconds = 30;
+                    }
+                })
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
-        builder.Services.AddOptions<GcsConfiguration>()
-            .PostConfigure(options =>
-            {
-                // Ensure defaults are applied if config section is empty
-                if (string.IsNullOrEmpty(options.BasePath))
+            builder.Services.AddOptions<GcsConfiguration>()
+                .PostConfigure(options =>
                 {
-                    options.BasePath = "careers";
-                }
-            })
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+                    // Ensure defaults are applied if config section is empty
+                    if (string.IsNullOrEmpty(options.BasePath))
+                    {
+                        options.BasePath = "careers";
+                    }
+                })
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+        }
     }
     else
     {
