@@ -1,3 +1,4 @@
+using Maliev.CareerService.Api.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,19 @@ public class FallbackCacheService : IFallbackCacheService
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
+        // If Redis is disabled, use in-memory cache only
+        if (!_cacheOptions.RedisEnabled)
+        {
+            if (_memoryCache.TryGetValue(key, out T? memoryValue))
+            {
+                _logger.LogDebug("Cache hit in in-memory cache (Redis disabled) for key: {Key}", key);
+                return memoryValue;
+            }
+            
+            _logger.LogDebug("Cache miss in in-memory cache (Redis disabled) for key: {Key}", key);
+            return default(T);
+        }
+
         // Try to get from Redis first
         try
         {
@@ -51,8 +65,8 @@ public class FallbackCacheService : IFallbackCacheService
             _logger.LogWarning(ex, "Failed to get value from Redis cache for key: {Key}. Falling back to in-memory cache.", key);
         }
 
-        // Fall back to in-memory cache
-        if (_memoryCache.TryGetValue(key, out T? memoryValue))
+        // Fall back to in-memory cache if enabled
+        if (_cacheOptions.FallbackEnabled && _memoryCache.TryGetValue(key, out T? memoryValue))
         {
             _logger.LogDebug("Cache hit in in-memory cache for key: {Key}", key);
             return memoryValue;
@@ -67,26 +81,35 @@ public class FallbackCacheService : IFallbackCacheService
         await _semaphore.WaitAsync(cancellationToken);
         try
         {
-            // Set in Redis first
-            await _redisCacheService.SetAsync(key, value, options, cancellationToken);
+            // Set in Redis if enabled
+            if (_cacheOptions.RedisEnabled)
+            {
+                await _redisCacheService.SetAsync(key, value, options, cancellationToken);
+            }
 
-            // Also set in in-memory cache for faster access
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(options?.AbsoluteExpirationRelativeToNow ?? _cacheOptions.DefaultExpiration)
-                .SetSize(CalculateCacheSize(value));
+            // Also set in in-memory cache for faster access (if enabled or if Redis is disabled)
+            if (_cacheOptions.FallbackEnabled || !_cacheOptions.RedisEnabled)
+            {
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(options?.AbsoluteExpirationRelativeToNow ?? _cacheOptions.DefaultExpiration)
+                    .SetSize(CalculateCacheSize(value));
 
-            _memoryCache.Set(key, value, cacheEntryOptions);
+                _memoryCache.Set(key, value, cacheEntryOptions);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to set value in Redis cache for key: {Key}. Setting in in-memory cache only.", key);
+            _logger.LogWarning(ex, "Failed to set value in cache for key: {Key}.", key);
 
-            // Fall back to in-memory cache only
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(options?.AbsoluteExpirationRelativeToNow ?? _cacheOptions.DefaultExpiration)
-                .SetSize(CalculateCacheSize(value));
+            // Fall back to in-memory cache only if enabled
+            if (_cacheOptions.FallbackEnabled)
+            {
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(options?.AbsoluteExpirationRelativeToNow ?? _cacheOptions.DefaultExpiration)
+                    .SetSize(CalculateCacheSize(value));
 
-            _memoryCache.Set(key, value, cacheEntryOptions);
+                _memoryCache.Set(key, value, cacheEntryOptions);
+            }
         }
         finally
         {
@@ -99,17 +122,20 @@ public class FallbackCacheService : IFallbackCacheService
         await _semaphore.WaitAsync(cancellationToken);
         try
         {
-            // Remove from Redis first
-            await _redisCacheService.RemoveAsync(key, cancellationToken);
+            // Remove from Redis if enabled
+            if (_cacheOptions.RedisEnabled)
+            {
+                await _redisCacheService.RemoveAsync(key, cancellationToken);
+            }
 
             // Also remove from in-memory cache
             _memoryCache.Remove(key);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to remove value from Redis cache for key: {Key}. Removing from in-memory cache only.", key);
+            _logger.LogWarning(ex, "Failed to remove value from cache for key: {Key}.", key);
 
-            // Fall back to removing from in-memory cache only
+            // Remove from in-memory cache regardless
             _memoryCache.Remove(key);
         }
         finally
@@ -120,6 +146,12 @@ public class FallbackCacheService : IFallbackCacheService
 
     public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
+        // If Redis is disabled, check in-memory cache only
+        if (!_cacheOptions.RedisEnabled)
+        {
+            return _memoryCache.TryGetValue(key, out _);
+        }
+
         // Check Redis first
         try
         {
@@ -134,8 +166,13 @@ public class FallbackCacheService : IFallbackCacheService
             _logger.LogWarning(ex, "Failed to check existence in Redis cache for key: {Key}. Checking in in-memory cache.", key);
         }
 
-        // Fall back to in-memory cache
-        return _memoryCache.TryGetValue(key, out _);
+        // Fall back to in-memory cache if enabled
+        if (_cacheOptions.FallbackEnabled)
+        {
+            return _memoryCache.TryGetValue(key, out _);
+        }
+
+        return false;
     }
 
     private static long CalculateCacheSize<T>(T value)
