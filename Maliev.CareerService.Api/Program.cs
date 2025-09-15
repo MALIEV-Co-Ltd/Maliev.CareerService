@@ -144,16 +144,47 @@ try
         {
             options.BasePath = "careers";
         });
+
+        // Add validation for development
+        builder.Services.AddOptions<UploadServiceOptions>()
+            .PostConfigure(options =>
+            {
+                // Ensure defaults are applied if config section is empty
+                if (string.IsNullOrEmpty(options.BaseUrl))
+                {
+                    options.BaseUrl = "http://localhost:8080";
+                }
+                if (options.TimeoutSeconds <= 0)
+                {
+                    options.TimeoutSeconds = 30;
+                }
+            })
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<GcsConfiguration>()
+            .PostConfigure(options =>
+            {
+                // Ensure defaults are applied if config section is empty
+                if (string.IsNullOrEmpty(options.BasePath))
+                {
+                    options.BasePath = "careers";
+                }
+            })
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
     }
     else
     {
         builder.Services.AddOptions<UploadServiceOptions>()
             .Bind(builder.Configuration.GetSection(UploadServiceOptions.SectionName))
-            .ValidateDataAnnotations();
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         builder.Services.AddOptions<GcsConfiguration>()
             .Bind(builder.Configuration.GetSection(GcsConfiguration.SectionName))
-            .ValidateDataAnnotations();
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
     }
 
     // Configure Career DbContext
@@ -186,13 +217,8 @@ try
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
     }
 
-    // Configure Memory Cache
-    builder.Services.AddMemoryCache(options =>
-    {
-        var cacheOptions = new CacheOptions();
-        builder.Configuration.GetSection(CacheOptions.SectionName).Bind(cacheOptions);
-        options.SizeLimit = cacheOptions.MaxCacheSize;
-    });
+    // Configure Memory Cache (simple configuration without SizeLimit)
+    builder.Services.AddMemoryCache();
 
     // Configure HTTP client for UploadService
     builder.Services.AddHttpClient<IUploadServiceClient, UploadServiceClient>((serviceProvider, client) =>
