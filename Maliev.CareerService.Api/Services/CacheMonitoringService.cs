@@ -92,12 +92,12 @@ public class CacheMonitoringService : ICacheMonitoringService, IHealthCheck
         _logger.LogDebug("Cache remove recorded for key: {CacheKey}", cacheKey);
     }
 
-    public async Task<CacheMetrics> GetCacheMetricsAsync()
+    public Task<CacheMetrics> GetCacheMetricsAsync()
     {
         var totalRequests = _totalHits + _totalMisses;
         var hitRate = totalRequests > 0 ? (double)_totalHits / totalRequests : 0;
 
-        return new CacheMetrics
+        var metrics = new CacheMetrics
         {
             TotalHits = _totalHits,
             TotalMisses = _totalMisses,
@@ -114,9 +114,11 @@ public class CacheMonitoringService : ICacheMonitoringService, IHealthCheck
                 Created = kvp.Value.Created
             }).ToList()
         };
+
+        return Task.FromResult(metrics);
     }
 
-    public async Task<Dictionary<string, CacheItemInfo>> GetCacheItemsInfoAsync()
+    public Task<Dictionary<string, CacheItemInfo>> GetCacheItemsInfoAsync()
     {
         var result = new Dictionary<string, CacheItemInfo>();
 
@@ -131,7 +133,7 @@ public class CacheMonitoringService : ICacheMonitoringService, IHealthCheck
             };
         }
 
-        return result;
+        return Task.FromResult(result);
     }
 
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -160,12 +162,12 @@ public class CacheMonitoringService : ICacheMonitoringService, IHealthCheck
             else if (hitRate >= 0.5) // 50% hit rate is considered degraded
             {
                 return Task.FromResult(HealthCheckResult.Degraded(
-                    $"Cache performance is degraded with {Math.Round(hitRate * 100, 2)}% hit rate", data));
+                    $"Cache performance is degraded with {Math.Round(hitRate * 100, 2)}% hit rate"));
             }
             else
             {
                 return Task.FromResult(HealthCheckResult.Unhealthy(
-                    $"Cache performance is poor with {Math.Round(hitRate * 100, 2)}% hit rate", null, data));
+                    $"Cache performance is poor with {Math.Round(hitRate * 100, 2)}% hit rate"));
             }
         }
         catch (Exception ex)
