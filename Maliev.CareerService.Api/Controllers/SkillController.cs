@@ -132,48 +132,34 @@ public class SkillController : ControllerBase
     }
 
         /// <summary>
-    /// Gets unique skill categories.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of unique skill categories.</returns>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     GET careers/v1.0/skills/categories
-    ///
-    /// Sample response:
-    ///
-    ///     [
-    ///         "Programming",
-    ///         "Cloud",
-    ///         "Database",
-    ///         "DevOps",
+        /// Gets unique skill categories.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A list of unique skill categories.</returns>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET careers/v1.0/skills/categories
+        ///
+        /// Sample response:
+        ///
+        ///     [
+        ///         "Programming",
+        ///         "Cloud",
+        ///         "Database",
+        ///         "DevOps",
+        ///         "UI/UX"
+        ///     ]
+        ///
+        /// This endpoint returns all unique skill categories from active skills, sorted alphabetically.
+        ///
+        /// Error responses:
+        ///
+        /// 500 Internal Server Error - When there is an unexpected error
+        /// </remarks>
     ///         "UI/UX"
     ///     ]
     ///
-    /// This endpoint returns all unique skill categories from active skills, sorted alphabetically.
-    ///
-    /// Error responses:
-    ///
-    /// 500 Internal Server Error - When there is an unexpected error
-    /// </remarks>
-    /// <summary>
-    /// Gets unique skill categories.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of unique skill categories.</returns>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     GET careers/v1.0/skills/categories
-    ///
-    /// Sample response:
-    ///
-    ///     [
-    ///         "Programming",
-    ///         "Cloud",
-    ///         "Database",
-    ///         "DevOps",
     ///         "UI/UX"
     ///     ]
     ///

@@ -72,7 +72,7 @@ public class CacheVersioningService : ICacheVersioningService
         return Convert.ToBase64String(hashBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    public async Task InvalidateCacheByVersionAsync(string versionPrefix, CancellationToken cancellationToken = default)
+    public Task InvalidateCacheByVersionAsync(string versionPrefix, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -87,6 +87,8 @@ public class CacheVersioningService : ICacheVersioningService
         {
             _logger.LogError(ex, "Failed to invalidate cache by version prefix: {VersionPrefix}", versionPrefix);
         }
+        
+        return Task.CompletedTask;
     }
 
     public async Task<string> GetCurrentVersionAsync(string key, CancellationToken cancellationToken = default)

@@ -107,8 +107,15 @@ try
     });
     
     // Register Redis connection multiplexer for health checks
-    builder.Services.AddSingleton<IConnectionMultiplexer>(
-        _ => ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
+    builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    {
+        var connectionString = builder.Configuration.GetConnectionString("Redis");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("Redis connection string is not configured");
+        }
+        return ConnectionMultiplexer.Connect(connectionString);
+    });
 
     // Register Redis cache service
     builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
