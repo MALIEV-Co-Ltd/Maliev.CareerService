@@ -41,7 +41,8 @@ public class DocumentServiceTests : IDisposable
             _context,
             _mockUploadServiceClient.Object,
             _mockLogger.Object,
-            _mockGcsConfiguration.Object);
+            _mockGcsConfiguration.Object,
+            new FileValidationService());
 
         SeedTestData();
     }
@@ -410,40 +411,6 @@ public class DocumentServiceTests : IDisposable
         result.Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(DocumentType.Resume, "application/pdf", true)]
-    [InlineData(DocumentType.CoverLetter, "text/plain", true)]
-    [InlineData(DocumentType.Portfolio, "image/jpeg", true)]
-    [InlineData(DocumentType.Certificate, "image/png", true)]
-    [InlineData(DocumentType.Transcript, "application/zip", true)]
-    [InlineData("InvalidType", "application/pdf", false)]
-    [InlineData(DocumentType.Resume, "application/msword", false)]
-    [InlineData(DocumentType.Resume, "text/html", false)]
-    public async Task ValidateDocumentTypeAsync_VariousInputs_ReturnsExpectedResult(
-        string documentType, string mimeType, bool expected)
-    {
-        // Act
-        var result = await _documentService.ValidateDocumentTypeAsync(documentType, mimeType);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Theory]
-    [InlineData(1024, true)]
-    [InlineData(10 * 1024 * 1024, true)] // 10MB - at limit
-    [InlineData(11 * 1024 * 1024, false)] // 11MB - exceeds limit
-    [InlineData(0, false)]
-    [InlineData(-1, false)]
-    public async Task ValidateFileSizeAsync_VariousSizes_ReturnsExpectedResult(long fileSize, bool expected)
-    {
-        // Act
-        var result = await _documentService.ValidateFileSizeAsync(fileSize);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
     [Fact]
     public async Task GetTotalFileSizeByApplicationAsync_ExistingDocuments_ReturnsCorrectSum()
     {
@@ -520,13 +487,27 @@ public class DocumentServiceTests : IDisposable
         documentsInDb.Should().BeEmpty();
     }
 
-    private static IFormFile CreateMockFormFile(string fileName, string contentType, long length)
+    private static IFormFile CreateMockFormFile(string fileName, string contentType, int length)
     {
         var formFile = new Mock<IFormFile>();
         formFile.Setup(f => f.FileName).Returns(fileName);
         formFile.Setup(f => f.ContentType).Returns(contentType);
         formFile.Setup(f => f.Length).Returns(length);
-        formFile.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[length]));
+        
+        // Create a valid PDF file with proper header for PDF validation
+        if (contentType == "application/pdf")
+        {
+            // PDF file header: %PDF-1.4
+            var pdfHeader = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 }; // %PDF-1.4
+            var pdfContent = new byte[length];
+            Array.Copy(pdfHeader, pdfContent, Math.Min(pdfHeader.Length, length));
+            formFile.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(pdfContent));
+        }
+        else
+        {
+            formFile.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[length]));
+        }
+        
         return formFile.Object;
     }
 

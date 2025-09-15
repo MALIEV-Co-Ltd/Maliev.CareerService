@@ -12,6 +12,7 @@ public class DocumentService : IDocumentService
     private readonly IUploadServiceClient _uploadServiceClient;
     private readonly ILogger<DocumentService> _logger;
     private readonly GcsConfiguration _gcsConfiguration;
+    private readonly IFileValidationService _fileValidationService;
 
     private readonly HashSet<string> _allowedDocumentTypes = new()
     {
@@ -39,12 +40,14 @@ public class DocumentService : IDocumentService
         CareerDbContext context,
         IUploadServiceClient uploadServiceClient,
         ILogger<DocumentService> logger,
-        IOptions<GcsConfiguration> gcsConfiguration)
+        IOptions<GcsConfiguration> gcsConfiguration,
+        IFileValidationService fileValidationService)
     {
         _context = context;
         _uploadServiceClient = uploadServiceClient;
         _logger = logger;
         _gcsConfiguration = gcsConfiguration.Value;
+        _fileValidationService = fileValidationService;
     }
 
     public async Task<ApplicationDocumentDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -68,6 +71,17 @@ public class DocumentService : IDocumentService
 
     public async Task<ApplicationDocumentDto> UploadDocumentAsync(int applicationId, DocumentUploadRequest request, CancellationToken cancellationToken = default)
     {
+        // Validate request
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        if (request.File == null)
+        {
+            throw new ArgumentException("File is required", nameof(request.File));
+        }
+
         // Validate application exists
         var applicationExists = await _context.JobApplications
             .AnyAsync(ja => ja.Id == applicationId, cancellationToken);
@@ -77,14 +91,30 @@ public class DocumentService : IDocumentService
             throw new ArgumentException("Job application not found", nameof(applicationId));
         }
 
-        // Validate document type and MIME type
-        if (!await ValidateDocumentTypeAsync(request.DocumentType, request.File.ContentType))
+        // Validate document type
+        if (string.IsNullOrEmpty(request.DocumentType))
         {
-            throw new ArgumentException($"Invalid document type '{request.DocumentType}' or MIME type '{request.File.ContentType}'");
+            throw new ArgumentException("Document type is required", nameof(request.DocumentType));
         }
 
-        // Validate file size
-        if (!await ValidateFileSizeAsync(request.File.Length))
+        if (!_allowedDocumentTypes.Contains(request.DocumentType))
+        {
+            throw new ArgumentException($"Invalid document type '{request.DocumentType}'", nameof(request.DocumentType));
+        }
+
+        // Validate document type and MIME type using the new validation service
+        if (!_fileValidationService.IsMimeTypeAllowed(request.File.ContentType))
+        {
+            throw new ArgumentException($"Invalid MIME type '{request.File.ContentType}'");
+        }
+
+        if (!_fileValidationService.IsFileExtensionAllowed(request.File.FileName))
+        {
+            throw new ArgumentException($"Invalid file extension '{Path.GetExtension(request.File.FileName)}'");
+        }
+
+        // Validate file size using the DocumentService's limit
+        if (request.File.Length > MaxFileSize)
         {
             throw new ArgumentException($"File size {request.File.Length} bytes exceeds maximum allowed size of {MaxFileSize} bytes");
         }
@@ -94,6 +124,19 @@ public class DocumentService : IDocumentService
         if (currentTotalSize + request.File.Length > MaxTotalSizePerApplication)
         {
             throw new ArgumentException($"Adding this file would exceed the total size limit of {MaxTotalSizePerApplication} bytes per application");
+        }
+
+        // Validate file content using the new validation service
+        FileValidationResult validationResult;
+        using (var fileStream = request.File.OpenReadStream())
+        {
+            validationResult = await _fileValidationService.ValidateFileAsync(
+                fileStream, request.File.FileName, request.File.ContentType, request.File.Length);
+        }
+        
+        if (!validationResult.IsValid)
+        {
+            throw new ArgumentException($"File validation failed: {validationResult.ErrorMessage}");
         }
 
         // Generate upload path
@@ -113,7 +156,8 @@ public class DocumentService : IDocumentService
                 {
                     ["applicationId"] = applicationId.ToString(),
                     ["documentType"] = request.DocumentType,
-                    ["description"] = request.Description ?? string.Empty
+                    ["description"] = request.Description ?? string.Empty,
+                    ["fileHash"] = validationResult.FileHash ?? string.Empty
                 }
             };
 
@@ -218,19 +262,6 @@ public class DocumentService : IDocumentService
         return await _context.ApplicationDocuments
             .Where(d => d.JobApplicationId == applicationId)
             .SumAsync(d => d.FileSize, cancellationToken);
-    }
-
-    public Task<bool> ValidateDocumentTypeAsync(string documentType, string mimeType)
-    {
-        var isValidType = _allowedDocumentTypes.Contains(documentType);
-        var isValidMimeType = _allowedMimeTypes.Contains(mimeType);
-        
-        return Task.FromResult(isValidType && isValidMimeType);
-    }
-
-    public Task<bool> ValidateFileSizeAsync(long fileSize)
-    {
-        return Task.FromResult(fileSize > 0 && fileSize <= MaxFileSize);
     }
 
     private string GenerateUploadPath(int applicationId)

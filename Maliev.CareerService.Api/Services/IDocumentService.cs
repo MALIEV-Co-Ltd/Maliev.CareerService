@@ -11,6 +11,4 @@ public interface IDocumentService
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
     Task<long> GetTotalFileSizeByApplicationAsync(int applicationId, CancellationToken cancellationToken = default);
-    Task<bool> ValidateDocumentTypeAsync(string documentType, string mimeType);
-    Task<bool> ValidateFileSizeAsync(long fileSize);
 }

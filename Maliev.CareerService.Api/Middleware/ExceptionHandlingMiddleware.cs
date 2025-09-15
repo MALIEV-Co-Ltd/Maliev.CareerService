@@ -22,39 +22,67 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception has occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, ex);
+            // Get correlation ID from the context
+            var correlationId = context.Items["CorrelationId"]?.ToString() ?? 
+                               context.Request.Headers["X-Correlation-ID"].FirstOrDefault() ??
+                               Guid.NewGuid().ToString();
+            
+            _logger.LogError(ex, "An unhandled exception has occurred: {Message}. Correlation ID: {CorrelationId}", 
+                ex.Message, correlationId);
+            
+            await HandleExceptionAsync(context, ex, correlationId);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception, string correlationId)
     {
         context.Response.ContentType = "application/json";
         
         var response = context.Response;
-        var errorResponse = new ErrorResponse();
+        var errorResponse = new ErrorResponse
+        {
+            CorrelationId = correlationId
+        };
 
         switch (exception)
         {
-            case ApplicationException:
-                errorResponse.Message = exception.Message;
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
+            case ArgumentException argEx:
+                errorResponse.Message = argEx.Message;
+                errorResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                errorResponse.ErrorType = "ArgumentException";
                 break;
             case KeyNotFoundException:
                 errorResponse.Message = "Resource not found.";
-                response.StatusCode = (int)HttpStatusCode.NotFound;
+                errorResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                errorResponse.ErrorType = "NotFound";
                 break;
             case UnauthorizedAccessException:
                 errorResponse.Message = "Unauthorized access.";
-                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                errorResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
+                errorResponse.ErrorType = "Unauthorized";
+                break;
+            case InvalidOperationException invalidOpEx:
+                errorResponse.Message = invalidOpEx.Message;
+                errorResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                errorResponse.ErrorType = "InvalidOperation";
                 break;
             default:
-                errorResponse.Message = "An internal server error occurred.";
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                // In development, include exception details for debugging
+                if (context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+                {
+                    errorResponse.Message = exception.Message;
+                    errorResponse.StackTrace = exception.StackTrace;
+                }
+                else
+                {
+                    errorResponse.Message = "An internal server error occurred.";
+                }
+                errorResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                errorResponse.ErrorType = "InternalServerError";
                 break;
         }
 
-        errorResponse.StatusCode = response.StatusCode;
+        response.StatusCode = errorResponse.StatusCode;
         
         var jsonResponse = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
         {
@@ -68,6 +96,8 @@ public class ExceptionHandlingMiddleware
     {
         public string Message { get; set; } = string.Empty;
         public int StatusCode { get; set; }
-        public string TraceId { get; set; } = System.Diagnostics.Activity.Current?.Id ?? string.Empty;
+        public string ErrorType { get; set; } = string.Empty;
+        public string CorrelationId { get; set; } = string.Empty;
+        public string? StackTrace { get; set; }
     }
 }

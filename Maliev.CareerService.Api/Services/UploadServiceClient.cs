@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Maliev.CareerService.Api.Services;
 
@@ -8,11 +10,26 @@ public class UploadServiceClient : IUploadServiceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<UploadServiceClient> _logger;
+    private readonly IAsyncPolicy<HttpResponseMessage> _retryPolicy;
 
     public UploadServiceClient(HttpClient httpClient, ILogger<UploadServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
+        
+        // Configure retry policy with exponential backoff
+        _retryPolicy = Policy
+            .Handle<HttpRequestException>()
+            .OrResult<HttpResponseMessage>(r => r.StatusCode == System.Net.HttpStatusCode.TooManyRequests || 
+                                               r.StatusCode >= System.Net.HttpStatusCode.InternalServerError)
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (outcome, timespan, retryCount, context) =>
+                {
+                    _logger.LogWarning("Retry {RetryCount} after {Timespan} seconds for upload service call", 
+                        retryCount, timespan.TotalSeconds);
+                });
     }
 
     public async Task<UploadServiceResponse> UploadFileAsync(Stream fileStream, UploadServiceRequest request, CancellationToken cancellationToken = default)
@@ -39,7 +56,9 @@ public class UploadServiceClient : IUploadServiceClient
                 content.Add(new StringContent(metadataJson, Encoding.UTF8, "application/json"), "metadata");
             }
 
-            var response = await _httpClient.PostAsync("/upload/custom-path", content, cancellationToken);
+            var response = await _retryPolicy.ExecuteAsync(async (ct) => 
+                await _httpClient.PostAsync("/upload/custom-path", content, ct), cancellationToken);
+            
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -72,8 +91,22 @@ public class UploadServiceClient : IUploadServiceClient
     {
         try
         {
+            var policy = Policy
+                .Handle<HttpRequestException>()
+                .OrResult<HttpResponseMessage>(r => r.StatusCode == System.Net.HttpStatusCode.TooManyRequests || 
+                                                   r.StatusCode >= System.Net.HttpStatusCode.InternalServerError)
+                .WaitAndRetryAsync(
+                    retryCount: 2,
+                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    onRetry: (outcome, timespan, retryCount, context) =>
+                    {
+                        _logger.LogWarning("Retry {RetryCount} after {Timespan} seconds for download URL request", 
+                            retryCount, timespan.TotalSeconds);
+                    });
+
             var expirationParam = expiration?.TotalMinutes.ToString() ?? "60";
-            var response = await _httpClient.GetAsync($"/upload/download-url?bucket={bucket}&objectName={Uri.EscapeDataString(objectName)}&expirationMinutes={expirationParam}", cancellationToken);
+            var response = await policy.ExecuteAsync(async (ct) => 
+                await _httpClient.GetAsync($"/upload/download-url?bucket={bucket}&objectName={Uri.EscapeDataString(objectName)}&expirationMinutes={expirationParam}", ct), cancellationToken);
             
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -106,7 +139,21 @@ public class UploadServiceClient : IUploadServiceClient
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"/upload/delete?bucket={bucket}&objectName={Uri.EscapeDataString(objectName)}", cancellationToken);
+            var policy = Policy
+                .Handle<HttpRequestException>()
+                .OrResult<HttpResponseMessage>(r => r.StatusCode == System.Net.HttpStatusCode.TooManyRequests || 
+                                                   r.StatusCode >= System.Net.HttpStatusCode.InternalServerError)
+                .WaitAndRetryAsync(
+                    retryCount: 2,
+                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    onRetry: (outcome, timespan, retryCount, context) =>
+                    {
+                        _logger.LogWarning("Retry {RetryCount} after {Timespan} seconds for delete file request", 
+                            retryCount, timespan.TotalSeconds);
+                    });
+
+            var response = await policy.ExecuteAsync(async (ct) => 
+                await _httpClient.DeleteAsync($"/upload/delete?bucket={bucket}&objectName={Uri.EscapeDataString(objectName)}", ct), cancellationToken);
             
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

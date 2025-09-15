@@ -1,4 +1,6 @@
+using Maliev.CareerService.Api.Models;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;

@@ -1,3 +1,4 @@
+using Maliev.CareerService.Api.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -66,8 +67,8 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
             {
                 Page = 1,
                 PageSize = 10, // Load top 10 job positions
-                SortField = "CreatedDate",
-                SortDirection = "Descending"
+                SortBy = "CreatedDate",
+                SortDescending = true
             };
 
             var recentPositions = await _jobPositionService.SearchAsync(searchRequest, cancellationToken);

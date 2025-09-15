@@ -131,7 +131,7 @@ public class SkillService : ISkillService
         await _context.SaveChangesAsync(cancellationToken);
 
         // Clear caches using the cache invalidation service
-        _cacheInvalidationService.InvalidateRelatedCachesForSkill(id);
+        _cacheInvalidationService.InvalidateSkillCache();
 
         _logger.LogInformation("Created skill: {Name} in category {Category} with ID {Id}", skill.Name, skill.Category, skill.Id);
 
