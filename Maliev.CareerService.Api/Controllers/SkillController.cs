@@ -157,18 +157,6 @@ public class SkillController : ControllerBase
         ///
         /// 500 Internal Server Error - When there is an unexpected error
         /// </remarks>
-    ///         "UI/UX"
-    ///     ]
-    ///
-    ///         "UI/UX"
-    ///     ]
-    ///
-    /// This endpoint returns all unique skill categories from active skills, sorted alphabetically.
-    ///
-    /// Error responses:
-    ///
-    /// 500 Internal Server Error - When there is an unexpected error
-    /// </remarks>
     [HttpGet("categories")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<string>>> GetSkillCategories(CancellationToken cancellationToken = default)
