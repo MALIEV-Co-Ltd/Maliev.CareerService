@@ -120,6 +120,9 @@ try
         
     // Register fallback cache service
     builder.Services.AddScoped<IFallbackCacheService, FallbackCacheService>();
+    
+    // Register cache versioning service
+    builder.Services.AddScoped<ICacheVersioningService, CacheVersioningService>();
 
     // Configure service options with fallbacks for Development
     if (builder.Environment.IsDevelopment())
