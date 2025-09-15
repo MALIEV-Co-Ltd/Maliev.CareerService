@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Maliev.CareerService.Api.Models;
+using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Data.DbContexts;
 using Maliev.CareerService.Data.Entities;
 using Maliev.CareerService.Tests.IntegrationTests;

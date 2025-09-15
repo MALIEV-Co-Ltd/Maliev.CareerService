@@ -1,3 +1,4 @@
+using Maliev.CareerService.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,15 @@ public class CareerServiceWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase("TestDb");
             });
+            
+            // Remove the CacheWarmingService to prevent interference with tests
+            var cacheWarmingDescriptor = services.SingleOrDefault(
+                d => d.ImplementationType == typeof(CacheWarmingService));
+                
+            if (cacheWarmingDescriptor != null)
+            {
+                services.Remove(cacheWarmingDescriptor);
+            }
         });
     }
 }
