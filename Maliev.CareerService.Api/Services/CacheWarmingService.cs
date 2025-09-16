@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,23 +13,17 @@ public interface ICacheWarmingService
 
 public class CacheWarmingService : ICacheWarmingService, IHostedService
 {
-    private readonly IJobPositionService _jobPositionService;
-    private readonly ISkillService _skillService;
-    private readonly IWorkLocationService _workLocationService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<CacheWarmingService> _logger;
     private readonly CacheOptions _cacheOptions;
     private Timer? _timer;
 
     public CacheWarmingService(
-        IJobPositionService jobPositionService,
-        ISkillService skillService,
-        IWorkLocationService workLocationService,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<CacheWarmingService> logger,
         IOptions<CacheOptions> cacheOptions)
     {
-        _jobPositionService = jobPositionService;
-        _skillService = skillService;
-        _workLocationService = workLocationService;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
         _cacheOptions = cacheOptions.Value;
     }
@@ -39,14 +34,19 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
         {
             _logger.LogInformation("Starting cache warming process");
 
+            using var scope = _serviceScopeFactory.CreateScope();
+            var jobPositionService = scope.ServiceProvider.GetRequiredService<IJobPositionService>();
+            var skillService = scope.ServiceProvider.GetRequiredService<ISkillService>();
+            var workLocationService = scope.ServiceProvider.GetRequiredService<IWorkLocationService>();
+
             // Warm up job positions cache
-            await WarmUpJobPositionsCacheAsync(cancellationToken);
+            await WarmUpJobPositionsCacheAsync(jobPositionService, cancellationToken);
 
             // Warm up skills cache
-            await WarmUpSkillsCacheAsync(cancellationToken);
+            await WarmUpSkillsCacheAsync(skillService, cancellationToken);
 
             // Warm up work locations cache
-            await WarmUpWorkLocationsCacheAsync(cancellationToken);
+            await WarmUpWorkLocationsCacheAsync(workLocationService, cancellationToken);
 
             _logger.LogInformation("Cache warming process completed successfully");
         }
@@ -56,7 +56,7 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
         }
     }
 
-    private async Task WarmUpJobPositionsCacheAsync(CancellationToken cancellationToken)
+    private async Task WarmUpJobPositionsCacheAsync(IJobPositionService jobPositionService, CancellationToken cancellationToken)
     {
         try
         {
@@ -71,11 +71,11 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
                 SortDescending = true
             };
 
-            var recentPositions = await _jobPositionService.SearchAsync(searchRequest, cancellationToken);
+            var recentPositions = await jobPositionService.SearchAsync(searchRequest, cancellationToken);
             _logger.LogInformation("Warmed up {Count} recent job positions", recentPositions.Items.Count());
 
             // Load departments cache
-            await _jobPositionService.GetDepartmentsAsync(cancellationToken);
+            await jobPositionService.GetDepartmentsAsync(cancellationToken);
             _logger.LogInformation("Warmed up departments cache");
         }
         catch (Exception ex)
@@ -84,18 +84,18 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
         }
     }
 
-    private async Task WarmUpSkillsCacheAsync(CancellationToken cancellationToken)
+    private async Task WarmUpSkillsCacheAsync(ISkillService skillService, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogInformation("Warming up skills cache");
 
             // Load all skills
-            await _skillService.GetAllAsync(true, cancellationToken);
+            await skillService.GetAllAsync(true, cancellationToken);
             _logger.LogInformation("Warmed up all skills cache");
 
             // Load skill categories
-            await _skillService.GetCategoriesAsync(cancellationToken);
+            await skillService.GetCategoriesAsync(cancellationToken);
             _logger.LogInformation("Warmed up skill categories cache");
         }
         catch (Exception ex)
@@ -104,18 +104,18 @@ public class CacheWarmingService : ICacheWarmingService, IHostedService
         }
     }
 
-    private async Task WarmUpWorkLocationsCacheAsync(CancellationToken cancellationToken)
+    private async Task WarmUpWorkLocationsCacheAsync(IWorkLocationService workLocationService, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogInformation("Warming up work locations cache");
 
             // Load all work locations
-            await _workLocationService.GetAllAsync(true, cancellationToken);
+            await workLocationService.GetAllAsync(true, cancellationToken);
             _logger.LogInformation("Warmed up all work locations cache");
 
             // Load cities
-            await _workLocationService.GetCitiesAsync(cancellationToken);
+            await workLocationService.GetCitiesAsync(cancellationToken);
             _logger.LogInformation("Warmed up cities cache");
         }
         catch (Exception ex)
