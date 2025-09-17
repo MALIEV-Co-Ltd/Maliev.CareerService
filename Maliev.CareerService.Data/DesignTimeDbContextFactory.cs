@@ -9,15 +9,11 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CareerDbCo
     public CareerDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<CareerDbContext>();
-        
-        // Use environment variable for design-time operations (for migrations)
-        // The connection string should be set in environment for migrations:
-        // set CareerDbContext="Server=localhost;Database=CareerService;..."
-        var connectionString = Environment.GetEnvironmentVariable("CareerDbContext") 
-            ?? throw new InvalidOperationException("CareerDbContext environment variable must be set for design-time operations");
 
-        optionsBuilder.UseNpgsql(connectionString);
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__CareerDbContext");
 
-        return new CareerDbContext(optionsBuilder.Options);
+            optionsBuilder.UseNpgsql(connectionString);
+
+            return new CareerDbContext(optionsBuilder.Options);
     }
 }
