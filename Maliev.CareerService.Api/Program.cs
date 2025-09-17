@@ -118,8 +118,8 @@ try
 
     // Register Redis cache service
     builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
-    
-    builder.Services.AddHealthChecks()
+
+    builder.Services.AddHealthChecks();
         
     // Register fallback cache service
     builder.Services.AddScoped<IFallbackCacheService, FallbackCacheService>();
