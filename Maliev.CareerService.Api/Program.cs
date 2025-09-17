@@ -119,10 +119,7 @@ try
     // Register Redis cache service
     builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
     
-    // Register cache monitoring service
-    builder.Services.AddSingleton<ICacheMonitoringService, CacheMonitoringService>();
     builder.Services.AddHealthChecks()
-        .AddCheck<CacheMonitoringService>("Cache Monitoring Health Check", tags: new[] { "readiness" });
         
     // Register fallback cache service
     builder.Services.AddScoped<IFallbackCacheService, FallbackCacheService>();
@@ -185,7 +182,7 @@ try
         if (string.IsNullOrEmpty(connectionString))
         {
             builder.Services.AddDbContext<CareerDbContext>(options =>
-                options.UseInMemoryDatabase(builder.Environment.IsDevelopment() ? "DevDb" : "TestDb"));
+                options.UseInMemoryDatabase("TestDb"));
         }
         else
         {
@@ -403,7 +400,7 @@ try
         .AddCheck<GcsHealthCheck>("GCS Health Check", tags: new[] { "readiness" })
         .AddCheck<MemoryHealthCheck>("Memory Health Check", tags: new[] { "readiness", "liveness" })
         .AddCheck<ResponseTimeHealthCheck>("Response Time Health Check", tags: new[] { "readiness" })
-        .AddCheck<BusinessMetricsHealthCheck>("Business Metrics Health Check", tags: new[] { "readiness" });
+        ;
         // Redis health check removed - using in-memory cache only
 
     var app = builder.Build();
