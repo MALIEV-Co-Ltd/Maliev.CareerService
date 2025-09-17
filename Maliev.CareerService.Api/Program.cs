@@ -416,7 +416,7 @@ try
         .AddCheck<MemoryHealthCheck>("Memory Health Check", tags: new[] { "readiness", "liveness" })
         .AddCheck<ResponseTimeHealthCheck>("Response Time Health Check", tags: new[] { "readiness" })
         .AddCheck<BusinessMetricsHealthCheck>("Business Metrics Health Check", tags: new[] { "readiness" })
-        .AddCheck<RedisHealthCheck>("Redis Health Check", tags: new[] { "readiness" });
+        // Redis health check removed - using in-memory cache only
 
     var app = builder.Build();
 
