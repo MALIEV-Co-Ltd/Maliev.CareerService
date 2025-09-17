@@ -31,8 +31,8 @@ public class UploadServiceHealthCheck : IHealthCheck
                 _httpClient.Timeout = TimeSpan.FromSeconds(Math.Min(_options.TimeoutSeconds, 10)); // Limit health check timeout
             }
 
-            // Try to reach a simple health endpoint on UploadService
-            var response = await _httpClient.GetAsync("/health", cancellationToken);
+            // Try to reach the upload service liveness endpoint
+            var response = await _httpClient.GetAsync("/uploads/liveness", cancellationToken);
             
             if (response.IsSuccessStatusCode)
             {
