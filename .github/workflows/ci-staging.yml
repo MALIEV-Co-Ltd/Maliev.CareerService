@@ -16,7 +16,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9.x'
+        dotnet-version: "9.x"
 
     - name: Restore dependencies
       run: dotnet restore Maliev.CareerService.sln
@@ -67,12 +67,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITOPS_PAT }}
         PR_BODY: |
-                  Automated deployment of career-service to staging environment.
-        
-                  Release: $RELEASE_VERSION
-                  Tag: ${{ github.ref }}
-                  Triggered by: ${{ github.actor }}
-                  Workflow: ${{ github.workflow }}
+          Automated deployment of career-service to staging environment.
+          
+          Release: $RELEASE_VERSION
+          Tag: ${{ github.ref }}
+          Triggered by: ${{ github.actor }}
+          Workflow: ${{ github.workflow }}
       run: |
         cd maliev-gitops
         git config --global user.name 'github-actions[bot]'
