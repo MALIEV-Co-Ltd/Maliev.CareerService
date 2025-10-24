@@ -42,5 +42,5 @@ public class JobApplication
 
     // Navigation properties
     public JobPosition JobPosition { get; set; } = null!;
-    public ICollection<ApplicationDocument> ApplicationDocuments { get; set; } = new List<ApplicationDocument>();
+    public ICollection<ApplicationDocument> ApplicationDocuments { get; set; } = [];
 }

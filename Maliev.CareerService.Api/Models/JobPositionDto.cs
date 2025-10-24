@@ -17,8 +17,8 @@ public class JobPositionDto
     public bool IsPublic { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
-    
-    public List<WorkLocationDto> WorkLocations { get; set; } = new();
-    public List<JobPositionSkillDto> Skills { get; set; } = new();
+
+    public List<WorkLocationDto> WorkLocations { get; set; } = [];
+    public List<JobPositionSkillDto> Skills { get; set; } = [];
     public int ApplicationCount { get; set; }
 }

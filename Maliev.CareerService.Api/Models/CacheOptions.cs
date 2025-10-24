@@ -12,8 +12,8 @@ public class CacheOptions
     public TimeSpan DefaultExpiration { get; set; } = TimeSpan.FromMinutes(30);
 
     public TimeSpan LongExpiration { get; set; } = TimeSpan.FromHours(2);
-    
+
     public bool RedisEnabled { get; set; } = true;
-    
+
     public bool FallbackEnabled { get; set; } = true;
 }

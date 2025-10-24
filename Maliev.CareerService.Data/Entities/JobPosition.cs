@@ -48,7 +48,7 @@ public class JobPosition
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public ICollection<JobApplication> JobApplications { get; set; } = new List<JobApplication>();
-    public ICollection<JobPositionLocation> JobPositionLocations { get; set; } = new List<JobPositionLocation>();
-    public ICollection<JobPositionSkill> JobPositionSkills { get; set; } = new List<JobPositionSkill>();
+    public ICollection<JobApplication> JobApplications { get; set; } = [];
+    public ICollection<JobPositionLocation> JobPositionLocations { get; set; } = [];
+    public ICollection<JobPositionSkill> JobPositionSkills { get; set; } = [];
 }

@@ -15,7 +15,7 @@ public class JobApplicationDto
     public string? Notes { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
-    
+
     public JobPositionDto? JobPosition { get; set; }
-    public List<ApplicationDocumentDto> Documents { get; set; } = new();
+    public List<ApplicationDocumentDto> Documents { get; set; } = [];
 }

@@ -1,30 +1,35 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using FluentValidation;
 using HealthChecks.UI.Client;
-using Maliev.CareerService.Api.Configurations;
-using Maliev.CareerService.Api.HealthChecks;
 using Maliev.CareerService.Api.Middleware;
-using Maliev.CareerService.Api.Models;
 using Maliev.CareerService.Api.Services;
-using Maliev.CareerService.Data.DbContexts;
+using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Prometheus;
+using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Filters;
-using StackExchange.Redis;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Text; 
+using Serilog.Events;
+using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
+// Configure Serilog - JSON to stdout only
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Service", "CareerService")
+    .WriteTo.Console(
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+        formatProvider: null)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -33,28 +38,24 @@ try
 {
     Log.Information("Starting Maliev Career Service");
 
-    // Load secrets from multiple sources for flexibility across environments
-    // 1. YAML file (if exists)
-    builder.Configuration.AddYamlFile("secrets.yaml", optional: true, reloadOnChange: true);
-
-    // 2. Environment variables (highest priority)
-    builder.Configuration.AddEnvironmentVariables();
-
-    // 3. Key-per-file from mounted volume (for containerized environments)
-    var secretsPath = Environment.GetEnvironmentVariable("SECRETS_PATH") ?? "/mnt/secrets";
+    // Load secrets from Google Secret Manager (mounted at /mnt/secrets)
+    var secretsPath = "/mnt/secrets";
     if (Directory.Exists(secretsPath))
     {
         builder.Configuration.AddKeyPerFile(directoryPath: secretsPath, optional: true);
     }
 
     // Add services to the container
-    builder.Services.AddControllers(options =>
-    {
-        options.Filters.Add<Maliev.CareerService.Api.Filters.ValidationFilter>();
-    });
+    builder.Services.AddControllers();
+
+    // Add FluentValidation
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddOpenApi();
-    
+
     // API Versioning
     builder.Services.AddApiVersioning(options =>
     {
@@ -68,281 +69,160 @@ try
         options.SubstituteApiVersionInUrl = true;
     });
 
-    builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-    builder.Services.AddSwaggerGen();
-
-    // Configure strongly-typed configuration options with validation
-    builder.Services.Configure<RateLimitOptions>(builder.Configuration.GetSection(RateLimitOptions.SectionName));
-    builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
-    builder.Services.Configure<UploadServiceOptions>(builder.Configuration.GetSection(UploadServiceOptions.SectionName));
-    builder.Services.Configure<GcsConfiguration>(builder.Configuration.GetSection(GcsConfiguration.SectionName));
-    builder.Services.Configure<CorsOptions>(builder.Configuration.GetSection(CorsOptions.SectionName));
-
-    // Configure JWT options only if available (to allow local development without secrets)
-    var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
-    if (!string.IsNullOrEmpty(jwtSection["Issuer"]) && !builder.Environment.IsEnvironment("Testing"))
+    // Configure OpenAPI specification (required for Scalar)
+    builder.Services.AddSwaggerGen(options =>
     {
-        builder.Services.Configure<JwtOptions>(jwtSection);
-        builder.Services.AddOptions<JwtOptions>()
-            .Bind(jwtSection)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-    }
-
-    builder.Services.AddOptions<RateLimitOptions>()
-        .Bind(builder.Configuration.GetSection(RateLimitOptions.SectionName))
-        .ValidateDataAnnotations();
-
-    // Configure Cache options - register both as IOptions<T> and as concrete type for DI
-    builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
-    builder.Services.AddSingleton<CacheOptions>(provider =>
-        provider.GetRequiredService<IOptions<CacheOptions>>().Value);
-
-    // Configure Redis caching
-    builder.Services.AddStackExchangeRedisCache(options =>
-    {
-        options.Configuration = builder.Configuration.GetConnectionString("Redis");
-        options.InstanceName = "MalievCareerService_";
-    });
-    
-    // Register Redis connection multiplexer for health checks
-    builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    {
-        var connectionString = builder.Configuration.GetConnectionString("Redis");
-        if (string.IsNullOrEmpty(connectionString))
+        options.SwaggerDoc("v1", new OpenApiInfo
         {
-            throw new InvalidOperationException("Redis connection string is not configured");
-        }
-        return ConnectionMultiplexer.Connect(connectionString);
-    });
-
-    // Register Redis cache service
-    builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
-
-    builder.Services.AddHealthChecks();
-        
-    // Register fallback cache service
-    builder.Services.AddScoped<IFallbackCacheService, FallbackCacheService>();
-    
-    // Register cache versioning service
-    builder.Services.AddScoped<ICacheVersioningService, CacheVersioningService>();
-
-    // Configure service options with fallbacks for Testing only
-    if (builder.Environment.IsEnvironment("Testing"))
-    {
-        // Provide default configurations for testing environment only
-        builder.Services.Configure<UploadServiceOptions>(options =>
-        {
-            options.BaseUrl = "http://localhost:8080";
-            options.TimeoutSeconds = 30;
-        });
-        builder.Services.Configure<GcsConfiguration>(options =>
-        {
-            options.BasePath = "careers";
+            Title = "Career Service API",
+            Version = "v1",
+            Description = "Career Service API for managing job positions, applications, and employee development",
+            Contact = new OpenApiContact
+            {
+                Name = "Maliev Co. Ltd.",
+                Email = "support@maliev.com"
+            }
         });
 
-        // Add validation for development (skip validation for testing to avoid startup issues)
-        if (builder.Environment.IsDevelopment())
+        // Add JWT Bearer authentication to OpenAPI spec
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            builder.Services.AddOptions<UploadServiceOptions>()
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
+            Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token.",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
 
-            builder.Services.AddOptions<GcsConfiguration>()
-                .PostConfigure(options =>
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
                 {
-                    // Ensure defaults are applied if config section is empty
-                    if (string.IsNullOrEmpty(options.BasePath))
+                    Reference = new OpenApiReference
                     {
-                        options.BasePath = "careers";
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
                     }
-                })
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-        }
-    }
-    else
-    {
-        builder.Services.AddOptions<UploadServiceOptions>()
-            .Bind(builder.Configuration.GetSection(UploadServiceOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        builder.Services.AddOptions<GcsConfiguration>()
-            .Bind(builder.Configuration.GetSection(GcsConfiguration.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-    }
-
-    // Configure Career DbContext
-    if (builder.Environment.IsEnvironment("Testing") || builder.Environment.IsDevelopment())
-    {
-        // Use in-memory database for Testing and Development (when no connection string available)
-        var connectionString = builder.Configuration.GetConnectionString("CareerDbContext");
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            builder.Services.AddDbContext<CareerDbContext>(options =>
-                options.UseInMemoryDatabase("TestDb"));
-        }
-        else
-        {
-            builder.Services.AddDbContext<CareerDbContext>(options =>
-                options.UseNpgsql(connectionString));
-        }
-    }
-    else
-    {
-        builder.Services.AddDbContext<CareerDbContext>(options =>
-        {
-            options.UseNpgsql(builder.Configuration.GetConnectionString("CareerDbContext"));
+                },
+                Array.Empty<string>()
+            }
         });
-    }
+    });
 
-    // Add Database Developer Page Exception Filter only in Development environment
-    if (builder.Environment.IsDevelopment())
+    // Configure CareerDbContext with PostgreSQL ONLY (no in-memory fallback)
+    builder.Services.AddDbContext<CareerDbContext>(options =>
     {
-        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-    }
+        var connectionString = builder.Configuration.GetConnectionString("CareerDbContext");
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            options.UseNpgsql(connectionString);
+        }
+        else if (builder.Environment.IsDevelopment())
+        {
+            // In development, warn but don't fail - migrations can still be created
+            Log.Warning("CareerDbContext connection string not configured. Some features will not work.");
+        }
+    });
 
     // Configure Memory Cache (simple configuration without SizeLimit)
     builder.Services.AddMemoryCache();
 
-    // Configure HTTP client for UploadService
-    builder.Services.AddHttpClient<IUploadServiceClient, UploadServiceClient>((serviceProvider, client) =>
-    {
-        var uploadServiceOptions = serviceProvider.GetRequiredService<IOptions<UploadServiceOptions>>().Value;
-        client.BaseAddress = new Uri(uploadServiceOptions.BaseUrl);
-        client.Timeout = TimeSpan.FromSeconds(uploadServiceOptions.TimeoutSeconds);
-    });
-
-    // Configure HTTP client for UploadService health checks
-    builder.Services.AddHttpClient<UploadServiceHealthCheck>((serviceProvider, client) =>
-    {
-        var uploadServiceOptions = serviceProvider.GetRequiredService<IOptions<UploadServiceOptions>>().Value;
-        client.BaseAddress = new Uri(uploadServiceOptions.BaseUrl);
-        client.Timeout = TimeSpan.FromSeconds(10); // Short timeout for health checks
-    });
+    // Configure Response Caching for read-heavy endpoints
+    builder.Services.AddResponseCaching();
 
     // Register application services
-    builder.Services.AddScoped<IJobPositionService, JobPositionService>();
-    builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
-    builder.Services.AddScoped<IWorkLocationService, WorkLocationService>();
-    builder.Services.AddScoped<ISkillService, SkillService>();
-    builder.Services.AddScoped<IDocumentService, DocumentService>();
-    builder.Services.AddScoped<IBusinessEventLogger, BusinessEventLogger>();
-    builder.Services.AddScoped<IFileValidationService, FileValidationService>();
-    builder.Services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
-    builder.Services.AddHostedService<CacheWarmingService>();
+    builder.Services.AddScoped<IMarkdownService, MarkdownService>();
+    builder.Services.AddScoped<IJobPostingService, JobPostingService>();
+    builder.Services.AddScoped<IApplicationService, ApplicationService>();
 
-    // Configure Rate Limiting
+    // User Story 2: Training and Learning Services
+    builder.Services.AddScoped<ITrainingProgramService, TrainingProgramService>();
+    builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+    builder.Services.AddScoped<IELearningResourceService, ELearningResourceService>();
+
+    // User Story 3: Report Service
+    builder.Services.AddScoped<IReportService, ReportService>();
+
+    // User Story 4: Development Planning Services
+    builder.Services.AddScoped<IDevelopmentPlanService, DevelopmentPlanService>();
+    builder.Services.AddScoped<IDevelopmentGoalService, DevelopmentGoalService>();
+
+    // Prometheus Metrics
+    builder.Services.AddSingleton<IMetricsService, MetricsService>();
+
+    // Configure External Service Clients with HttpClient
+    builder.Services.Configure<EmployeeServiceOptions>(
+        builder.Configuration.GetSection("ExternalServices:EmployeeService"));
+    builder.Services.AddHttpClient<IEmployeeServiceClient, EmployeeServiceClient>();
+
+    builder.Services.Configure<UploadServiceOptions>(
+        builder.Configuration.GetSection("ExternalServices:UploadService"));
+    builder.Services.AddHttpClient<IUploadServiceClient, UploadServiceClient>();
+
+    builder.Services.Configure<CountryServiceOptions>(
+        builder.Configuration.GetSection("ExternalServices:CountryService"));
+    builder.Services.AddHttpClient<ICountryServiceClient, CountryServiceClient>();
+
+    builder.Services.Configure<EmailServiceOptions>(
+        builder.Configuration.GetSection("ExternalServices:EmailService"));
+    builder.Services.AddHttpClient<IEmailServiceClient, EmailServiceClient>();
+
+    // Configure Rate Limiting (100/200/300/500 req/min tiers)
     builder.Services.AddRateLimiter(options =>
     {
-        var rateLimitOptions = new RateLimitOptions 
-        { 
-            CareerEndpoint = new RateLimitOptions.CareerEndpointOptions(),
-            Global = new RateLimitOptions.GlobalOptions(),
-            User = new RateLimitOptions.UserOptions()
-        };
-        builder.Configuration.GetSection(RateLimitOptions.SectionName).Bind(rateLimitOptions);
+        // Anonymous users: 100 requests per minute
+        options.AddPolicy("anonymous", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 10
+                }));
 
-        // Career endpoint rate limiting
-        options.AddPolicy("CareerPolicy", context =>
-        {
-            // Get client IP considering proxies
-            var clientIP = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
-                          ?? context.Connection.RemoteIpAddress?.ToString() 
-                          ?? "unknown";
-                          
-            return RateLimitPartition.GetSlidingWindowLimiter(
-                partitionKey: clientIP,
-                factory: _ => new SlidingWindowRateLimiterOptions
+        // Authenticated users: 200 requests per minute
+        options.AddPolicy("authenticated", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = rateLimitOptions.CareerEndpoint.PermitLimit,
-                    Window = rateLimitOptions.CareerEndpoint.Window,
-                    SegmentsPerWindow = 2,
+                    PermitLimit = 200,
+                    Window = TimeSpan.FromMinutes(1),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                    QueueLimit = rateLimitOptions.CareerEndpoint.QueueLimit
-                });
-        });
+                    QueueLimit = 20
+                }));
 
-        // Global rate limiting
-        options.AddPolicy("GlobalPolicy", context =>
-        {
-            // Get client IP considering proxies
-            var clientIP = context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
-                          ?? context.Connection.RemoteIpAddress?.ToString() 
-                          ?? "unknown";
-                          
-            return RateLimitPartition.GetSlidingWindowLimiter(
-                partitionKey: clientIP,
-                factory: _ => new SlidingWindowRateLimiterOptions
+        // Admin users: 500 requests per minute
+        options.AddPolicy("admin", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = rateLimitOptions.Global.PermitLimit,
-                    Window = rateLimitOptions.Global.Window,
-                    SegmentsPerWindow = 4,
+                    PermitLimit = 500,
+                    Window = TimeSpan.FromMinutes(1),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                    QueueLimit = rateLimitOptions.Global.QueueLimit
-                });
-        });
-        
-        // User-based rate limiting (for authenticated users)
-        options.AddPolicy("UserPolicy", context =>
-        {
-            // Get user ID from claims, fallback to IP
-            var userId = context.User?.Identity?.IsAuthenticated == true 
-                ? context.User.FindFirst("sub")?.Value 
-                : context.Request.Headers["X-Forwarded-For"].FirstOrDefault() 
-                  ?? context.Connection.RemoteIpAddress?.ToString() 
-                  ?? "unknown";
-                          
-            return RateLimitPartition.GetSlidingWindowLimiter(
-                partitionKey: userId,
-                factory: _ => new SlidingWindowRateLimiterOptions
-                {
-                    PermitLimit = rateLimitOptions.User.PermitLimit,
-                    Window = rateLimitOptions.User.Window,
-                    SegmentsPerWindow = 3,
-                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                    QueueLimit = rateLimitOptions.User.QueueLimit
-                });
-        });
+                    QueueLimit = 50
+                }));
 
         options.OnRejected = async (context, token) =>
         {
             context.HttpContext.Response.StatusCode = 429;
             await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
-            
-            // Log rate limit exceeded event as a security event
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            var businessEventLogger = context.HttpContext.RequestServices.GetRequiredService<IBusinessEventLogger>();
-            var clientIP = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            
-            businessEventLogger.LogSecurityEvent(
-                "RateLimitExceeded", 
-                $"Rate limit exceeded for client {clientIP}", 
-                new { ClientIP = clientIP, Path = context.HttpContext.Request.Path });
         };
-    });
-
-    // Configure CORS
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(
-            policy =>
-            {
-                var corsOptions = new CorsOptions();
-                builder.Configuration.GetSection(CorsOptions.SectionName).Bind(corsOptions);
-                
-                policy.WithOrigins(corsOptions.AllowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-            });
     });
 
     // Configure JWT Authentication (skip in Testing environment)
     if (!builder.Environment.IsEnvironment("Testing"))
     {
-        if (jwtSection.Exists())
+        var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+        var jwtAudience = builder.Configuration["Jwt:Audience"];
+        var jwtKey = builder.Configuration["Jwt:SecretKey"];
+
+        if (!string.IsNullOrEmpty(jwtIssuer) && !string.IsNullOrEmpty(jwtKey))
         {
             builder.Services.AddAuthentication(options =>
             {
@@ -350,115 +230,78 @@ try
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var jwtOptions = new JwtOptions
-                {
-                    Issuer = "default-issuer",
-                    Audience = "default-audience", 
-                    SecurityKey = "default-key"
-                };
-                jwtSection.Bind(jwtOptions);
-
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecurityKey))
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                 };
             });
         }
         else
         {
-            // Log warning that JWT is not configured for local development
-            Log.Warning("JWT configuration not found - API will start but authentication will not work. Configure JWT secrets for full functionality.");
+            Log.Warning("JWT configuration not found - API will start but authentication will not work.");
         }
     }
 
     builder.Services.AddAuthorization();
 
-    builder.Services.Configure<ForwardedHeadersOptions>(options =>
-    {
-        options.ForwardedHeaders =
-            ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownNetworks.Clear();
-        options.KnownProxies.Clear();
-    });
-    
-    // Configure request size limits
-    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
-    {
-        options.MultipartBodyLengthLimit = 104857600; // 100MB
-    });
-
+    // Configure Health Checks
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<CareerDbContext>("CareerDbContext", tags: new[] { "readiness" })
-        .AddCheck<DatabaseHealthCheck>("Database Health Check", tags: new[] { "readiness" })
-        .AddCheck<UploadServiceHealthCheck>("UploadService Health Check", tags: new[] { "readiness" })
-        .AddCheck<GcsHealthCheck>("GCS Health Check", tags: new[] { "readiness" })
-        .AddCheck<MemoryHealthCheck>("Memory Health Check", tags: new[] { "readiness", "liveness" })
-        .AddCheck<ResponseTimeHealthCheck>("Response Time Health Check", tags: new[] { "readiness" })
-        ;
-        // Redis health check removed - using in-memory cache only
+        .AddDbContextCheck<CareerDbContext>("database", tags: new[] { "readiness" });
 
     var app = builder.Build();
 
-    app.UseForwardedHeaders();
-
-    // Add response time monitoring early in pipeline
-    app.UseResponseTimeMonitoring();
-
-    // Add correlation ID middleware early in pipeline
-    app.UseCorrelationId();
-    
-    // Add logging context middleware to enrich all logs with request information
-    app.UseLoggingContext();
-    
-    // Add security headers and input sanitization
-    app.UseSecurityHeaders();
-
-    // Configure the HTTP request pipeline
-    app.UseSwagger(c => 
+    // Configure OpenAPI spec endpoint and Scalar UI (interactive API documentation)
+    app.UseSwagger(options =>
     {
-        c.RouteTemplate = "careers/swagger/{documentName}/swagger.json";
-    });
-    app.UseSwaggerUI(c =>
-    {
-        var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-        foreach (var description in provider.ApiVersionDescriptions)
-        {
-            c.SwaggerEndpoint($"/careers/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
-        }
-        c.RoutePrefix = "careers/swagger";
+        options.RouteTemplate = "careers/openapi/{documentName}.json";
     });
 
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("Maliev Career Service API")
+            .WithTheme(ScalarTheme.Saturn)
+            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+            .WithOpenApiRoutePattern("/careers/openapi/{documentName}.json")
+            .WithEndpointPrefix("/careers/scalar/{documentName}");
+    });
+
+    // Middleware pipeline (EXACT ORDER matters)
+    app.UseMiddleware<ConcurrentUsersMiddleware>(); // Track concurrent users
+    app.UseMiddleware<RequestLoggingMiddleware>();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseHttpsRedirection();
-
+    app.UseResponseCaching(); // Response caching for read-heavy endpoints
+    app.UseHttpMetrics(); // Prometheus HTTP metrics
     app.UseRateLimiter();
-    app.UseCors();
-    
-    // JWT Authentication & Authorization (only if configured and not in Testing environment)
+
+    // Authentication & Authorization (only if configured and not in Testing)
     if (!app.Environment.IsEnvironment("Testing"))
     {
-        var appJwtSection = app.Configuration.GetSection(JwtOptions.SectionName);
-        if (appJwtSection.Exists())
+        var jwtIssuer = app.Configuration["Jwt:Issuer"];
+        if (!string.IsNullOrEmpty(jwtIssuer))
         {
             app.UseAuthentication();
             app.UseAuthorization();
         }
     }
 
-    // Health check endpoints (allow anonymous access for monitoring)
+    // Health check endpoints
     app.MapGet("/careers/liveness", () => "Healthy").AllowAnonymous();
-
     app.MapHealthChecks("/careers/readiness", new HealthCheckOptions
     {
-        Predicate = healthCheck => healthCheck.Tags.Contains("readiness"),
+        Predicate = check => check.Tags.Contains("readiness"),
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     }).AllowAnonymous();
+
+    // Prometheus metrics endpoint
+    app.MapMetrics("/careers/metrics").AllowAnonymous();
 
     app.MapControllers();
 

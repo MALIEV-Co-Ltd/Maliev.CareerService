@@ -55,3 +55,29 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 .vs
+# Test Results
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Local development configuration (contains secrets)
+appsettings.Development.json
+appsettings.Local.json
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.log

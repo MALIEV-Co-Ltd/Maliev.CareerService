@@ -22,8 +22,8 @@ public class JobPositionSearchRequest
     [MaxLength(50)]
     public string? ExperienceLevel { get; set; }
 
-    public List<int> WorkLocationIds { get; set; } = new();
-    public List<int> SkillIds { get; set; } = new();
+    public List<int> WorkLocationIds { get; set; } = [];
+    public List<int> SkillIds { get; set; } = [];
 
     [Range(0, double.MaxValue)]
     public decimal? MinSalary { get; set; }

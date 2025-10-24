@@ -11,7 +11,7 @@ public class RateLimitOptions
 
     [Required]
     public required GlobalOptions Global { get; set; }
-    
+
     [Required]
     public required UserOptions User { get; set; }
 
@@ -36,7 +36,7 @@ public class RateLimitOptions
         [Range(1, int.MaxValue)]
         public int QueueLimit { get; set; } = 20;
     }
-    
+
     public class UserOptions
     {
         [Range(1, int.MaxValue)]

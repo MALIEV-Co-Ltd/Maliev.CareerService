@@ -30,5 +30,5 @@ public class WorkLocation
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public ICollection<JobPositionLocation> JobPositionLocations { get; set; } = new List<JobPositionLocation>();
+    public ICollection<JobPositionLocation> JobPositionLocations { get; set; } = [];
 }
