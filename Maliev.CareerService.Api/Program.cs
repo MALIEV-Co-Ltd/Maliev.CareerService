@@ -271,7 +271,7 @@ try
     // Configure OpenAPI spec endpoint and Scalar UI (interactive API documentation)
     app.UseSwagger(options =>
     {
-        options.RouteTemplate = "careers/openapi/{documentName}.json";
+        options.RouteTemplate = "career/swagger/{documentName}/swagger.json";
     });
 
     app.MapScalarApiReference(options =>
@@ -280,7 +280,7 @@ try
             .WithTitle("Maliev Career Service API")
             .WithTheme(ScalarTheme.Saturn)
             .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
-            .WithOpenApiRoutePattern("/careers/openapi/{documentName}.json")
+            .WithOpenApiRoutePattern("/career/swagger/{documentName}/swagger.json")
             .WithEndpointPrefix("/careers/scalar/{documentName}");
     });
 
