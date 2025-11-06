@@ -215,36 +215,48 @@ try
         };
     });
 
-    // Configure JWT Authentication (skip in Testing environment)
+    // Configure JWT Authentication with RSA public key validation (skip in Testing environment)
     if (!builder.Environment.IsEnvironment("Testing"))
     {
-        var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-        var jwtAudience = builder.Configuration["Jwt:Audience"];
-        var jwtKey = builder.Configuration["Jwt:SecretKey"];
-
-        if (!string.IsNullOrEmpty(jwtIssuer) && !string.IsNullOrEmpty(jwtKey))
+        var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
+        if (jwtSection.Exists())
         {
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-                };
-            });
+                    var jwtOptions = new JwtOptions
+                    {
+                        Issuer = "default-issuer",
+                        Audience = "default-audience",
+                        PublicKey = "default-key"
+                    };
+                    jwtSection.Bind(jwtOptions);
+
+                    // Use RSA public key validation from shared config (maliev-shared-secrets)
+                    var publicKeyBytes = Convert.FromBase64String(jwtOptions.PublicKey);
+                    var publicKeyPem = Encoding.UTF8.GetString(publicKeyBytes);
+
+                    // Import RSA public key from PEM format
+                    var rsa = System.Security.Cryptography.RSA.Create();
+                    rsa.ImportFromPem(publicKeyPem);
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidAudience = jwtOptions.Audience,
+                        IssuerSigningKey = new RsaSecurityKey(rsa)
+                    };
+                });
+
+            Log.Information("JWT Authentication configured with RSA public key validation");
         }
         else
         {
-            Log.Warning("JWT configuration not found - API will start but authentication will not work.");
+            Log.Warning("JWT configuration not found - API will start but authentication will not work. Configure JWT secrets for full functionality.");
         }
     }
 
@@ -284,8 +296,8 @@ try
     // Authentication & Authorization (only if configured and not in Testing)
     if (!app.Environment.IsEnvironment("Testing"))
     {
-        var jwtIssuer = app.Configuration["Jwt:Issuer"];
-        if (!string.IsNullOrEmpty(jwtIssuer))
+        var jwtSection = app.Configuration.GetSection(JwtOptions.SectionName);
+        if (jwtSection.Exists())
         {
             app.UseAuthentication();
             app.UseAuthorization();
@@ -314,6 +326,15 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+public class JwtOptions
+{
+    public const string SectionName = "Jwt";
+
+    public required string Issuer { get; set; }
+    public required string Audience { get; set; }
+    public required string PublicKey { get; set; } // Base64-encoded RSA public key from shared config
 }
 
 // Make Program class accessible for integration tests
