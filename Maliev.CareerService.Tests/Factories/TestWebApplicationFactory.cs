@@ -31,27 +31,33 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
                     TestAuthHandler.AuthenticationScheme, options => { });
 
-            // Skip database configuration if PostgreSQL isn't available
-            if (!_databaseFixture.IsAvailable)
-            {
-                return;
-            }
-
             // Remove the existing DbContext registration
             services.RemoveAll<DbContextOptions<CareerDbContext>>();
             services.RemoveAll<CareerDbContext>();
 
-            // Add DbContext using PostgreSQL test database
-            services.AddDbContext<CareerDbContext>(options =>
+            // Configure DbContext based on PostgreSQL availability
+            if (_databaseFixture.IsAvailable)
             {
-                options.UseNpgsql(_databaseFixture.ConnectionString);
-            });
+                // Use PostgreSQL test database when available
+                services.AddDbContext<CareerDbContext>(options =>
+                {
+                    options.UseNpgsql(_databaseFixture.ConnectionString);
+                });
 
-            // Ensure the database is created
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
-            db.Database.EnsureCreated();
+                // Ensure the database is created
+                var sp = services.BuildServiceProvider();
+                using var scope = sp.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
+                db.Database.EnsureCreated();
+            }
+            else
+            {
+                // Use in-memory database as fallback when PostgreSQL is not available
+                services.AddDbContext<CareerDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase("CareerServiceTestDb");
+                });
+            }
         });
 
         builder.UseEnvironment("Testing");
