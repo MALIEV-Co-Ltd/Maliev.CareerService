@@ -134,6 +134,11 @@ public class TrainingProgramsController(
         }
         catch (InvalidOperationException ex)
         {
+            if (ex.Message.Contains("not found"))
+            {
+                return NotFound(new { error = ex.Message });
+            }
+
             _logger.LogWarning(ex, "Failed to create training program due to validation error");
             return BadRequest(new { error = ex.Message });
         }

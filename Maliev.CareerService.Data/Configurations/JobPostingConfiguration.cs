@@ -79,6 +79,13 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(e => e.SalaryMax)
             .HasPrecision(18, 2);
 
+        // Row version for optimistic concurrency
+        builder.Property(e => e.RowVersion)
+            .IsRowVersion()
+            .HasColumnName("row_version")
+            .ValueGeneratedOnAddOrUpdate()
+            .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
+
         // Check constraints
         builder.ToTable(t =>
         {

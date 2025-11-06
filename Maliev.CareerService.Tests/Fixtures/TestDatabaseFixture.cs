@@ -42,14 +42,12 @@ public class TestDatabaseFixture : IAsyncLifetime
 
             // Test connection and run migrations
             var optionsBuilder = new DbContextOptionsBuilder<CareerDbContext>();
-            optionsBuilder.UseNpgsql(ConnectionString);
+            optionsBuilder.UseNpgsql(ConnectionString)
+                .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
             await using var context = new CareerDbContext(optionsBuilder.Options);
 
-            // Ensure database is created
-            await context.Database.EnsureCreatedAsync();
-
-            // Run migrations
+            // Run migrations only (EnsureCreated + Migrate together causes pending model changes warning)
             await context.Database.MigrateAsync();
 
             IsAvailable = true;
@@ -103,7 +101,8 @@ public class TestDatabaseFixture : IAsyncLifetime
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<CareerDbContext>();
-        optionsBuilder.UseNpgsql(ConnectionString);
+        optionsBuilder.UseNpgsql(ConnectionString)
+            .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         return new CareerDbContext(optionsBuilder.Options);
     }
 }

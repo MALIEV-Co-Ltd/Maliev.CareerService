@@ -96,7 +96,12 @@ public class EnrollmentsController(
         {
             _logger.LogWarning(ex, "Failed to enroll employee due to validation error");
 
-            // Check if it's a duplicate enrollment or capacity issue
+            // Check specific error types
+            if (ex.Message.Contains("not found"))
+            {
+                return NotFound(new { error = ex.Message });
+            }
+
             if (ex.Message.Contains("already enrolled"))
             {
                 return Conflict(new { error = ex.Message });

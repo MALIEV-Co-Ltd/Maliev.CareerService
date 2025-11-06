@@ -140,9 +140,10 @@ public class ApplicationService(
         int pageSize,
         CancellationToken cancellationToken = default)
     {
+        var lowerEmail = applicantEmail.ToLower();
         var query = _dbContext.JobApplications
             .Include(ja => ja.JobPosting)
-            .Where(ja => ja.ApplicantEmail.Equals(applicantEmail, StringComparison.CurrentCultureIgnoreCase))
+            .Where(ja => ja.ApplicantEmail.ToLower() == lowerEmail)
             .OrderByDescending(ja => ja.AppliedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -172,10 +173,11 @@ public class ApplicationService(
         string applicantEmail,
         CancellationToken cancellationToken = default)
     {
+        var lowerEmail = applicantEmail.ToLower();
         return await _dbContext.JobApplications
             .AnyAsync(ja =>
                 ja.JobPostingId == jobPostingId &&
-                ja.ApplicantEmail.Equals(applicantEmail, StringComparison.CurrentCultureIgnoreCase),
+                ja.ApplicantEmail.ToLower() == lowerEmail,
                 cancellationToken);
     }
 

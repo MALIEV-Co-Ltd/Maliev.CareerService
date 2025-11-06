@@ -54,6 +54,8 @@ public class IndividualDevelopmentPlanConfiguration : IEntityTypeConfiguration<I
 
         // Optimistic concurrency
         builder.Property(idp => idp.RowVersion)
-            .IsRowVersion();
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate()
+            .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
     }
 }

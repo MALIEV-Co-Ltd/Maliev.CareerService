@@ -44,6 +44,11 @@ public class ApplicationsController(
                 new { id = result.Id },
                 result);
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            _logger.LogWarning(ex, "Job posting not found: {Message}", ex.Message);
+            return NotFound(new { error = ex.Message });
+        }
         catch (InvalidOperationException ex) when (ex.Message.Contains("deadline") || ex.Message.Contains("duplicate"))
         {
             _logger.LogWarning(ex, "Application submission rejected: {Message}", ex.Message);

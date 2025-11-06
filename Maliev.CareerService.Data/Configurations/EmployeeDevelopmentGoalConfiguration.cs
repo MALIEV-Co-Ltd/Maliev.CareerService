@@ -63,6 +63,8 @@ public class EmployeeDevelopmentGoalConfiguration : IEntityTypeConfiguration<Emp
 
         // Optimistic concurrency
         builder.Property(goal => goal.RowVersion)
-            .IsRowVersion();
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate()
+            .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
     }
 }

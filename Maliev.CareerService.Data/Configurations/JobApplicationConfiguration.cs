@@ -61,6 +61,13 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.Property(e => e.AdditionalFileIds)
             .IsRequired();
 
+        // Row version for optimistic concurrency
+        builder.Property(e => e.RowVersion)
+            .IsRowVersion()
+            .HasColumnName("row_version")
+            .ValueGeneratedOnAddOrUpdate()
+            .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
+
         // Relationships
         builder.HasOne(e => e.JobPosting)
             .WithMany(p => p.Applications)

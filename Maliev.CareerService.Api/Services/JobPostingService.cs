@@ -95,19 +95,22 @@ public class JobPostingService(
         // Apply department filter
         if (!string.IsNullOrWhiteSpace(department))
         {
-            query = query.Where(jp => jp.Department != null && jp.Department.Equals(department, StringComparison.CurrentCultureIgnoreCase));
+            var lowerDepartment = department.ToLower();
+            query = query.Where(jp => jp.Department != null && jp.Department.ToLower() == lowerDepartment);
         }
 
         // Apply location filter
         if (!string.IsNullOrWhiteSpace(location))
         {
-            query = query.Where(jp => jp.Location != null && jp.Location.Equals(location, StringComparison.CurrentCultureIgnoreCase));
+            var lowerLocation = location.ToLower();
+            query = query.Where(jp => jp.Location != null && jp.Location.ToLower() == lowerLocation);
         }
 
         // Apply employment type filter
         if (!string.IsNullOrWhiteSpace(employmentType))
         {
-            query = query.Where(jp => jp.EmploymentType.Equals(employmentType, StringComparison.CurrentCultureIgnoreCase));
+            var lowerEmploymentType = employmentType.ToLower();
+            query = query.Where(jp => jp.EmploymentType.ToLower() == lowerEmploymentType);
         }
 
         query = query.OrderByDescending(jp => jp.PublishedAt);

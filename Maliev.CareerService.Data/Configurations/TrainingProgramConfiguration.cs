@@ -81,7 +81,9 @@ public class TrainingProgramConfiguration : IEntityTypeConfiguration<TrainingPro
 
         builder.Property(e => e.RowVersion)
             .IsRowVersion()
-            .HasColumnName("row_version");
+            .HasColumnName("row_version")
+            .ValueGeneratedOnAddOrUpdate()
+            .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
         // Indexes
         builder.HasIndex(e => e.ProgramCode)
