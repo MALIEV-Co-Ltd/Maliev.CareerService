@@ -73,13 +73,13 @@ public class DevelopmentGoalsController(
     [HttpGet("goals/{id:guid}")]
     [ProducesResponseType(typeof(DevelopmentGoalResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<DevelopmentGoalResponse>> GetGoal(
+    public Task<ActionResult<DevelopmentGoalResponse>> GetGoal(
         Guid id,
         CancellationToken cancellationToken)
     {
         // This endpoint is primarily for CreatedAtAction redirects
         // In production, goals are retrieved via the IDP endpoint
-        return Ok(new DevelopmentGoalResponse { Id = id });
+        return Task.FromResult<ActionResult<DevelopmentGoalResponse>>(Ok(new DevelopmentGoalResponse { Id = id }));
     }
 
     /// <summary>
