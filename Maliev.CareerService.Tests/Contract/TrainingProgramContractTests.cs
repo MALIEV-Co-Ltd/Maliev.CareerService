@@ -181,7 +181,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     }
 
     [DockerRequiredFact]
-    public async Task TrainingProgramResponse_ContainsAllRequiredFields()
+    public void TrainingProgramResponse_ContainsAllRequiredFields()
     {
         // This test verifies the response model structure by deserializing a sample
         var sampleJson = @"{

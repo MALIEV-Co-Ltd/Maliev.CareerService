@@ -132,7 +132,7 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
     }
 
     [DockerRequiredFact]
-    public async Task JobPostingResponse_ContainsAllRequiredFields()
+    public void JobPostingResponse_ContainsAllRequiredFields()
     {
         // This test verifies the response model structure by deserializing a sample
         var sampleJson = @"{
