@@ -20,5 +20,5 @@ public class Skill
     public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public ICollection<JobPositionSkill> JobPositionSkills { get; set; } = new List<JobPositionSkill>();
+    public ICollection<JobPositionSkill> JobPositionSkills { get; set; } = [];
 }

@@ -9,7 +9,7 @@ public class ApiErrorResponse
     public Dictionary<string, string[]>? ValidationErrors { get; set; }
     public string? StackTrace { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    
+
     public static ApiErrorResponse FromException(Exception ex, string correlationId, bool includeStackTrace = false)
     {
         return new ApiErrorResponse
@@ -29,7 +29,7 @@ public class ApiErrorResponse
             Timestamp = DateTime.UtcNow
         };
     }
-    
+
     public static ApiErrorResponse FromValidationErrors(Dictionary<string, string[]> errors, string correlationId)
     {
         return new ApiErrorResponse

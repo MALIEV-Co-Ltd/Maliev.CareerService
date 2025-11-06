@@ -7,13 +7,13 @@ public static class EmploymentType
     public const string Contract = "Contract";
     public const string Intern = "Intern";
     public const string Freelance = "Freelance";
-    
-    public static readonly string[] ValidTypes = 
-    {
+
+    public static readonly string[] ValidTypes =
+    [
         FullTime,
         PartTime,
         Contract,
         Intern,
         Freelance
-    };
+    ];
 }

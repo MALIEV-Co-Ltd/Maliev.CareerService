@@ -7,13 +7,13 @@ public static class ApplicationStatus
     public const string Interview = "Interview";
     public const string Rejected = "Rejected";
     public const string Accepted = "Accepted";
-    
-    public static readonly string[] ValidStatuses = 
-    {
+
+    public static readonly string[] ValidStatuses =
+    [
         Submitted,
         UnderReview,
         Interview,
         Rejected,
         Accepted
-    };
+    ];
 }

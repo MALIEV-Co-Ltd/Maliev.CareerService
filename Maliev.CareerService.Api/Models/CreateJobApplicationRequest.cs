@@ -31,7 +31,7 @@ public class CreateJobApplicationRequest
     [MaxLength(500)]
     public string? CoverLetterText { get; set; }
 
-    public List<CreateDocumentMetadataRequest> DocumentMetadata { get; set; } = new();
+    public List<CreateDocumentMetadataRequest> DocumentMetadata { get; set; } = [];
 }
 
 public class CreateDocumentMetadataRequest

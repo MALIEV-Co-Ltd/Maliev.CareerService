@@ -1,18 +1,21 @@
 using System.Net;
 using System.Text.Json;
+using Maliev.CareerService.Api.Models.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Middleware;
 
-public class ExceptionHandlingMiddleware
+/// <summary>
+/// Global exception handling middleware
+/// </summary>
+public class ExceptionHandlingMiddleware(
+    RequestDelegate next,
+    ILogger<ExceptionHandlingMiddleware> logger,
+    IWebHostEnvironment environment)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
+    private readonly IWebHostEnvironment _environment = environment;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -22,82 +25,66 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            // Get correlation ID from the context
-            var correlationId = context.Items["CorrelationId"]?.ToString() ?? 
-                               context.Request.Headers["X-Correlation-ID"].FirstOrDefault() ??
-                               Guid.NewGuid().ToString();
-            
-            _logger.LogError(ex, "An unhandled exception has occurred: {Message}. Correlation ID: {CorrelationId}", 
-                ex.Message, correlationId);
-            
-            await HandleExceptionAsync(context, ex, correlationId);
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception, string correlationId)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/json";
-        
+        _logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+
         var response = context.Response;
-        var errorResponse = new ErrorResponse
+        response.ContentType = "application/json";
+
+        var errorResponse = exception switch
         {
-            CorrelationId = correlationId
+            DbUpdateConcurrencyException => new ErrorResponse
+            {
+                Error = "Conflict",
+                Message = "The resource was modified by another user. Please refresh and try again.",
+                StatusCode = (int)HttpStatusCode.Conflict,
+                TraceId = context.TraceIdentifier
+            },
+            ArgumentException or ArgumentNullException => new ErrorResponse
+            {
+                Error = "Bad Request",
+                Message = exception.Message,
+                StatusCode = (int)HttpStatusCode.BadRequest,
+                TraceId = context.TraceIdentifier
+            },
+            UnauthorizedAccessException => new ErrorResponse
+            {
+                Error = "Unauthorized",
+                Message = "You are not authorized to perform this action.",
+                StatusCode = (int)HttpStatusCode.Unauthorized,
+                TraceId = context.TraceIdentifier
+            },
+            KeyNotFoundException => new ErrorResponse
+            {
+                Error = "Not Found",
+                Message = exception.Message,
+                StatusCode = (int)HttpStatusCode.NotFound,
+                TraceId = context.TraceIdentifier
+            },
+            _ => new ErrorResponse
+            {
+                Error = "Internal Server Error",
+                Message = _environment.IsDevelopment()
+                    ? exception.Message
+                    : "An unexpected error occurred. Please try again later.",
+                StatusCode = (int)HttpStatusCode.InternalServerError,
+                TraceId = context.TraceIdentifier,
+                Details = _environment.IsDevelopment() ? exception.StackTrace : null
+            }
         };
 
-        switch (exception)
-        {
-            case ArgumentException argEx:
-                errorResponse.Message = argEx.Message;
-                errorResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                errorResponse.ErrorType = "ArgumentException";
-                break;
-            case KeyNotFoundException:
-                errorResponse.Message = "Resource not found.";
-                errorResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                errorResponse.ErrorType = "NotFound";
-                break;
-            case UnauthorizedAccessException:
-                errorResponse.Message = "Unauthorized access.";
-                errorResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
-                errorResponse.ErrorType = "Unauthorized";
-                break;
-            case InvalidOperationException invalidOpEx:
-                errorResponse.Message = invalidOpEx.Message;
-                errorResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                errorResponse.ErrorType = "InvalidOperation";
-                break;
-            default:
-                // In development, include exception details for debugging
-                if (context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
-                {
-                    errorResponse.Message = exception.Message;
-                    errorResponse.StackTrace = exception.StackTrace;
-                }
-                else
-                {
-                    errorResponse.Message = "An internal server error occurred.";
-                }
-                errorResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
-                errorResponse.ErrorType = "InternalServerError";
-                break;
-        }
-
         response.StatusCode = errorResponse.StatusCode;
-        
-        var jsonResponse = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+
+        var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
-        
-        await response.WriteAsync(jsonResponse);
-    }
+        };
 
-    private class ErrorResponse
-    {
-        public string Message { get; set; } = string.Empty;
-        public int StatusCode { get; set; }
-        public string ErrorType { get; set; } = string.Empty;
-        public string CorrelationId { get; set; } = string.Empty;
-        public string? StackTrace { get; set; }
+        await response.WriteAsync(JsonSerializer.Serialize(errorResponse, options));
     }
 }

@@ -40,8 +40,8 @@ public class UpdateJobPositionRequest
 
     public bool IsPublic { get; set; } = true;
 
-    public List<int> WorkLocationIds { get; set; } = new();
-    public List<CreateJobPositionSkillRequest> Skills { get; set; } = new();
+    public List<int> WorkLocationIds { get; set; } = [];
+    public List<CreateJobPositionSkillRequest> Skills { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

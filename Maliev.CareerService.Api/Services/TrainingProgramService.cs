@@ -1,0 +1,176 @@
+using AutoMapper;
+using Maliev.CareerService.Api.Models.TrainingPrograms;
+using Maliev.CareerService.Data;
+using Maliev.CareerService.Data.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Maliev.CareerService.Api.Services;
+
+/// <summary>
+/// Service implementation for managing training programs
+/// </summary>
+public class TrainingProgramService(
+    CareerDbContext dbContext,
+    IMapper mapper,
+    ILogger<TrainingProgramService> logger) : ITrainingProgramService
+{
+    private readonly CareerDbContext _dbContext = dbContext;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<TrainingProgramService> _logger = logger;
+
+    /// <inheritdoc />
+    public async Task<TrainingProgramListResponse> GetActiveProgramsAsync(
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.TrainingPrograms
+            .Where(tp => tp.IsActive)
+            .OrderBy(tp => tp.ProgramName);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var programs = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var responses = _mapper.Map<List<TrainingProgramResponse>>(programs);
+
+        return new TrainingProgramListResponse
+        {
+            Items = responses,
+            Page = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<TrainingProgramResponse?> GetProgramByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var program = await _dbContext.TrainingPrograms
+            .FirstOrDefaultAsync(tp => tp.Id == id, cancellationToken);
+
+        if (program == null)
+        {
+            return null;
+        }
+
+        return _mapper.Map<TrainingProgramResponse>(program);
+    }
+
+    /// <inheritdoc />
+    public async Task<TrainingProgramListResponse> FilterProgramsAsync(
+        string? category,
+        bool? isMandatory,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.TrainingPrograms
+            .Where(tp => tp.IsActive);
+
+        // Apply category filter
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(tp => tp.Category == category);
+        }
+
+        // Apply mandatory filter
+        if (isMandatory.HasValue)
+        {
+            query = query.Where(tp => tp.IsMandatory == isMandatory.Value);
+        }
+
+        query = query.OrderBy(tp => tp.ProgramName);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var programs = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var responses = _mapper.Map<List<TrainingProgramResponse>>(programs);
+
+        return new TrainingProgramListResponse
+        {
+            Items = responses,
+            Page = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<TrainingProgramResponse> CreateProgramAsync(
+        CreateTrainingProgramRequest request,
+        Guid createdBy,
+        CancellationToken cancellationToken = default)
+    {
+        // Check for duplicate program code
+        var existingProgram = await _dbContext.TrainingPrograms
+            .FirstOrDefaultAsync(tp => tp.ProgramCode == request.ProgramCode, cancellationToken);
+
+        if (existingProgram != null)
+        {
+            throw new InvalidOperationException($"A training program with code '{request.ProgramCode}' already exists.");
+        }
+
+        var program = _mapper.Map<TrainingProgram>(request);
+        program.CreatedBy = createdBy;
+        program.UpdatedBy = createdBy;
+
+        _dbContext.TrainingPrograms.Add(program);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Training program {ProgramId} created with code {ProgramCode}", program.Id, program.ProgramCode);
+
+        return _mapper.Map<TrainingProgramResponse>(program);
+    }
+
+    /// <inheritdoc />
+    public async Task<TrainingProgramResponse?> UpdateProgramAsync(
+        Guid id,
+        UpdateTrainingProgramRequest request,
+        Guid updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var program = await _dbContext.TrainingPrograms
+            .FirstOrDefaultAsync(tp => tp.Id == id, cancellationToken);
+
+        if (program == null)
+        {
+            return null;
+        }
+
+        // Verify RowVersion for optimistic concurrency
+        var requestRowVersion = Convert.FromBase64String(request.RowVersion);
+        if (!program.RowVersion.SequenceEqual(requestRowVersion))
+        {
+            throw new DbUpdateConcurrencyException("The training program has been modified by another user. Please refresh and try again.");
+        }
+
+        // Map updated fields
+        _mapper.Map(request, program);
+        program.UpdatedBy = updatedBy;
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Training program {ProgramId} updated", id);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrency conflict when updating training program {ProgramId}", id);
+            throw;
+        }
+
+        return _mapper.Map<TrainingProgramResponse>(program);
+    }
+}
