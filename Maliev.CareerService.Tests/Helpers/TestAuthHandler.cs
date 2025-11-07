@@ -54,6 +54,11 @@ public class TestAuthHandler(
             claims.Add(new Claim(ClaimTypes.Role, "HRStaff"));
         }
 
+        if (authHeader.Contains("Employee", StringComparison.Ordinal))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Employee"));
+        }
+
         if (authHeader.Contains("Applicant", StringComparison.Ordinal))
         {
             claims.Add(new Claim(ClaimTypes.Role, "Applicant"));

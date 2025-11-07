@@ -7,6 +7,7 @@ using Maliev.CareerService.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
@@ -53,7 +54,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
         result.Should().NotBeNull();
         result!.ApplicantEmail.Should().Be(request.ApplicantEmail);
-        result.Status.Should().Be("Submitted");
+        result.Status.Should().Be("submitted");
         result.ResumeFileUrl.Should().NotBeNullOrEmpty();
     }
 
@@ -239,6 +240,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
+        // First create a valid job posting with future deadline
         var posting = new JobPosting
         {
             Id = Guid.NewGuid(),
@@ -250,7 +252,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
             Description = "Expired position",
             Requirements = "Experience required",
             Responsibilities = "Develop software",
-            ApplicationDeadline = DateTime.UtcNow.AddDays(-1), // Expired
+            ApplicationDeadline = DateTime.UtcNow.AddMonths(1), // Valid future deadline
             PublishedAt = DateTime.UtcNow.AddMonths(-1),
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
@@ -259,6 +261,12 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
 
         dbContext.JobPostings.Add(posting);
         await dbContext.SaveChangesAsync();
+
+        // Now update the deadline to the past using raw SQL to bypass the check constraint
+        var expiredDate = DateTime.UtcNow.AddDays(-1);
+        await dbContext.Database.ExecuteSqlRawAsync(
+            "UPDATE job_postings SET application_deadline = {0} WHERE id = {1}",
+            expiredDate, posting.Id);
 
         return posting.Id;
     }

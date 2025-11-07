@@ -21,6 +21,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_ReturnsCorrectResponseStructure()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
 
         // Act
@@ -46,6 +47,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingProgram_ReturnsCorrectResponseStructure()
     {
         // Arrange - Use a random ID that will return 404
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
         var testId = Guid.NewGuid();
 
@@ -79,6 +81,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
 
         var request = new CreateTrainingProgramRequest
@@ -123,6 +126,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task UpdateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
         var testId = Guid.NewGuid();
 
@@ -166,6 +170,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_SupportsQueryParameters()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
 
         // Act
@@ -223,6 +228,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task TrainingProgramListResponse_SupportsPagination()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
 
         // Act
@@ -245,6 +251,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgramRequest_ValidatesRequiredFields()
     {
         // Arrange
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
 
         // Invalid request - missing required fields
@@ -284,6 +291,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_RequiresHRStaffRole()
     {
         // Arrange - Employee role (not HRStaff)
+        _client.DefaultRequestHeaders.Clear();
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
 
         var request = new CreateTrainingProgramRequest
