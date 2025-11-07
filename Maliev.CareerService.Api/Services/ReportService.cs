@@ -35,9 +35,13 @@ public class ReportService(
 
         _logger.LogInformation("Generating recruitment metrics for date range {StartDate} - {EndDate}", startDate, endDate);
 
-        // Set default date range if not provided
-        var start = startDate ?? DateTime.UtcNow.AddMonths(-3);
-        var end = endDate ?? DateTime.UtcNow;
+        // Set default date range if not provided and ensure UTC
+        var start = startDate.HasValue
+            ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddMonths(-3);
+        var end = endDate.HasValue
+            ? DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
 
         // Total applications in date range
         var totalApplications = await _dbContext.JobApplications
@@ -140,9 +144,13 @@ public class ReportService(
 
         _logger.LogInformation("Generating learning metrics for date range {StartDate} - {EndDate}", startDate, endDate);
 
-        // Set default date range if not provided
-        var start = startDate ?? DateTime.UtcNow.AddMonths(-3);
-        var end = endDate ?? DateTime.UtcNow;
+        // Set default date range if not provided and ensure UTC
+        var start = startDate.HasValue
+            ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddMonths(-3);
+        var end = endDate.HasValue
+            ? DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
 
         // Total training enrollments in date range
         var totalEnrollments = await _dbContext.EmployeeTrainingEnrollments
@@ -239,9 +247,13 @@ public class ReportService(
 
         _logger.LogInformation("Generating HR operational metrics for date range {StartDate} - {EndDate}", startDate, endDate);
 
-        // Set default date range if not provided
-        var start = startDate ?? DateTime.UtcNow.AddMonths(-3);
-        var end = endDate ?? DateTime.UtcNow;
+        // Set default date range if not provided and ensure UTC
+        var start = startDate.HasValue
+            ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddMonths(-3);
+        var end = endDate.HasValue
+            ? DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
 
         // Active job postings (current snapshot, not date-filtered)
         var activeJobPostings = await _dbContext.JobPostings
