@@ -7,19 +7,22 @@ using System.Net;
 using System.Net.Http.Json;
 using Xunit;
 using Maliev.CareerService.Tests.Helpers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Maliev.CareerService.Tests.Integration;
 
 /// <summary>
 /// Integration tests for training enrollment functionality
 /// </summary>
-public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
+public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.CustomWebApplicationFactory>
 {
-    private readonly TestWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
     private readonly Guid _testEmployeeId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    public TrainingEnrollmentTests(TestWebApplicationFactory factory)
+    public TrainingEnrollmentTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
@@ -348,6 +351,24 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
             enrollment.StartedAt = DateTime.UtcNow.AddDays(-7);
             enrollment.CompletedAt = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Custom WebApplicationFactory that registers mock external services
+    /// </summary>
+    public class CustomWebApplicationFactory : TestWebApplicationFactory
+    {
+        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+        {
+            base.ConfigureWebHost(builder);
+
+            builder.ConfigureTestServices(services =>
+            {
+                // Replace external services with mocks
+                services.RemoveAll<Api.Services.External.IEmployeeServiceClient>();
+                services.AddSingleton<Api.Services.External.IEmployeeServiceClient, Mocks.MockEmployeeServiceClient>();
+            });
         }
     }
 }
