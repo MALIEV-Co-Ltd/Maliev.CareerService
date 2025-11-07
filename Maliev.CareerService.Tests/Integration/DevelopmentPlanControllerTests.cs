@@ -71,7 +71,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Draft",
+            Status = "draft",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -147,7 +147,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Draft",
+            Status = "draft",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -184,7 +184,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Draft",
+            Status = "draft",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -226,7 +226,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Draft",
+            Status = "draft",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -263,7 +263,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Submitted",
+            Status = "submitted",
             SubmittedAt = DateTime.UtcNow.AddDays(-1),
             CreatedAt = DateTime.UtcNow.AddDays(-2),
             UpdatedAt = DateTime.UtcNow.AddDays(-1)
@@ -307,7 +307,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
             Id = Guid.NewGuid(),
             EmployeeId = Guid.NewGuid(),
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Submitted",
+            Status = "submitted",
             SubmittedAt = DateTime.UtcNow.AddDays(-1),
             CreatedAt = DateTime.UtcNow.AddDays(-2),
             UpdatedAt = DateTime.UtcNow.AddDays(-1)
