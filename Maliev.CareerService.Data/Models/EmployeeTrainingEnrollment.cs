@@ -63,10 +63,10 @@ public class EmployeeTrainingEnrollment : BaseEntity
 /// </summary>
 public static class TrainingEnrollmentStatus
 {
-    public const string Enrolled = "Enrolled";
-    public const string InProgress = "InProgress";
-    public const string Completed = "Completed";
-    public const string Cancelled = "Cancelled";
+    public const string Enrolled = "enrolled";
+    public const string InProgress = "in_progress";
+    public const string Completed = "completed";
+    public const string Cancelled = "cancelled";
 }
 
 /// <summary>
@@ -74,7 +74,7 @@ public static class TrainingEnrollmentStatus
 /// </summary>
 public static class EnrollmentType
 {
-    public const string Voluntary = "Voluntary";
-    public const string Mandatory = "Mandatory";
-    public const string Assigned = "Assigned";
+    public const string Voluntary = "voluntary";
+    public const string Mandatory = "mandatory";
+    public const string Assigned = "assigned";
 }
