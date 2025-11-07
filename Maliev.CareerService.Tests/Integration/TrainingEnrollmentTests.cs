@@ -124,11 +124,15 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
     [DockerRequiredFact]
     public async Task GetEnrollments_ViewOwnEnrollments_ReturnsEmployeeEnrollments()
     {
-        // Arrange
+        // Arrange - Use unique employee ID for test isolation
+        var testEmployeeId = Guid.NewGuid();
+        _client.DefaultRequestHeaders.Remove("Authorization");
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {testEmployeeId}");
+
         var program1 = await SeedTrainingProgramAsync("PROG-001");
         var program2 = await SeedTrainingProgramAsync("PROG-002");
-        await EnrollEmployeeInProgramAsync(program1, _testEmployeeId);
-        await EnrollEmployeeInProgramAsync(program2, _testEmployeeId);
+        await EnrollEmployeeInProgramAsync(program1, testEmployeeId);
+        await EnrollEmployeeInProgramAsync(program2, testEmployeeId);
 
         // Enroll another employee (should not be returned)
         var otherEmployee = Guid.NewGuid();
@@ -143,23 +147,27 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentListResponse>();
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(2);
-        result.Items.Should().OnlyContain(e => e.EmployeeId == _testEmployeeId);
+        result.Items.Should().OnlyContain(e => e.EmployeeId == testEmployeeId);
     }
 
     [DockerRequiredFact]
     public async Task GetEnrollments_WithStatusFilter_ReturnsFilteredEnrollments()
     {
-        // Arrange
+        // Arrange - Use unique employee ID for test isolation
+        var testEmployeeId = Guid.NewGuid();
+        _client.DefaultRequestHeaders.Remove("Authorization");
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {testEmployeeId}");
+
         var program1 = await SeedTrainingProgramAsync("PROG-003");
         var program2 = await SeedTrainingProgramAsync("PROG-004");
-        await EnrollEmployeeInProgramAsync(program1, _testEmployeeId);
-        var enrollmentId = await EnrollEmployeeInProgramAsync(program2, _testEmployeeId);
+        await EnrollEmployeeInProgramAsync(program1, testEmployeeId);
+        var enrollmentId = await EnrollEmployeeInProgramAsync(program2, testEmployeeId);
 
         // Mark one as completed
         await MarkEnrollmentCompletedAsync(enrollmentId);
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-enrollments?status=Completed");
+        var response = await _client.GetAsync("/careers/v1/training-enrollments?status=completed");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -167,7 +175,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentListResponse>();
         result.Should().NotBeNull();
         result!.Items.Should().HaveCount(1);
-        result.Items.Should().OnlyContain(e => e.Status == "Completed");
+        result.Items.Should().OnlyContain(e => e.Status == "completed");
     }
 
     [DockerRequiredFact]

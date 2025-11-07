@@ -301,20 +301,21 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         dbContext.JobPostings.Add(posting);
         await dbContext.SaveChangesAsync();
 
-        // Create applications with some hired
+        // Create applications with some hired (within last 30 days)
         var applications = new List<JobApplication>
         {
             new() {
                 Id = Guid.NewGuid(),
                 JobPostingId = posting.Id,
-                ApplicantFirstName = "Hired",
+                ApplicantFirstName = "Accepted",
                 ApplicantLastName = "Candidate",
-                ApplicantEmail = "hired@example.com",
+                ApplicantEmail = "accepted@example.com",
                 ApplicantPhone = "+66812345678",
                 ApplicantCountryCode = "TH",
                 ResumeFileId = Guid.NewGuid(),
-                Status = "Hired",
-                AppliedAt = DateTime.UtcNow.AddDays(-50),
+                Status = "accepted",
+                AppliedAt = DateTime.UtcNow.AddDays(-20),
+                UpdatedAt = DateTime.UtcNow.AddDays(-5), // Hired 15 days after applying
                 CreatedBy = Guid.NewGuid(),
                 UpdatedBy = Guid.NewGuid()
             },
@@ -327,8 +328,8 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
                 ApplicantPhone = "+66812345678",
                 ApplicantCountryCode = "TH",
                 ResumeFileId = Guid.NewGuid(),
-                Status = "Rejected",
-                AppliedAt = DateTime.UtcNow.AddDays(-45),
+                Status = "rejected",
+                AppliedAt = DateTime.UtcNow.AddDays(-15),
                 CreatedBy = Guid.NewGuid(),
                 UpdatedBy = Guid.NewGuid()
             }
