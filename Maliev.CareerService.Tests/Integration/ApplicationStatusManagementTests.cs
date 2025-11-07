@@ -46,7 +46,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "UnderReview",
+            NewStatus = "under_review",
             Reason = "Application meets initial criteria",
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };
@@ -59,14 +59,14 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
         result.Should().NotBeNull();
-        result!.Status.Should().Be("UnderReview");
+        result!.Status.Should().Be("under_review");
     }
 
     [DockerRequiredFact]
     public async Task UpdateApplicationStatus_WithEmailNotification_SendsEmail()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("UnderReview");
+        var applicationId = await SeedTestApplicationAsync("under_review");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -74,7 +74,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "Interview",
+            NewStatus = "interviewing",
             Reason = "Candidate shortlisted for interview",
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };
@@ -89,14 +89,14 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var changes = await dbContext.ApplicationStatusChanges
             .Where(c => c.ApplicationId == applicationId)
             .ToListAsync();
-        changes.Should().Contain(c => c.ToStatus == "Interview" && c.ChangedBy == _hrStaffId);
+        changes.Should().Contain(c => c.ToStatus == "interviewing" && c.ChangedBy == _hrStaffId);
     }
 
     [DockerRequiredFact]
     public async Task UpdateApplicationStatus_Reversal_RecordsReversalInAuditTrail()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Interview");
+        var applicationId = await SeedTestApplicationAsync("interviewing");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -107,8 +107,8 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             Id = Guid.NewGuid(),
             ApplicationId = applicationId,
-            FromStatus = "UnderReview",
-            ToStatus = "Interview",
+            FromStatus = "under_review",
+            ToStatus = "interviewing",
             ChangedBy = _hrStaffId,
             ChangedAt = DateTime.UtcNow.AddHours(-1),
             Reason = "Candidate shortlisted"
@@ -121,7 +121,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "UnderReview",
+            NewStatus = "under_review",
             Reason = "Interview cancelled - reverting status",
             IsReversal = true,
             RowVersion = Convert.ToBase64String(application!.RowVersion)
@@ -153,7 +153,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "Offered", // Invalid: can't go directly from Submitted to Offered
+            NewStatus = "offered", // Invalid: can't go directly from Submitted to Offered
             Reason = "Skipping review process",
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };
@@ -179,12 +179,12 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var oldRowVersion = Convert.ToBase64String(application!.RowVersion);
 
         // Simulate concurrent update by changing the status
-        application.Status = "UnderReview";
+        application.Status = "under_review";
         await dbContext.SaveChangesAsync();
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "Interview",
+            NewStatus = "interviewing",
             Reason = "Using stale RowVersion",
             RowVersion = oldRowVersion // Old RowVersion will cause conflict
         };
@@ -211,7 +211,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "UnderReview",
+            NewStatus = "under_review",
             Reason = "Unauthorized attempt",
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };
@@ -231,7 +231,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "UnderReview",
+            NewStatus = "under_review",
             Reason = "Test",
             RowVersion = "AAAAAAAAB9E="
         };
@@ -255,7 +255,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "UnderReview",
+            NewStatus = "under_review",
             Reason = new string('A', 1001), // Exceed max length of 1000
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };

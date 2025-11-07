@@ -49,7 +49,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         result.Should().NotBeNull();
         result!.TrainingProgramId.Should().Be(programId);
         result.EmployeeId.Should().Be(_testEmployeeId);
-        result.Status.Should().Be("Enrolled");
+        result.Status.Should().Be("enrolled");
         result.EnrolledAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
     }
 
@@ -197,7 +197,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
 
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentResponse>();
         result.Should().NotBeNull();
-        result!.Status.Should().Be("Completed");
+        result!.Status.Should().Be("completed");
         result.CompletedAt.Should().NotBeNull();
         result.MarkedCompleteBy.Should().Be(hrStaffId);
         result.CompletionNotes.Should().Be("Completed successfully");

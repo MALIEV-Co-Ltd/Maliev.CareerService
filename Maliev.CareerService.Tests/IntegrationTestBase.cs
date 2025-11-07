@@ -22,7 +22,7 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return $"test-employee-token-{userId}";
+        return $"Employee test@example.com {userId}";
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return $"test-hrstaff-token-{userId}";
+        return $"HRStaff hr@example.com {userId}";
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return $"test-employee-token-{userId}";
+        return $"Employee test@example.com {userId}";
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return $"test-hrstaff-token-{userId}";
+        return $"HRStaff hr@example.com {userId}";
     }
 
     /// <summary>
