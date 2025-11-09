@@ -240,7 +240,10 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
-        // First create a valid job posting with future deadline
+        // Create a job posting with expired deadline
+        // To satisfy constraint (application_deadline > created_at), we set:
+        // - created_at to 30 days ago
+        // - application_deadline to yesterday (satisfies > created_at but is expired)
         var posting = new JobPosting
         {
             Id = Guid.NewGuid(),
@@ -252,7 +255,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
             Description = "Expired position",
             Requirements = "Experience required",
             Responsibilities = "Develop software",
-            ApplicationDeadline = DateTime.UtcNow.AddMonths(1), // Valid future deadline
+            ApplicationDeadline = DateTime.UtcNow.AddMonths(1), // Temporary valid deadline for initial insert
             PublishedAt = DateTime.UtcNow.AddMonths(-1),
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
@@ -262,11 +265,13 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         dbContext.JobPostings.Add(posting);
         await dbContext.SaveChangesAsync();
 
-        // Now update the deadline to the past using raw SQL to bypass the check constraint
+        // Update both created_at and application_deadline using raw SQL
+        // Set created_at to 30 days ago and deadline to yesterday (expired but satisfies constraint)
+        var createdDate = DateTime.UtcNow.AddDays(-30);
         var expiredDate = DateTime.UtcNow.AddDays(-1);
         await dbContext.Database.ExecuteSqlRawAsync(
-            "UPDATE job_postings SET application_deadline = {0} WHERE id = {1}",
-            expiredDate, posting.Id);
+            "UPDATE job_postings SET created_at = {0}, application_deadline = {1} WHERE id = {2}",
+            createdDate, expiredDate, posting.Id);
 
         return posting.Id;
     }

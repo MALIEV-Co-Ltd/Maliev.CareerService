@@ -37,7 +37,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
     public async Task UpdateApplicationStatus_ValidTransition_ReturnsOk()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Submitted");
+        var applicationId = await SeedTestApplicationAsync("submitted");
 
         // Get RowVersion
         using var scope = _factory.Services.CreateScope();
@@ -145,7 +145,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
     public async Task UpdateApplicationStatus_InvalidTransition_ReturnsBadRequest()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Submitted");
+        var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -153,7 +153,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         var request = new UpdateApplicationStatusRequest
         {
-            NewStatus = "offered", // Invalid: can't go directly from Submitted to Offered
+            NewStatus = "offered", // Invalid: can't go directly from submitted to offered
             Reason = "Skipping review process",
             RowVersion = Convert.ToBase64String(application!.RowVersion)
         };
@@ -171,7 +171,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
     public async Task UpdateApplicationStatus_ConcurrencyConflict_ReturnsConflict()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Submitted");
+        var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -200,7 +200,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
     public async Task UpdateApplicationStatus_AsEmployee_ReturnsForbidden()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Submitted");
+        var applicationId = await SeedTestApplicationAsync("submitted");
 
         _client.DefaultRequestHeaders.Remove("Authorization");
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
@@ -247,7 +247,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
     public async Task UpdateApplicationStatus_WithLongReason_TruncatesGracefully()
     {
         // Arrange
-        var applicationId = await SeedTestApplicationAsync("Submitted");
+        var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -269,6 +269,9 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
     private async Task<Guid> SeedTestApplicationAsync(string initialStatus)
     {
+        // Clean database before seeding to ensure test isolation
+        await _factory.CleanDatabaseAsync();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
@@ -334,6 +337,9 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
                 services.RemoveAll<IEmployeeServiceClient>();
                 services.AddSingleton<IEmployeeServiceClient, Mocks.MockEmployeeServiceClient>();
+
+                services.RemoveAll<ICountryServiceClient>();
+                services.AddSingleton<ICountryServiceClient, Mocks.MockCountryServiceClient>();
             });
         }
     }

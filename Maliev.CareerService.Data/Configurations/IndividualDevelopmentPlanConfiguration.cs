@@ -55,7 +55,7 @@ public class IndividualDevelopmentPlanConfiguration : IEntityTypeConfiguration<I
         // Optimistic concurrency
         builder.Property(idp => idp.RowVersion)
             .IsRowVersion()
-            .ValueGeneratedOnAddOrUpdate()
+            .ValueGeneratedNever()  // Manually controlled for PostgreSQL
             .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
     }
 }

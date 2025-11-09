@@ -176,6 +176,11 @@ public class DevelopmentGoalsController(
             _logger.LogWarning(ex, "Goal {GoalId} not found", id);
             return NotFound(new { error = ex.Message });
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid goal status update attempt");
+            return BadRequest(new { error = ex.Message });
+        }
         catch (DbUpdateConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Concurrency conflict updating goal status {GoalId}", id);

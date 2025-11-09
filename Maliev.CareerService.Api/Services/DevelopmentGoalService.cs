@@ -134,6 +134,10 @@ public class DevelopmentGoalService(
         // Set completion date if status is Completed
         if (request.Status == DevelopmentGoalStatus.Completed)
         {
+            if (!request.CompletionDate.HasValue)
+            {
+                throw new InvalidOperationException("Completion date is required when marking a goal as completed.");
+            }
             goal.CompletionDate = request.CompletionDate;
         }
 

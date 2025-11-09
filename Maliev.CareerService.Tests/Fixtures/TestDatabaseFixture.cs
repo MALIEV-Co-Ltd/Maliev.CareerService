@@ -105,4 +105,45 @@ public class TestDatabaseFixture : IAsyncLifetime
             .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         return new CareerDbContext(optionsBuilder.Options);
     }
+
+    /// <summary>
+    /// Cleans all data from the database while preserving schema
+    /// </summary>
+    public async Task CleanDatabaseAsync()
+    {
+        if (!IsAvailable)
+        {
+            return;
+        }
+
+        await using var context = CreateDbContext();
+
+        // Get all table names from the database
+        var tableNames = new[]
+        {
+            "application_status_changes",
+            "job_applications",
+            "job_postings",
+            "employee_development_goals",
+            "individual_development_plans",
+            "employee_training_enrollments",
+            "e_learning_resources",
+            "training_programs"
+        };
+
+        // Truncate all tables in reverse order (to respect foreign keys)
+        // Skip tables that don't exist (may not be created yet in some test scenarios)
+        foreach (var tableName in tableNames.Reverse())
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE " + tableName + " RESTART IDENTITY CASCADE");
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
+            {
+                // Table doesn't exist - ignore this error
+                // 42P01 is the PostgreSQL error code for "undefined_table"
+            }
+        }
+    }
 }

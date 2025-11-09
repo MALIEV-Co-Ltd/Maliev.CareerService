@@ -83,7 +83,7 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(e => e.RowVersion)
             .IsRowVersion()
             .HasColumnName("row_version")
-            .ValueGeneratedOnAddOrUpdate()
+            .ValueGeneratedNever()  // Manually controlled for PostgreSQL
             .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
         // Check constraints

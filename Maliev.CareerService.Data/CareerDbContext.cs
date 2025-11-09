@@ -126,16 +126,69 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedAt = now;
-                entry.Entity.UpdatedAt = now;
+                // Only set timestamps if not explicitly provided (i.e., still at default)
+                if (entry.Entity.CreatedAt == default)
+                {
+                    entry.Entity.CreatedAt = now;
+                }
+                if (entry.Entity.UpdatedAt == default)
+                {
+                    entry.Entity.UpdatedAt = now;
+                }
                 // CreatedBy and UpdatedBy should be set by the application layer
+
+                // Initialize RowVersion for new entities (start at 1)
+                if (entry.Entity.RowVersion == null || entry.Entity.RowVersion.Length == 0)
+                {
+                    entry.Entity.RowVersion = BitConverter.GetBytes(1L);
+                }
             }
             else if (entry.State == EntityState.Modified)
             {
                 entry.Entity.UpdatedAt = now;
                 // UpdatedBy should be set by the application layer
+
+                // Update RowVersion for concurrency control (PostgreSQL doesn't auto-increment like SQL Server)
+                UpdateRowVersion(entry.Entity);
+
+                // Mark RowVersion as modified so EF Core knows to persist it to the database
+                entry.Property(nameof(BaseEntity.RowVersion)).IsModified = true;
             }
         }
+    }
+
+    /// <summary>
+    /// Update RowVersion to a new value for concurrency control
+    /// PostgreSQL doesn't auto-increment rowversion like SQL Server, so we handle it manually
+    /// </summary>
+    private static void UpdateRowVersion(BaseEntity entity)
+    {
+        // Get current RowVersion or initialize to empty array if null
+        var currentVersion = entity.RowVersion ?? Array.Empty<byte>();
+
+        // Ensure we have at least 8 bytes for a 64-bit integer
+        long versionNumber;
+        if (currentVersion.Length >= 8)
+        {
+            // Treat as a 64-bit integer and increment
+            versionNumber = BitConverter.ToInt64(currentVersion, 0);
+        }
+        else if (currentVersion.Length > 0)
+        {
+            // Pad with zeros to make 8 bytes
+            var paddedVersion = new byte[8];
+            Array.Copy(currentVersion, 0, paddedVersion, 0, currentVersion.Length);
+            versionNumber = BitConverter.ToInt64(paddedVersion, 0);
+        }
+        else
+        {
+            // Start from 0 if null or empty
+            versionNumber = 0;
+        }
+
+        // Increment and convert back to byte array
+        versionNumber++;
+        entity.RowVersion = BitConverter.GetBytes(versionNumber);
     }
 
     /// <summary>

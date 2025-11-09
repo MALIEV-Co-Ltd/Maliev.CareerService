@@ -64,7 +64,7 @@ public class EmployeeDevelopmentGoalConfiguration : IEntityTypeConfiguration<Emp
         // Optimistic concurrency
         builder.Property(goal => goal.RowVersion)
             .IsRowVersion()
-            .ValueGeneratedOnAddOrUpdate()
+            .ValueGeneratedNever()  // Manually controlled for PostgreSQL
             .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
     }
 }

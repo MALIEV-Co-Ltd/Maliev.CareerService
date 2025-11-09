@@ -302,6 +302,9 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
 
     private async Task<Guid> SeedSinglePostingAsync()
     {
+        // Clean database before seeding to ensure test isolation
+        await _factory.CleanDatabaseAsync();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 

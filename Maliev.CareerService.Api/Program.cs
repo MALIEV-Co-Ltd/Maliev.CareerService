@@ -312,8 +312,8 @@ try
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     }).AllowAnonymous();
 
-    // Prometheus metrics endpoint
-    app.MapMetrics("/careers/metrics").AllowAnonymous();
+    // Prometheus metrics endpoint (GET only)
+    app.MapMetrics("/careers/metrics").AllowAnonymous().WithMetadata(new HttpMethodMetadata(new[] { "GET" }));
 
     app.MapControllers();
 

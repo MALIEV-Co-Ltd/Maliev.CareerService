@@ -69,7 +69,8 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
 
             // Metric line: should contain at least metric_name and value
             // Format: metric_name{label="value"} 123.45 1234567890
-            trimmed.Should().MatchRegex(@"^[a-zA-Z_:][a-zA-Z0-9_:]*(\{[^}]+\})?\s+[\d\.\+\-eE]+(\s+\d+)?$");
+            // Labels can contain quoted strings with any characters (including braces)
+            trimmed.Should().MatchRegex(@"^[a-zA-Z_:][a-zA-Z0-9_:]*(\{.+?\})?\s+[\d\.\+\-eE]+(\s+\d+)?$");
         }
     }
 

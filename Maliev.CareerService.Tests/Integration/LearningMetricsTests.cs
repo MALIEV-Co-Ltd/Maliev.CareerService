@@ -222,6 +222,10 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
 
     private async Task SeedTestLearningDataAsync()
     {
+        // Clean database and cache before seeding
+        await _factory.CleanDatabaseAsync();
+        _factory.ClearCache();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
@@ -302,6 +306,10 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
 
     private async Task SeedTestLearningDataWithCompletionsAsync()
     {
+        // Clean database and cache before seeding
+        await _factory.CleanDatabaseAsync();
+        _factory.ClearCache();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
@@ -371,6 +379,10 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
 
     private async Task SeedTestLearningDataWithCertificationsAsync()
     {
+        // Clean database and cache before seeding
+        await _factory.CleanDatabaseAsync();
+        _factory.ClearCache();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 

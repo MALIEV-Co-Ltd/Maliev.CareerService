@@ -210,7 +210,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Approved",
+            Status = "approved",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -262,7 +262,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             Id = Guid.NewGuid(),
             EmployeeId = employeeId,
             PlanYear = DateTime.UtcNow.Year,
-            Status = "Approved",
+            Status = "approved",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
@@ -79,5 +80,27 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
     public CareerDbContext CreateDbContext()
     {
         return _databaseFixture.CreateDbContext();
+    }
+
+    /// <summary>
+    /// Cleans all data from the test database
+    /// </summary>
+    public async Task CleanDatabaseAsync()
+    {
+        await _databaseFixture.CleanDatabaseAsync();
+    }
+
+    /// <summary>
+    /// Clears the in-memory cache to prevent test pollution
+    /// </summary>
+    public void ClearCache()
+    {
+        using var scope = Services.CreateScope();
+        var cache = scope.ServiceProvider.GetService<IMemoryCache>();
+        if (cache is MemoryCache memoryCache)
+        {
+            // Compact 100% removes all cached entries
+            memoryCache.Compact(1.0);
+        }
     }
 }

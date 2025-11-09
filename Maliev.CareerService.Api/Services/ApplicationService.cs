@@ -260,24 +260,27 @@ public class ApplicationService(
         Guid hrUserId,
         CancellationToken cancellationToken = default)
     {
-        // Get application with current row version
+        // Load application to get current state
         var application = await _dbContext.JobApplications
             .Include(a => a.JobPosting)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken) ?? throw new InvalidOperationException($"Application {applicationId} not found.");
 
-        // Validate status transition
-        if (!ValidateStatusTransition(application.Status, request.NewStatus))
-        {
-            throw new InvalidOperationException(
-                $"Invalid status transition from {application.Status} to {request.NewStatus}.");
-        }
-
-        // Verify row version for optimistic concurrency
-        var currentRowVersion = Convert.ToBase64String(application.RowVersion);
-        if (currentRowVersion != request.RowVersion)
+        // Manually check concurrency - compare client's RowVersion with DB's RowVersion
+        var clientRowVersion = Convert.FromBase64String(request.RowVersion);
+        if (!clientRowVersion.SequenceEqual(application.RowVersion))
         {
             throw new DbUpdateConcurrencyException(
                 "The application has been modified by another user. Please refresh and try again.");
+        }
+
+        // Store current status before modifying
+        var originalStatus = application.Status;
+
+        // Validate status transition
+        if (!ValidateStatusTransition(originalStatus, request.NewStatus))
+        {
+            throw new InvalidOperationException(
+                $"Invalid status transition from {originalStatus} to {request.NewStatus}.");
         }
 
         // Create status change record
@@ -285,7 +288,7 @@ public class ApplicationService(
         {
             Id = Guid.NewGuid(),
             ApplicationId = applicationId,
-            FromStatus = application.Status,
+            FromStatus = originalStatus,
             ToStatus = request.NewStatus,
             ChangedBy = hrUserId,
             ChangedAt = DateTime.UtcNow,
@@ -298,7 +301,7 @@ public class ApplicationService(
         {
             var originalChange = await _dbContext.ApplicationStatusChanges
                 .Where(c => c.ApplicationId == applicationId &&
-                           c.ToStatus == application.Status &&
+                           c.ToStatus == originalStatus &&
                            c.FromStatus == request.NewStatus)
                 .OrderByDescending(c => c.ChangedAt)
                 .FirstOrDefaultAsync(cancellationToken);

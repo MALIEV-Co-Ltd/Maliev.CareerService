@@ -203,6 +203,10 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
 
     private async Task SeedTestRecruitmentDataAsync()
     {
+        // Clean database and cache before seeding
+        await _factory.CleanDatabaseAsync();
+        _factory.ClearCache();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
@@ -276,6 +280,10 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
 
     private async Task SeedTestRecruitmentDataWithHiresAsync()
     {
+        // Clean database and cache before seeding
+        await _factory.CleanDatabaseAsync();
+        _factory.ClearCache();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
