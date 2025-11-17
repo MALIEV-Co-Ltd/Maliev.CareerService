@@ -29,9 +29,9 @@ The Career Service provides a comprehensive API for managing job applications, e
 
 ## Technical Context
 
-**Language/Version**: .NET 9.0 (C# 13)
+**Language/Version**: .NET 10.0 (C# 13)
 **Primary Dependencies**:
-- Entity Framework Core 9.0.9 with Npgsql 9.0.2 (PostgreSQL provider)
+- Entity Framework Core 9.0.10 with Npgsql 9.0.4 (PostgreSQL provider)
 - Serilog 8.0.2 (structured logging to stdout JSON only)
 - AutoMapper 12.0.1 (DTO mapping)
 - FluentValidation 11.5.1 (request validation)

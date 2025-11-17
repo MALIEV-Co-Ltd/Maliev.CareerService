@@ -6,6 +6,7 @@ using Maliev.CareerService.Api.Middleware;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using Prometheus;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using StackExchange.Redis;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -43,6 +45,71 @@ try
     if (Directory.Exists(secretsPath))
     {
         builder.Configuration.AddKeyPerFile(directoryPath: secretsPath, optional: true);
+    }
+
+    // Redis Distributed Cache Configuration
+    var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+    var redisEnabled = bool.TryParse(builder.Configuration["Redis:Enabled"], out var isRedisEnabled) && isRedisEnabled;
+
+    if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString) && !builder.Environment.IsEnvironment("Testing"))
+    {
+        try
+        {
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnectionString;
+                options.InstanceName = "Career:";
+            });
+
+            var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+            builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
+
+            Log.Information("Redis distributed cache configured: {RedisConnectionString}", redisConnectionString);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Redis connection failed - will use in-memory cache fallback");
+        }
+    }
+    else
+    {
+        Log.Information("Redis disabled or not configured - using in-memory cache only");
+    }
+
+    builder.Services.AddMemoryCache(); // Fallback in-memory cache
+
+    // RabbitMQ Configuration (MassTransit)
+    var rabbitmqHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+    var rabbitmqPort = int.TryParse(builder.Configuration["RabbitMQ:Port"], out var port) ? port : 5672;
+    var rabbitmqUser = builder.Configuration["RabbitMQ:Username"] ?? "guest";
+    var rabbitmqPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+    var rabbitmqVhost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/";
+    var rabbitmqEnabled = bool.TryParse(builder.Configuration["RabbitMQ:Enabled"], out var isRabbitmqEnabled) && isRabbitmqEnabled;
+
+    if (rabbitmqEnabled && !builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddMassTransit(x =>
+        {
+            // Add consumers here if needed in the future
+            // x.AddConsumer<SomeEventConsumer>();
+
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(rabbitmqHost, (ushort)rabbitmqPort, rabbitmqVhost, h =>
+                {
+                    h.Username(rabbitmqUser);
+                    h.Password(rabbitmqPassword);
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+
+        Log.Information("MassTransit configured with RabbitMQ: {Host}:{Port}", rabbitmqHost, rabbitmqPort);
+    }
+    else
+    {
+        Log.Information("RabbitMQ/MassTransit disabled by configuration");
     }
 
     // Add services to the container
@@ -125,9 +192,6 @@ try
             Log.Warning("CareerDbContext connection string not configured. Some features will not work.");
         }
     });
-
-    // Configure Memory Cache (simple configuration without SizeLimit)
-    builder.Services.AddMemoryCache();
 
     // Configure Response Caching for read-heavy endpoints
     builder.Services.AddResponseCaching();
@@ -263,8 +327,14 @@ try
     builder.Services.AddAuthorization();
 
     // Configure Health Checks
-    builder.Services.AddHealthChecks()
+    var healthChecksBuilder = builder.Services.AddHealthChecks()
         .AddDbContextCheck<CareerDbContext>("database", tags: new[] { "readiness" });
+
+    // Add Redis health check if enabled
+    if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
+    {
+        healthChecksBuilder.AddRedis(redisConnectionString, "redis", tags: new[] { "readiness" });
+    }
 
     var app = builder.Build();
 
