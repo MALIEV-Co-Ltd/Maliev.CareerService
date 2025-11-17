@@ -20,26 +20,24 @@ RUN dotnet publish "Maliev.CareerService.Api.csproj" -c Release -o /app/publish 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Create non-root user for security (UID 1000 per spec)
-RUN adduser --disabled-password --gecos "" --uid 1000 appuser
-
-# Copy published app
-COPY --from=publish /app/publish .
-
-# Set ownership
-RUN chown -R appuser:appuser /app
+# Ensure 'app' owns the workdir (app user already exists in ASP.NET runtime image)
+RUN chown -R app:app /app
 
 # Switch to non-root user
-USER appuser
+USER app
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/careers/liveness || exit 1
+# Copy published app (now owned by app)
+COPY --from=publish /app/publish .
 
 # Expose port
 EXPOSE 8080
 
-# Set environment variable for ASP.NET Core URLs
+# Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/careers/liveness || exit 1
 
 ENTRYPOINT ["dotnet", "Maliev.CareerService.Api.dll"]
