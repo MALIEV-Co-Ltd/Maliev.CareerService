@@ -3,9 +3,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore as distinct layers
+# Copy project files and nuget.config (exclude Tests - filtered by .dockerignore)
+COPY nuget.config ./
 COPY ["Maliev.CareerService.Api/Maliev.CareerService.Api.csproj", "Maliev.CareerService.Api/"]
 COPY ["Maliev.CareerService.Data/Maliev.CareerService.Data.csproj", "Maliev.CareerService.Data/"]
+
+# Restore dependencies with private NuGet feed credentials
 RUN --mount=type=secret,id=nuget_username \
     --mount=type=secret,id=nuget_password \
     NUGET_USERNAME=$(cat /run/secrets/nuget_username) \
