@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
-using Polly;
-using Polly.Retry;
+
 
 namespace Maliev.CareerService.Api.Services.External;
 
@@ -12,7 +11,7 @@ public class UploadServiceClient : IUploadServiceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<UploadServiceClient> _logger;
-    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy;
+
 
     public UploadServiceClient(
         HttpClient httpClient,
@@ -24,22 +23,6 @@ public class UploadServiceClient : IUploadServiceClient
 
         // Configure base URL from options
         _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
-
-        // Configure Polly retry policy with exponential backoff (3 retries)
-        _retryPolicy = Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .OrResult(r => !r.IsSuccessStatusCode && (int)r.StatusCode >= 500)
-            .WaitAndRetryAsync(
-                retryCount: 3,
-                sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                onRetry: (outcome, timespan, retryAttempt, context) =>
-                {
-                    _logger.LogWarning(
-                        "Upload Service request failed with {StatusCode}. Retry attempt {RetryAttempt} after {Delay}s",
-                        outcome.Result?.StatusCode,
-                        retryAttempt,
-                        timespan.TotalSeconds);
-                });
     }
 
     /// <inheritdoc />
@@ -48,8 +31,7 @@ public class UploadServiceClient : IUploadServiceClient
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Head, $"/files/v1/{fileId}");
-            var response = await _retryPolicy.ExecuteAsync(async () =>
-                await _httpClient.SendAsync(request, cancellationToken));
+            var response = await _httpClient.SendAsync(request, cancellationToken);
 
             return response.IsSuccessStatusCode;
         }
@@ -65,8 +47,7 @@ public class UploadServiceClient : IUploadServiceClient
     {
         try
         {
-            var response = await _retryPolicy.ExecuteAsync(async () =>
-                await _httpClient.GetAsync($"/files/v1/{fileId}/url", cancellationToken));
+            var response = await _httpClient.GetAsync($"/files/v1/{fileId}/url", cancellationToken);
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
-using Polly;
-using Polly.Retry;
+
 
 namespace Maliev.CareerService.Api.Services.External;
 
@@ -12,7 +11,7 @@ public class EmailServiceClient : IEmailServiceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<EmailServiceClient> _logger;
-    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy;
+
 
     public EmailServiceClient(
         HttpClient httpClient,
@@ -24,22 +23,6 @@ public class EmailServiceClient : IEmailServiceClient
 
         // Configure base URL from options
         _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
-
-        // Configure Polly retry policy with exponential backoff (3 retries)
-        _retryPolicy = Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .OrResult(r => !r.IsSuccessStatusCode && (int)r.StatusCode >= 500)
-            .WaitAndRetryAsync(
-                retryCount: 3,
-                sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                onRetry: (outcome, timespan, retryAttempt, context) =>
-                {
-                    _logger.LogWarning(
-                        "Email Service request failed with {StatusCode}. Retry attempt {RetryAttempt} after {Delay}s",
-                        outcome.Result?.StatusCode,
-                        retryAttempt,
-                        timespan.TotalSeconds);
-                });
     }
 
     /// <inheritdoc />
@@ -62,8 +45,7 @@ public class EmailServiceClient : IEmailServiceClient
                     ["applicationId"] = applicationId
                 });
 
-            var response = await _retryPolicy.ExecuteAsync(async () =>
-                await _httpClient.PostAsJsonAsync("/emails/v1/send", request, cancellationToken));
+            var response = await _httpClient.PostAsJsonAsync("/emails/v1/send", request, cancellationToken);
 
             response.EnsureSuccessStatusCode();
 
@@ -111,8 +93,7 @@ public class EmailServiceClient : IEmailServiceClient
                 TemplateId: "application-status-change",
                 TemplateData: templateData);
 
-            var response = await _retryPolicy.ExecuteAsync(async () =>
-                await _httpClient.PostAsJsonAsync("/emails/v1/send", request, cancellationToken));
+            var response = await _httpClient.PostAsJsonAsync("/emails/v1/send", request, cancellationToken);
 
             response.EnsureSuccessStatusCode();
 

@@ -137,7 +137,10 @@ public class TestDatabaseFixture : IAsyncLifetime
         {
             try
             {
-                await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE " + tableName + " RESTART IDENTITY CASCADE");
+                // Table names are from hardcoded list above, not user input - safe from SQL injection
+                #pragma warning disable EF1002, EF1003
+                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {tableName} RESTART IDENTITY CASCADE");
+                #pragma warning restore EF1002, EF1003
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
             {
