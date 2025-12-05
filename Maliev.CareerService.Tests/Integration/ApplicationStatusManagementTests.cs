@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data.Models;
@@ -55,11 +54,11 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("under_review");
+        Assert.NotNull(result);
+        Assert.Equal("under_review", result!.Status);
     }
 
     [DockerRequiredFact]
@@ -83,13 +82,13 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // Verify status change was recorded
         var changes = await dbContext.ApplicationStatusChanges
             .Where(c => c.ApplicationId == applicationId)
             .ToListAsync();
-        changes.Should().Contain(c => c.ToStatus == "interviewing" && c.ChangedBy == _hrStaffId);
+        Assert.Contains(changes, c => c.ToStatus == "interviewing" && c.ChangedBy == _hrStaffId);
     }
 
     [DockerRequiredFact]
@@ -131,14 +130,14 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // Verify reversal was recorded
         var changes = await dbContext.ApplicationStatusChanges
             .Where(c => c.ApplicationId == applicationId && c.IsReversal)
             .ToListAsync();
-        changes.Should().HaveCountGreaterThan(0);
-        changes.Should().Contain(c => c.Reason == "Interview cancelled - reverting status");
+        Assert.True(changes.Count > 0);
+        Assert.Contains(changes, c => c.Reason == "Interview cancelled - reverting status");
     }
 
     [DockerRequiredFact]
@@ -162,9 +161,9 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("transition");
+        Assert.Contains("transition", content);
     }
 
     [DockerRequiredFact]
@@ -193,7 +192,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -220,7 +219,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -240,7 +239,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{nonExistentId}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -264,7 +263,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
 
         // Assert - Should be rejected by validation
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task<Guid> SeedTestApplicationAsync(string initialStatus)

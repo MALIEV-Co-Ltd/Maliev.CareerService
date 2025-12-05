@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -37,13 +36,13 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync("/careers/v1/training-programs");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
-        result.TotalCount.Should().BeGreaterThan(0);
-        result.Items.Should().OnlyContain(p => p.IsActive);
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Items);
+        Assert.True(result.TotalCount > 0);
+        Assert.All(result.Items, p => Assert.True(p.IsActive));
     }
 
     [DockerRequiredFact]
@@ -56,11 +55,11 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync("/careers/v1/training-programs?category=Leadership");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(p => p.Category == "Leadership");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, p => Assert.Equal("Leadership", p.Category));
     }
 
     [DockerRequiredFact]
@@ -73,11 +72,11 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync("/careers/v1/training-programs?isMandatory=true");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(p => p.IsMandatory);
+        Assert.NotNull(result);
+        Assert.All(result!.Items, p => Assert.True(p.IsMandatory));
     }
 
     [DockerRequiredFact]
@@ -90,13 +89,13 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync("/careers/v1/training-programs?offset=0&limit=2");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().HaveCountLessThanOrEqualTo(2);
-        result.Page.Should().Be(1);
-        result.PageSize.Should().Be(2);
+        Assert.NotNull(result);
+        Assert.True(result!.Items.Count <= 2);
+        Assert.Equal(1, result.Page);
+        Assert.Equal(2, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -109,13 +108,13 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync($"/careers/v1/training-programs/{programId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(programId);
-        result.ProgramName.Should().NotBeNullOrEmpty();
-        result.DurationHours.Should().BeGreaterThan(0);
+        Assert.NotNull(result);
+        Assert.Equal(programId, result!.Id);
+        Assert.False(string.IsNullOrEmpty(result.ProgramName));
+        Assert.True(result.DurationHours > 0);
     }
 
     [DockerRequiredFact]
@@ -128,7 +127,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.GetAsync($"/careers/v1/training-programs/{nonExistingId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -156,13 +155,13 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-        result.Should().NotBeNull();
-        result!.ProgramCode.Should().Be(request.ProgramCode);
-        result.ProgramName.Should().Be(request.ProgramName);
-        result.DurationHours.Should().Be(request.DurationHours);
+        Assert.NotNull(result);
+        Assert.Equal(request.ProgramCode, result!.ProgramCode);
+        Assert.Equal(request.ProgramName, result.ProgramName);
+        Assert.Equal(request.DurationHours, result.DurationHours);
     }
 
     [DockerRequiredFact]
@@ -186,7 +185,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -220,12 +219,12 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         var response = await _client.PutAsJsonAsync($"/careers/v1/training-programs/{programId}", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-        result.Should().NotBeNull();
-        result!.ProgramName.Should().Be("Updated Program Name");
-        result.DurationHours.Should().Be(50m);
+        Assert.NotNull(result);
+        Assert.Equal("Updated Program Name", result!.ProgramName);
+        Assert.Equal(50m, result.DurationHours);
     }
 
     private async Task SeedTestDataAsync()

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data.Models;
@@ -37,11 +36,11 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync("/careers/v1/job-applications");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(a => a.ApplicantEmail == applicantEmail);
+        Assert.NotNull(result);
+        Assert.All(result!.Items, a => Assert.Equal(applicantEmail, a.ApplicantEmail));
     }
 
     [DockerRequiredFact]
@@ -51,7 +50,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync("/careers/v1/job-applications");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -68,12 +67,12 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync("/careers/v1/job-applications?offset=0&limit=2");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Count.Should().BeLessThanOrEqualTo(2);
-        result.PageSize.Should().Be(2);
+        Assert.NotNull(result);
+        Assert.True(result!.Items.Count <= 2);
+        Assert.Equal(2, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -90,13 +89,13 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(applicationId);
-        result.ApplicantEmail.Should().Be(applicantEmail);
-        result.JobPosting.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.Equal(applicationId, result!.Id);
+        Assert.Equal(applicantEmail, result.ApplicantEmail);
+        Assert.NotNull(result.JobPosting);
     }
 
     [DockerRequiredFact]
@@ -114,7 +113,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -131,11 +130,11 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(applicationId);
+        Assert.NotNull(result);
+        Assert.Equal(applicationId, result!.Id);
     }
 
     [DockerRequiredFact]
@@ -150,7 +149,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var response = await _client.GetAsync($"/careers/v1/job-applications/{invalidId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     private async Task SeedTestApplicationsAsync(string applicantEmail)

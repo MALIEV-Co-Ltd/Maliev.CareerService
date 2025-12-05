@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.DevelopmentGoals;
 using Maliev.CareerService.Data.Models;
 using System.Net;
@@ -46,12 +45,12 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PostAsJsonAsync($"/careers/v1/idps/{idp.Id}/goals", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<DevelopmentGoalResponse>();
-        result.Should().NotBeNull();
-        result!.GoalTitle.Should().Be(request.GoalTitle);
-        result.Status.Should().Be("NotStarted");
-        result.IdpId.Should().Be(idp.Id);
+        Assert.NotNull(result);
+        Assert.Equal(request.GoalTitle, result!.GoalTitle);
+        Assert.Equal("NotStarted", result.Status);
+        Assert.Equal(idp.Id, result.IdpId);
     }
 
     [DockerRequiredFact]
@@ -88,7 +87,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PostAsJsonAsync($"/careers/v1/idps/{idp.Id}/goals", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -139,11 +138,11 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PutAsJsonAsync($"/careers/v1/goals/{goal.Id}", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<DevelopmentGoalResponse>();
-        result.Should().NotBeNull();
-        result!.GoalTitle.Should().Be(request.GoalTitle);
-        result.Category.Should().Be(request.Category);
+        Assert.NotNull(result);
+        Assert.Equal(request.GoalTitle, result!.GoalTitle);
+        Assert.Equal(request.Category, result.Category);
     }
 
     [DockerRequiredFact]
@@ -194,7 +193,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PutAsJsonAsync($"/careers/v1/goals/{goal.Id}", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -242,11 +241,11 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PatchAsJsonAsync($"/careers/v1/goals/{goal.Id}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<DevelopmentGoalResponse>();
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("Completed");
-        result.CompletionDate.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.Equal("Completed", result!.Status);
+        Assert.NotNull(result.CompletionDate);
     }
 
     [DockerRequiredFact]
@@ -294,6 +293,6 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         var response = await Client.PatchAsJsonAsync($"/careers/v1/goals/{goal.Id}/status", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data.Models;
@@ -49,13 +48,13 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-        result.Should().NotBeNull();
-        result!.ApplicantEmail.Should().Be(request.ApplicantEmail);
-        result.Status.Should().Be("submitted");
-        result.ResumeFileUrl.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.Equal(request.ApplicantEmail, result!.ApplicantEmail);
+        Assert.Equal("submitted", result.Status);
+        Assert.False(string.IsNullOrEmpty(result.ResumeFileUrl));
     }
 
     [DockerRequiredFact]
@@ -80,11 +79,11 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-        result.Should().NotBeNull();
-        result!.AdditionalFileUrls.Should().HaveCount(1);
+        Assert.NotNull(result);
+        Assert.Single(result!.AdditionalFileUrls);
     }
 
     [DockerRequiredFact]
@@ -108,7 +107,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -132,7 +131,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -171,7 +170,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", duplicateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -203,7 +202,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task<Guid> SeedTestJobPostingAsync()

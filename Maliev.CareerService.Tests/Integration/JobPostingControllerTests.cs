@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -28,13 +27,13 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
-        result.TotalCount.Should().BeGreaterThan(0);
-        result.Items.Should().OnlyContain(p => p.IsActive);
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Items);
+        Assert.True(result.TotalCount > 0);
+        Assert.All(result.Items, p => Assert.True(p.IsActive));
     }
 
     [DockerRequiredFact]
@@ -47,11 +46,11 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?department=Engineering");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(p => p.Department == "Engineering");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, p => Assert.Equal("Engineering", p.Department));
     }
 
     [DockerRequiredFact]
@@ -64,11 +63,11 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?location=Bangkok");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(p => p.Location == "Bangkok");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, p => Assert.Equal("Bangkok", p.Location));
     }
 
     [DockerRequiredFact]
@@ -81,11 +80,11 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?employmentType=Full-time");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(p => p.EmploymentType == "Full-time");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, p => Assert.Equal("Full-time", p.EmploymentType));
     }
 
     [DockerRequiredFact]
@@ -98,11 +97,11 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?search=Software");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Items);
     }
 
     [DockerRequiredFact]
@@ -115,12 +114,12 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?offset=0&limit=2");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Count.Should().BeLessThanOrEqualTo(2);
-        result.PageSize.Should().Be(2);
+        Assert.NotNull(result);
+        Assert.True(result!.Items.Count <= 2);
+        Assert.Equal(2, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -130,7 +129,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync("/careers/v1/job-postings?limit=200");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -143,14 +142,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync($"/careers/v1/job-postings/{postingId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(postingId);
-        result.DescriptionHtml.Should().NotBeNullOrEmpty();
-        result.RequirementsHtml.Should().NotBeNullOrEmpty();
-        result.ResponsibilitiesHtml.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.Equal(postingId, result!.Id);
+        Assert.False(string.IsNullOrEmpty(result.DescriptionHtml));
+        Assert.False(string.IsNullOrEmpty(result.RequirementsHtml));
+        Assert.False(string.IsNullOrEmpty(result.ResponsibilitiesHtml));
     }
 
     [DockerRequiredFact]
@@ -163,7 +162,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.GetAsync($"/careers/v1/job-postings/{invalidId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -193,12 +192,12 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.PostAsJsonAsync("/careers/v1/job-postings", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingResponse>();
-        result.Should().NotBeNull();
-        result!.PositionTitle.Should().Be(request.PositionTitle);
-        result.PositionCode.Should().Be(request.PositionCode);
+        Assert.NotNull(result);
+        Assert.Equal(request.PositionTitle, result!.PositionTitle);
+        Assert.Equal(request.PositionCode, result.PositionCode);
     }
 
     [DockerRequiredFact]
@@ -229,11 +228,11 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.PutAsJsonAsync($"/careers/v1/job-postings/{postingId}", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingResponse>();
-        result.Should().NotBeNull();
-        result!.PositionTitle.Should().Be(request.PositionTitle);
+        Assert.NotNull(result);
+        Assert.Equal(request.PositionTitle, result!.PositionTitle);
     }
 
     [DockerRequiredFact]
@@ -247,7 +246,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         var response = await _client.DeleteAsync($"/careers/v1/job-postings/{postingId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     private async Task SeedTestDataAsync()

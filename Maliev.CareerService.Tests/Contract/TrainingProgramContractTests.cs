@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;
@@ -28,19 +27,19 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.GetAsync("/careers/v1/training-programs");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify response structure
-        result!.Should().BeAssignableTo<TrainingProgramListResponse>();
-        result.Items.Should().NotBeNull();
-        result.Page.Should().BeGreaterThanOrEqualTo(1);
-        result.PageSize.Should().BeGreaterThan(0);
-        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-        result.TotalPages.Should().BeGreaterThanOrEqualTo(0);
+        Assert.IsAssignableFrom<TrainingProgramListResponse>(result);
+        Assert.NotNull(result.Items);
+        Assert.True(result.Page >= 1);
+        Assert.True(result.PageSize > 0);
+        Assert.True(result.TotalCount >= 0);
+        Assert.True(result.TotalPages >= 0);
     }
 
     [DockerRequiredFact]
@@ -55,25 +54,25 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.GetAsync($"/careers/v1/training-programs/{testId}");
 
         // Assert - We expect 404, but we're testing the endpoint exists and responds
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify response structure
-            result!.Should().BeAssignableTo<TrainingProgramResponse>();
-            result.Id.Should().NotBeEmpty();
-            result.ProgramCode.Should().NotBeNullOrEmpty();
-            result.ProgramName.Should().NotBeNullOrEmpty();
-            result.Description.Should().NotBeNull();
-            result.Category.Should().NotBeNullOrEmpty();
-            result.DurationHours.Should().BeGreaterThan(0);
-            result.Provider.Should().NotBeNullOrEmpty();
-            result.TargetRoles.Should().NotBeNull();
-            result.RowVersion.Should().NotBeNullOrEmpty();
+            Assert.IsAssignableFrom<TrainingProgramResponse>(result);
+            Assert.NotEqual(Guid.Empty, result.Id);
+            Assert.False(string.IsNullOrEmpty(result.ProgramCode));
+            Assert.False(string.IsNullOrEmpty(result.ProgramName));
+            Assert.NotNull(result.Description);
+            Assert.False(string.IsNullOrEmpty(result.Category));
+            Assert.True(result.DurationHours > 0);
+            Assert.False(string.IsNullOrEmpty(result.Provider));
+            Assert.NotNull(result.TargetRoles);
+            Assert.False(string.IsNullOrEmpty(result.RowVersion));
         }
     }
 
@@ -102,23 +101,22 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden);
+        Assert.True(response.StatusCode == HttpStatusCode.Created ||
+                   response.StatusCode == HttpStatusCode.BadRequest ||
+                   response.StatusCode == HttpStatusCode.Unauthorized ||
+                   response.StatusCode == HttpStatusCode.Forbidden);
 
         if (response.StatusCode == HttpStatusCode.Created)
         {
-            response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
             var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-            result.Should().NotBeNull();
-            result!.ProgramName.Should().Be(request.ProgramName);
-            result.ProgramCode.Should().Be(request.ProgramCode);
+            Assert.NotNull(result);
+            Assert.Equal(request.ProgramName, result.ProgramName);
+            Assert.Equal(request.ProgramCode, result.ProgramCode);
 
             // Verify Location header for created resource
-            response.Headers.Location.Should().NotBeNull();
+            Assert.NotNull(response.Headers.Location);
         }
     }
 
@@ -148,21 +146,20 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.PutAsJsonAsync($"/careers/v1/training-programs/{testId}", request);
 
         // Assert - We expect 404 for non-existent resource, but we're testing contract
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Conflict);
+        Assert.True(response.StatusCode == HttpStatusCode.OK ||
+                   response.StatusCode == HttpStatusCode.BadRequest ||
+                   response.StatusCode == HttpStatusCode.NotFound ||
+                   response.StatusCode == HttpStatusCode.Unauthorized ||
+                   response.StatusCode == HttpStatusCode.Forbidden ||
+                   response.StatusCode == HttpStatusCode.Conflict);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
             var result = await response.Content.ReadFromJsonAsync<TrainingProgramResponse>();
-            result.Should().NotBeNull();
-            result!.ProgramName.Should().Be(request.ProgramName);
+            Assert.NotNull(result);
+            Assert.Equal(request.ProgramName, result.ProgramName);
         }
     }
 
@@ -178,11 +175,11 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
             "/careers/v1/training-programs?category=Technical&isMandatory=true&offset=0&limit=10");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
-        result!.PageSize.Should().Be(10);
+        Assert.NotNull(result);
+        Assert.Equal(10, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -213,15 +210,15 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var result = JsonSerializer.Deserialize<TrainingProgramResponse>(sampleJson, options);
 
         // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().NotBeEmpty();
-        result.ProgramCode.Should().NotBeNullOrEmpty();
-        result.ProgramName.Should().NotBeNullOrEmpty();
-        result.Category.Should().NotBeNullOrEmpty();
-        result.DurationHours.Should().BeGreaterThan(0);
-        result.Provider.Should().NotBeNullOrEmpty();
-        result.TargetRoles.Should().NotBeNull();
-        result.RowVersion.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.False(string.IsNullOrEmpty(result.ProgramCode));
+        Assert.False(string.IsNullOrEmpty(result.ProgramName));
+        Assert.False(string.IsNullOrEmpty(result.Category));
+        Assert.True(result.DurationHours > 0);
+        Assert.False(string.IsNullOrEmpty(result.Provider));
+        Assert.NotNull(result.TargetRoles);
+        Assert.False(string.IsNullOrEmpty(result.RowVersion));
     }
 
     [DockerRequiredFact]
@@ -235,16 +232,16 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.GetAsync("/careers/v1/training-programs?offset=0&limit=5");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingProgramListResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify pagination fields
-        result!.Page.Should().BeGreaterThanOrEqualTo(1);
-        result.PageSize.Should().Be(5);
-        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-        result.TotalPages.Should().BeGreaterThanOrEqualTo(0);
+        Assert.True(result.Page >= 1);
+        Assert.Equal(5, result.PageSize);
+        Assert.True(result.TotalCount >= 0);
+        Assert.True(result.TotalPages >= 0);
     }
 
     [DockerRequiredFact]
@@ -272,7 +269,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", invalidRequest);
 
         // Assert - Should return BadRequest for validation errors
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Forbidden);
+        Assert.True(response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Forbidden);
     }
 
     [DockerRequiredFact]
@@ -284,7 +281,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.GetAsync("/careers/v1/training-programs");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -311,6 +308,6 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
 
         // Assert - Should return Forbidden for non-HRStaff users
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

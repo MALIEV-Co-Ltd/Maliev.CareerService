@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Services;
 using Xunit;
 
@@ -26,10 +25,10 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<h1");
-        html.Should().Contain("Heading");
-        html.Should().Contain("<p>");
-        html.Should().Contain("This is a paragraph");
+        Assert.Contains("<h1", html);
+        Assert.Contains("Heading", html);
+        Assert.Contains("<p>", html);
+        Assert.Contains("This is a paragraph", html);
     }
 
     [Fact]
@@ -42,10 +41,10 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<strong>");
-        html.Should().Contain("Bold text");
-        html.Should().Contain("<em>");
-        html.Should().Contain("italic text");
+        Assert.Contains("<strong>", html);
+        Assert.Contains("Bold text", html);
+        Assert.Contains("<em>", html);
+        Assert.Contains("italic text", html);
     }
 
     [Fact]
@@ -62,12 +61,12 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<h2");
-        html.Should().Contain("Requirements");
-        html.Should().Contain("<ul>");
-        html.Should().Contain("<li>");
-        html.Should().Contain("Bachelor's degree");
-        html.Should().Contain("3+ years experience");
+        Assert.Contains("<h2", html);
+        Assert.Contains("Requirements", html);
+        Assert.Contains("<ul>", html);
+        Assert.Contains("<li>", html);
+        Assert.Contains("Bachelor's degree", html);
+        Assert.Contains("3+ years experience", html);
     }
 
     [Fact]
@@ -84,10 +83,10 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<ol>");
-        html.Should().Contain("<li>");
-        html.Should().Contain("First step");
-        html.Should().Contain("Second step");
+        Assert.Contains("<ol>", html);
+        Assert.Contains("<li>", html);
+        Assert.Contains("First step", html);
+        Assert.Contains("Second step", html);
     }
 
     [Fact]
@@ -100,9 +99,9 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<a");
-        html.Should().Contain("href=\"https://example.com\"");
-        html.Should().Contain("our website");
+        Assert.Contains("<a", html);
+        Assert.Contains("href=\"https://example.com\"", html);
+        Assert.Contains("our website", html);
     }
 
     [Fact]
@@ -116,8 +115,8 @@ public class MarkdownRenderingTests
 
         // Assert
         // Script tags should be either removed or escaped
-        html.Should().NotContain("<script>");
-        html.Should().NotContain("alert('XSS')");
+        Assert.DoesNotContain("<script>", html);
+        Assert.DoesNotContain("alert('XSS')", html);
     }
 
     [Fact]
@@ -131,7 +130,7 @@ public class MarkdownRenderingTests
 
         // Assert
         // javascript: protocol should be blocked or sanitized
-        html.Should().NotContain("javascript:");
+        Assert.DoesNotContain("javascript:", html);
     }
 
     [Fact]
@@ -145,8 +144,8 @@ public class MarkdownRenderingTests
 
         // Assert
         // Event handlers should be stripped
-        html.Should().NotContain("onclick");
-        html.Should().NotContain("alert('XSS')");
+        Assert.DoesNotContain("onclick", html);
+        Assert.DoesNotContain("alert('XSS')", html);
     }
 
     [Fact]
@@ -160,7 +159,7 @@ public class MarkdownRenderingTests
 
         // Assert
         // iframe tags should be blocked
-        html.Should().NotContain("<iframe");
+        Assert.DoesNotContain("<iframe", html);
     }
 
     [Fact]
@@ -174,8 +173,8 @@ public class MarkdownRenderingTests
 
         // Assert
         // object and embed tags should be blocked
-        html.Should().NotContain("<object");
-        html.Should().NotContain("<embed");
+        Assert.DoesNotContain("<object", html);
+        Assert.DoesNotContain("<embed", html);
     }
 
     [Fact]
@@ -191,10 +190,10 @@ public class MarkdownRenderingTests
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<h1");
-        html.Should().Contain("<h2");
-        html.Should().Contain("<h3");
-        html.Should().Contain("<h4");
+        Assert.Contains("<h1", html);
+        Assert.Contains("<h2", html);
+        Assert.Contains("<h3", html);
+        Assert.Contains("<h4", html);
     }
 
     [Fact]
@@ -211,8 +210,8 @@ function hello() {
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<pre>");
-        html.Should().Contain("function hello()");
+        Assert.Contains("<pre>", html);
+        Assert.Contains("function hello()", html);
     }
 
     [Fact]
@@ -225,8 +224,8 @@ function hello() {
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<code>");
-        html.Should().Contain("console.log()");
+        Assert.Contains("<code>", html);
+        Assert.Contains("console.log()", html);
     }
 
     [Fact]
@@ -239,8 +238,8 @@ function hello() {
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<blockquote>");
-        html.Should().Contain("This is a quote");
+        Assert.Contains("<blockquote>", html);
+        Assert.Contains("This is a quote", html);
     }
 
     [Fact]
@@ -253,9 +252,9 @@ function hello() {
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().NotBeNull();
+        Assert.NotNull(html);
         // Should return empty string or safe empty HTML
-        html.Should().BeOneOf("", "<p></p>", string.Empty);
+        Assert.True(html == "" || html == "<p></p>" || html == string.Empty);
     }
 
     [Fact]
@@ -268,11 +267,12 @@ function hello() {
         var act = () => _markdownService.ToHtml(markdown!);
 
         // Should either handle null gracefully or throw ArgumentNullException
-        if (act.Should().NotThrow().Which == null)
+        var exception = Record.Exception(act);
+        if (exception == null)
         {
             // If it doesn't throw, result should be safe
             var html = _markdownService.ToHtml(markdown!);
-            html.Should().NotBeNull();
+            Assert.NotNull(html);
         }
     }
 
@@ -287,7 +287,7 @@ function hello() {
 
         // Assert
         // Special HTML characters should be escaped
-        html.Should().NotContain("<>");
+        Assert.DoesNotContain("<>", html);
         // They should be escaped as &lt; &gt; &amp; etc.
     }
 
@@ -301,7 +301,8 @@ function hello() {
         var act = () => _markdownService.ToHtml(markdown);
 
         // Assert
-        act.Should().NotThrow();
+        var exception = Record.Exception(act);
+        Assert.Null(exception);
     }
 
     [Fact]
@@ -327,13 +328,13 @@ Visit [our careers page](https://example.com/careers) for more information.";
         var html = _markdownService.ToHtml(markdown);
 
         // Assert
-        html.Should().Contain("<h1");
-        html.Should().Contain("<h2");
-        html.Should().Contain("<ul>");
-        html.Should().Contain("<ol>");
-        html.Should().Contain("<strong>");
-        html.Should().Contain("<a");
-        html.Should().NotBeNullOrEmpty();
+        Assert.Contains("<h1", html);
+        Assert.Contains("<h2", html);
+        Assert.Contains("<ul>", html);
+        Assert.Contains("<ol>", html);
+        Assert.Contains("<strong>", html);
+        Assert.Contains("<a", html);
+        Assert.False(string.IsNullOrEmpty(html));
     }
 
     [Fact]
@@ -347,7 +348,7 @@ Visit [our careers page](https://example.com/careers) for more information.";
 
         // Assert
         // Custom data attributes should be stripped for security
-        html.Should().NotContain("data-secret");
+        Assert.DoesNotContain("data-secret", html);
     }
 
     [Fact]
@@ -361,7 +362,7 @@ Visit [our careers page](https://example.com/careers) for more information.";
 
         // Assert
         // Style attributes should be stripped to prevent CSS injection
-        html.Should().NotContain("style=");
-        html.Should().NotContain("display:none");
+        Assert.DoesNotContain("style=", html);
+        Assert.DoesNotContain("display:none", html);
     }
 }

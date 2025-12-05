@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -41,11 +40,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.TotalApplications.Should().BeGreaterThan(0);
+        Assert.NotNull(result);
+        Assert.True(result!.TotalApplications > 0);
     }
 
     [DockerRequiredFact]
@@ -61,12 +60,12 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.ApplicationsPerPosting.Should().NotBeNull();
-        result.ApplicationsPerPosting.Should().NotBeEmpty();
+        Assert.NotNull(result);
+        Assert.NotNull(result!.ApplicationsPerPosting);
+        Assert.NotEmpty(result.ApplicationsPerPosting);
     }
 
     [DockerRequiredFact]
@@ -82,11 +81,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.ConversionRates.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.NotNull(result!.ConversionRates);
     }
 
     [DockerRequiredFact]
@@ -102,11 +101,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.AverageTimeToHire.Should().BeGreaterThan(0);
+        Assert.NotNull(result);
+        Assert.True(result!.AverageTimeToHire > 0);
     }
 
     [DockerRequiredFact]
@@ -122,12 +121,12 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.PositionsFilled.Should().BeGreaterThanOrEqualTo(0);
-        result.PositionsOpen.Should().BeGreaterThanOrEqualTo(0);
+        Assert.NotNull(result);
+        Assert.True(result!.PositionsFilled >= 0);
+        Assert.True(result.PositionsOpen >= 0);
     }
 
     [DockerRequiredFact]
@@ -143,11 +142,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.ApplicationVolumeTrends.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.NotNull(result!.ApplicationVolumeTrends);
     }
 
     [DockerRequiredFact]
@@ -160,10 +159,10 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/reports/recruitment-metrics");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
     }
 
     [DockerRequiredFact]
@@ -177,7 +176,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/reports/recruitment-metrics");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -198,7 +197,12 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var result2 = await response2.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
 
         // Assert - Results should be identical (cached)
-        result1.Should().BeEquivalentTo(result2);
+        Assert.NotNull(result1);
+        Assert.NotNull(result2);
+        Assert.Equal(result1.TotalApplications, result2.TotalApplications);
+        Assert.Equal(result1.AverageTimeToHire, result2.AverageTimeToHire);
+        Assert.Equal(result1.PositionsFilled, result2.PositionsFilled);
+        Assert.Equal(result1.PositionsOpen, result2.PositionsOpen);
     }
 
     private async Task SeedTestRecruitmentDataAsync()

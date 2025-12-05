@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Data.Models;
 using System.Net;
@@ -82,11 +81,11 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.GetAsync("/careers/v1/idps");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<IDPListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().ContainSingle();
-        result.Items[0].EmployeeId.Should().Be(employeeId);
+        Assert.NotNull(result);
+        Assert.Single(result!.Items);
+        Assert.Equal(employeeId, result.Items[0].EmployeeId);
     }
 
     [DockerRequiredFact]
@@ -96,7 +95,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.GetAsync("/careers/v1/idps");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -121,12 +120,12 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PostAsJsonAsync("/careers/v1/idps", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<IDPResponse>();
-        result.Should().NotBeNull();
-        result!.EmployeeId.Should().Be(employeeId);
-        result.PlanYear.Should().Be(request.PlanYear);
-        result.Status.Should().Be("draft");
+        Assert.NotNull(result);
+        Assert.Equal(employeeId, result!.EmployeeId);
+        Assert.Equal(request.PlanYear, result.PlanYear);
+        Assert.Equal("draft", result.Status);
     }
 
     [DockerRequiredFact]
@@ -163,7 +162,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PostAsJsonAsync("/careers/v1/idps", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -205,7 +204,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PutAsJsonAsync($"/careers/v1/idps/{idp.Id}", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -237,11 +236,11 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PatchAsync($"/careers/v1/idps/{idp.Id}/submit", null);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<IDPResponse>();
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("submitted");
-        result.SubmittedAt.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.Equal("submitted", result!.Status);
+        Assert.NotNull(result.SubmittedAt);
     }
 
     [DockerRequiredFact]
@@ -286,12 +285,12 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PatchAsJsonAsync($"/careers/v1/idps/{idp.Id}/approve", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<IDPResponse>();
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("approved");
-        result.ApprovedAt.Should().NotBeNull();
-        result.ApprovedBy.Should().Be(hrUserId);
+        Assert.NotNull(result);
+        Assert.Equal("approved", result!.Status);
+        Assert.NotNull(result.ApprovedAt);
+        Assert.Equal(hrUserId, result.ApprovedBy);
     }
 
     [DockerRequiredFact]
@@ -325,7 +324,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var response = await Client.PatchAsJsonAsync($"/careers/v1/idps/{idp.Id}/approve", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }
 

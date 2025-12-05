@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -41,10 +40,10 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
     }
 
     [DockerRequiredFact]
@@ -60,11 +59,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.EnrollmentRates.Should().NotBeNull();
+        Assert.NotNull(result);
+        Assert.NotNull(result!.EnrollmentRates);
     }
 
     [DockerRequiredFact]
@@ -80,12 +79,12 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.CompletionRates.Should().BeGreaterThanOrEqualTo(0);
-        result.CompletionRates.Should().BeLessThanOrEqualTo(100);
+        Assert.NotNull(result);
+        Assert.True(result!.CompletionRates >= 0);
+        Assert.True(result.CompletionRates <= 100);
     }
 
     [DockerRequiredFact]
@@ -101,11 +100,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.TimeToComplete.Should().BeGreaterThanOrEqualTo(0);
+        Assert.NotNull(result);
+        Assert.True(result!.TimeToComplete >= 0);
     }
 
     [DockerRequiredFact]
@@ -121,12 +120,12 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.PopularPrograms.Should().NotBeNull();
-        result.PopularPrograms.Should().NotBeEmpty();
+        Assert.NotNull(result);
+        Assert.NotNull(result!.PopularPrograms);
+        Assert.NotEmpty(result.PopularPrograms);
     }
 
     [DockerRequiredFact]
@@ -142,11 +141,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.CertificationRates.Should().BeGreaterThanOrEqualTo(0);
+        Assert.NotNull(result);
+        Assert.True(result!.CertificationRates >= 0);
     }
 
     [DockerRequiredFact]
@@ -162,11 +161,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
-        result!.IDPAdoption.Should().BeGreaterThanOrEqualTo(0);
+        Assert.NotNull(result);
+        Assert.True(result!.IDPAdoption >= 0);
     }
 
     [DockerRequiredFact]
@@ -179,10 +178,10 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/reports/learning-metrics");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
     }
 
     [DockerRequiredFact]
@@ -196,7 +195,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/reports/learning-metrics");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -217,7 +216,13 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var result2 = await response2.Content.ReadFromJsonAsync<LearningMetricsResponse>();
 
         // Assert - Results should be identical (cached)
-        result1.Should().BeEquivalentTo(result2);
+        Assert.NotNull(result1);
+        Assert.NotNull(result2);
+        Assert.Equal(result1.EnrollmentRates, result2.EnrollmentRates);
+        Assert.Equal(result1.CompletionRates, result2.CompletionRates);
+        Assert.Equal(result1.TimeToComplete, result2.TimeToComplete);
+        Assert.Equal(result1.CertificationRates, result2.CertificationRates);
+        Assert.Equal(result1.IDPAdoption, result2.IDPAdoption);
     }
 
     private async Task SeedTestLearningDataAsync()

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.ELearningResources;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -37,13 +36,13 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
-        result.TotalCount.Should().BeGreaterThan(0);
-        result.Items.Should().OnlyContain(r => r.IsActive);
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Items);
+        Assert.True(result.TotalCount > 0);
+        Assert.All(result.Items, r => Assert.True(r.IsActive));
     }
 
     [DockerRequiredFact]
@@ -56,11 +55,11 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources?category=Technical");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(r => r.Category == "Technical");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, r => Assert.Equal("Technical", r.Category));
     }
 
     [DockerRequiredFact]
@@ -73,11 +72,11 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources?resourceType=Video");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(r => r.ResourceType == "Video");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, r => Assert.Equal("Video", r.ResourceType));
     }
 
     [DockerRequiredFact]
@@ -90,11 +89,11 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources?category=Leadership&resourceType=Document");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().OnlyContain(r => r.Category == "Leadership" && r.ResourceType == "Document");
+        Assert.NotNull(result);
+        Assert.All(result!.Items, r => { Assert.Equal("Leadership", r.Category); Assert.Equal("Document", r.ResourceType); });
     }
 
     [DockerRequiredFact]
@@ -107,13 +106,13 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources?offset=0&limit=2");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().HaveCountLessThanOrEqualTo(2);
-        result.Page.Should().Be(1);
-        result.PageSize.Should().Be(2);
+        Assert.NotNull(result);
+        Assert.True(result!.Items.Count <= 2);
+        Assert.Equal(1, result.Page);
+        Assert.Equal(2, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -124,9 +123,9 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources?limit=101");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("Limit must be between 1 and 100");
+        Assert.Contains("Limit must be between 1 and 100", content);
     }
 
     [DockerRequiredFact]
@@ -139,13 +138,13 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/elearning-resources/{resourceId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(resourceId);
-        result.Title.Should().NotBeNullOrEmpty();
-        result.ResourceType.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.Equal(resourceId, result!.Id);
+        Assert.False(string.IsNullOrEmpty(result.Title));
+        Assert.False(string.IsNullOrEmpty(result.ResourceType));
     }
 
     [DockerRequiredFact]
@@ -158,13 +157,13 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/elearning-resources/{resourceId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceResponse>();
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(resourceId);
-        result.ExternalLmsUrl.Should().NotBeNullOrEmpty();
-        result.ExternalLmsUrl.Should().StartWith("https://");
+        Assert.NotNull(result);
+        Assert.Equal(resourceId, result!.Id);
+        Assert.False(string.IsNullOrEmpty(result.ExternalLmsUrl));
+        Assert.StartsWith("https://", result.ExternalLmsUrl);
     }
 
     [DockerRequiredFact]
@@ -177,7 +176,7 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/careers/v1/elearning-resources/{nonExistingId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -193,11 +192,11 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ELearningResourceListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Items);
     }
 
     [DockerRequiredFact]
@@ -210,7 +209,7 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync("/careers/v1/elearning-resources");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     private async Task SeedTestDataAsync()

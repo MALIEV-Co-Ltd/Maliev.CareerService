@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data.Models;
@@ -42,13 +41,13 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
-        result!.ApplicationId.Should().Be(applicationId);
-        result.Changes.Should().NotBeEmpty();
-        result.Changes.Should().HaveCountGreaterThanOrEqualTo(3); // At least Submitted, UnderReview, Interview
+        Assert.NotNull(result);
+        Assert.Equal(applicationId, result!.ApplicationId);
+        Assert.NotEmpty(result.Changes);
+        Assert.True(result.Changes.Count >= 3); // At least Submitted, UnderReview, Interview
     }
 
     [DockerRequiredFact]
@@ -61,15 +60,15 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify chronological order (newest first)
         for (int i = 0; i < result!.Changes.Count - 1; i++)
         {
-            result.Changes[i].ChangedAt.Should().BeOnOrAfter(result.Changes[i + 1].ChangedAt);
+            Assert.True(result.Changes[i].ChangedAt >= result.Changes[i + 1].ChangedAt);
         }
     }
 
@@ -83,12 +82,11 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
-        result!.Changes.Should().Contain(c => c.IsReversal == true);
-        result.Changes.Where(c => c.IsReversal).Should().NotBeEmpty();
+        Assert.NotNull(result);
+        Assert.Contains(result!.Changes, c => c.IsReversal == true);
     }
 
     [DockerRequiredFact]
@@ -101,15 +99,15 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify all changes have user names populated
         foreach (var change in result!.Changes)
         {
-            change.ChangedByName.Should().NotBeNullOrEmpty();
+            Assert.False(string.IsNullOrEmpty(change.ChangedByName));
         }
     }
 
@@ -123,13 +121,13 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify changes have reasons
-        result!.Changes.Should().Contain(c => !string.IsNullOrEmpty(c.Reason));
+        Assert.Contains(result!.Changes, c => !string.IsNullOrEmpty(c.Reason));
     }
 
     [DockerRequiredFact]
@@ -142,7 +140,7 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{nonExistentId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -158,7 +156,7 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -171,12 +169,12 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
-        result.Should().NotBeNull();
-        result!.ApplicationId.Should().Be(applicationId);
-        result.Changes.Should().BeEmpty();
+        Assert.NotNull(result);
+        Assert.Equal(applicationId, result!.ApplicationId);
+        Assert.Empty(result.Changes);
     }
 
     private async Task<Guid> SeedApplicationWithStatusHistoryAsync()

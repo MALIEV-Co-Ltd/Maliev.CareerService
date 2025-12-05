@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;
@@ -24,19 +23,19 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         var response = await _client.GetAsync("/careers/v1/job-postings");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify response structure
-        result!.Should().BeAssignableTo<JobPostingListResponse>();
-        result.Items.Should().NotBeNull();
-        result.Page.Should().BeGreaterThanOrEqualTo(1);
-        result.PageSize.Should().BeGreaterThan(0);
-        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-        result.TotalPages.Should().BeGreaterThanOrEqualTo(0);
+        Assert.IsAssignableFrom<JobPostingListResponse>(result);
+        Assert.NotNull(result.Items);
+        Assert.True(result.Page >= 1);
+        Assert.True(result.PageSize > 0);
+        Assert.True(result.TotalCount >= 0);
+        Assert.True(result.TotalPages >= 0);
     }
 
     [DockerRequiredFact]
@@ -49,27 +48,27 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         var response = await _client.GetAsync($"/careers/v1/job-postings/{testId}");
 
         // Assert - We expect 404, but we're testing the endpoint exists and responds
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var result = await response.Content.ReadFromJsonAsync<JobPostingResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify response structure
-            result!.Should().BeAssignableTo<JobPostingResponse>();
-            result.Id.Should().NotBeEmpty();
-            result.PositionTitle.Should().NotBeNullOrEmpty();
-            result.PositionCode.Should().NotBeNullOrEmpty();
-            result.Description.Should().NotBeNull();
-            result.DescriptionHtml.Should().NotBeNull();
-            result.Requirements.Should().NotBeNull();
-            result.RequirementsHtml.Should().NotBeNull();
-            result.Responsibilities.Should().NotBeNull();
-            result.ResponsibilitiesHtml.Should().NotBeNull();
-            result.EmploymentType.Should().NotBeNullOrEmpty();
-            result.RowVersion.Should().NotBeNullOrEmpty();
+            Assert.IsAssignableFrom<JobPostingResponse>(result);
+            Assert.NotEqual(Guid.Empty, result.Id);
+            Assert.False(string.IsNullOrEmpty(result.PositionTitle));
+            Assert.False(string.IsNullOrEmpty(result.PositionCode));
+            Assert.NotNull(result.Description);
+            Assert.NotNull(result.DescriptionHtml);
+            Assert.NotNull(result.Requirements);
+            Assert.NotNull(result.RequirementsHtml);
+            Assert.NotNull(result.Responsibilities);
+            Assert.NotNull(result.ResponsibilitiesHtml);
+            Assert.False(string.IsNullOrEmpty(result.EmploymentType));
+            Assert.False(string.IsNullOrEmpty(result.RowVersion));
         }
     }
 
@@ -97,22 +96,21 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         var response = await _client.PostAsJsonAsync("/careers/v1/job-postings", request);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden);
+        Assert.True(response.StatusCode == HttpStatusCode.Created ||
+                   response.StatusCode == HttpStatusCode.BadRequest ||
+                   response.StatusCode == HttpStatusCode.Unauthorized ||
+                   response.StatusCode == HttpStatusCode.Forbidden);
 
         if (response.StatusCode == HttpStatusCode.Created)
         {
-            response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
             var result = await response.Content.ReadFromJsonAsync<JobPostingResponse>();
-            result.Should().NotBeNull();
-            result!.PositionTitle.Should().Be(request.PositionTitle);
+            Assert.NotNull(result);
+            Assert.Equal(request.PositionTitle, result.PositionTitle);
 
             // Verify Location header for created resource
-            response.Headers.Location.Should().NotBeNull();
+            Assert.NotNull(response.Headers.Location);
         }
     }
 
@@ -124,11 +122,11 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
             "/careers/v1/job-postings?department=Engineering&location=Bangkok&employmentType=Full-time&search=software&offset=0&limit=10");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
-        result!.PageSize.Should().Be(10);
+        Assert.NotNull(result);
+        Assert.Equal(10, result.PageSize);
     }
 
     [DockerRequiredFact]
@@ -164,15 +162,15 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         var result = JsonSerializer.Deserialize<JobPostingResponse>(sampleJson, options);
 
         // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().NotBeEmpty();
-        result.PositionTitle.Should().NotBeNullOrEmpty();
-        result.PositionCode.Should().NotBeNullOrEmpty();
-        result.EmploymentType.Should().NotBeNullOrEmpty();
-        result.DescriptionHtml.Should().NotBeNullOrEmpty();
-        result.RequirementsHtml.Should().NotBeNullOrEmpty();
-        result.ResponsibilitiesHtml.Should().NotBeNullOrEmpty();
-        result.RowVersion.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.False(string.IsNullOrEmpty(result.PositionTitle));
+        Assert.False(string.IsNullOrEmpty(result.PositionCode));
+        Assert.False(string.IsNullOrEmpty(result.EmploymentType));
+        Assert.False(string.IsNullOrEmpty(result.DescriptionHtml));
+        Assert.False(string.IsNullOrEmpty(result.RequirementsHtml));
+        Assert.False(string.IsNullOrEmpty(result.ResponsibilitiesHtml));
+        Assert.False(string.IsNullOrEmpty(result.RowVersion));
     }
 
     [DockerRequiredFact]
@@ -182,15 +180,15 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         var response = await _client.GetAsync("/careers/v1/job-postings?offset=0&limit=5");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobPostingListResponse>();
-        result.Should().NotBeNull();
+        Assert.NotNull(result);
 
         // Verify pagination fields
-        result!.Page.Should().BeGreaterThanOrEqualTo(1);
-        result.PageSize.Should().Be(5);
-        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-        result.TotalPages.Should().BeGreaterThanOrEqualTo(0);
+        Assert.True(result.Page >= 1);
+        Assert.Equal(5, result.PageSize);
+        Assert.True(result.TotalCount >= 0);
+        Assert.True(result.TotalPages >= 0);
     }
 }

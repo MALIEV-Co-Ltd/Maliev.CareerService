@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;
@@ -38,21 +37,20 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Conflict,
-            HttpStatusCode.NotFound);
+        Assert.True(response.StatusCode == HttpStatusCode.Created ||
+                   response.StatusCode == HttpStatusCode.BadRequest ||
+                   response.StatusCode == HttpStatusCode.Conflict ||
+                   response.StatusCode == HttpStatusCode.NotFound);
 
         if (response.StatusCode == HttpStatusCode.Created)
         {
-            response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
             var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify Location header for created resource
-            response.Headers.Location.Should().NotBeNull();
+            Assert.NotNull(response.Headers.Location);
         }
     }
 
@@ -63,7 +61,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.GetAsync("/careers/v1/job-applications");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -76,22 +74,22 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.GetAsync("/careers/v1/job-applications");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+        Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotImplemented);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+            Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
             var result = await response.Content.ReadFromJsonAsync<JobApplicationListResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify response structure
-            result!.Should().BeAssignableTo<JobApplicationListResponse>();
-            result.Items.Should().NotBeNull();
-            result.Page.Should().BeGreaterThanOrEqualTo(1);
-            result.PageSize.Should().BeGreaterThan(0);
-            result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-            result.TotalPages.Should().BeGreaterThanOrEqualTo(0);
+            Assert.IsAssignableFrom<JobApplicationListResponse>(result);
+            Assert.NotNull(result.Items);
+            Assert.True(result.Page >= 1);
+            Assert.True(result.PageSize > 0);
+            Assert.True(result.TotalCount >= 0);
+            Assert.True(result.TotalPages >= 0);
         }
     }
 
@@ -106,24 +104,26 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.GetAsync($"/careers/v1/job-applications/{testId}");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound, HttpStatusCode.Forbidden);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        Assert.True(response.StatusCode == HttpStatusCode.OK ||
+                   response.StatusCode == HttpStatusCode.NotFound ||
+                   response.StatusCode == HttpStatusCode.Forbidden);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify response structure
-            result!.Should().BeAssignableTo<JobApplicationResponse>();
-            result.Id.Should().NotBeEmpty();
-            result.JobPostingId.Should().NotBeEmpty();
-            result.ApplicantFirstName.Should().NotBeNullOrEmpty();
-            result.ApplicantLastName.Should().NotBeNullOrEmpty();
-            result.ApplicantEmail.Should().NotBeNullOrEmpty();
-            result.ResumeFileId.Should().NotBeEmpty();
-            result.Status.Should().NotBeNullOrEmpty();
-            result.RowVersion.Should().NotBeNullOrEmpty();
+            Assert.IsAssignableFrom<JobApplicationResponse>(result);
+            Assert.NotEqual(Guid.Empty, result.Id);
+            Assert.NotEqual(Guid.Empty, result.JobPostingId);
+            Assert.False(string.IsNullOrEmpty(result.ApplicantFirstName));
+            Assert.False(string.IsNullOrEmpty(result.ApplicantLastName));
+            Assert.False(string.IsNullOrEmpty(result.ApplicantEmail));
+            Assert.NotEqual(Guid.Empty, result.ResumeFileId);
+            Assert.False(string.IsNullOrEmpty(result.Status));
+            Assert.False(string.IsNullOrEmpty(result.RowVersion));
         }
     }
 
@@ -158,12 +158,12 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var result = JsonSerializer.Deserialize<JobApplicationResponse>(sampleJson, options);
 
         // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().NotBeEmpty();
-        result.JobPostingId.Should().NotBeEmpty();
-        result.ApplicantEmail.Should().NotBeNullOrEmpty();
-        result.Status.Should().NotBeNullOrEmpty();
-        result.ApplicantFullName.Should().NotBeNullOrEmpty();
+        Assert.NotNull(result);
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.NotEqual(Guid.Empty, result.JobPostingId);
+        Assert.False(string.IsNullOrEmpty(result.ApplicantEmail));
+        Assert.False(string.IsNullOrEmpty(result.Status));
+        Assert.False(string.IsNullOrEmpty(result.ApplicantFullName));
     }
 
     [DockerRequiredFact]
@@ -180,7 +180,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", invalidRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -201,7 +201,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -222,7 +222,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -236,16 +236,16 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         var response = await _client.GetAsync("/careers/v1/job-applications?offset=0&limit=10");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+        Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotImplemented);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var result = await response.Content.ReadFromJsonAsync<JobApplicationListResponse>();
-            result.Should().NotBeNull();
+            Assert.NotNull(result);
 
             // Verify pagination fields
-            result!.Page.Should().BeGreaterThanOrEqualTo(1);
-            result.PageSize.Should().Be(10);
+            Assert.True(result.Page >= 1);
+            Assert.Equal(10, result.PageSize);
         }
     }
 }

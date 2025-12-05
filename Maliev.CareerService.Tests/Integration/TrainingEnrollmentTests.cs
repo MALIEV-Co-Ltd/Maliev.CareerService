@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -46,14 +45,14 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentResponse>();
-        result.Should().NotBeNull();
-        result!.TrainingProgramId.Should().Be(programId);
-        result.EmployeeId.Should().Be(_testEmployeeId);
-        result.Status.Should().Be("enrolled");
-        result.EnrolledAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        Assert.NotNull(result);
+        Assert.Equal(programId, result!.TrainingProgramId);
+        Assert.Equal(_testEmployeeId, result.EmployeeId);
+        Assert.Equal("enrolled", result.Status);
+        Assert.True(Math.Abs((result.EnrolledAt - DateTime.UtcNow).TotalMinutes) <= 1);
     }
 
     [DockerRequiredFact]
@@ -72,7 +71,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [DockerRequiredFact]
@@ -96,9 +95,9 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("capacity");
+        Assert.Contains("capacity", content);
     }
 
     [DockerRequiredFact]
@@ -116,9 +115,9 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("not active");
+        Assert.Contains("not active", content);
     }
 
     [DockerRequiredFact]
@@ -142,12 +141,15 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.GetAsync("/careers/v1/training-enrollments");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().HaveCount(2);
-        result.Items.Should().OnlyContain(e => e.EmployeeId == testEmployeeId);
+        Assert.NotNull(result);
+        Assert.Equal(2, result!.Items.Count);
+        foreach (var item in result.Items)
+        {
+            Assert.True(item.EmployeeId == testEmployeeId);
+        }
     }
 
     [DockerRequiredFact]
@@ -170,12 +172,15 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.GetAsync("/careers/v1/training-enrollments?status=completed");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentListResponse>();
-        result.Should().NotBeNull();
-        result!.Items.Should().HaveCount(1);
-        result.Items.Should().OnlyContain(e => e.Status == "completed");
+        Assert.NotNull(result);
+        Assert.Single(result!.Items);
+        foreach (var item in result.Items)
+        {
+            Assert.True(item.Status == "completed");
+        }
     }
 
     [DockerRequiredFact]
@@ -204,14 +209,14 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PatchAsJsonAsync($"/careers/v1/training-enrollments/{enrollmentId}/complete", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<TrainingEnrollmentResponse>();
-        result.Should().NotBeNull();
-        result!.Status.Should().Be("completed");
-        result.CompletedAt.Should().NotBeNull();
-        result.MarkedCompleteBy.Should().Be(hrStaffId);
-        result.CompletionNotes.Should().Be("Completed successfully");
+        Assert.NotNull(result);
+        Assert.Equal("completed", result!.Status);
+        Assert.NotNull(result.CompletedAt);
+        Assert.Equal(hrStaffId, result.MarkedCompleteBy);
+        Assert.Equal("Completed successfully", result.CompletionNotes);
     }
 
     [DockerRequiredFact]
@@ -239,7 +244,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         var response = await _client.PatchAsJsonAsync($"/careers/v1/training-enrollments/{enrollmentId}/complete", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     private async Task<Guid> SeedTrainingProgramAsync(string? programCode = null)
@@ -369,6 +374,9 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
     {
         protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
         {
+            // IMPORTANT: Set environment BEFORE calling base to ensure Program.cs sees Testing environment
+            builder.UseEnvironment("Testing");
+
             base.ConfigureWebHost(builder);
 
             builder.ConfigureTestServices(services =>
