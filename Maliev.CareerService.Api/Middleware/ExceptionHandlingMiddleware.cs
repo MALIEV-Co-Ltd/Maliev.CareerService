@@ -16,6 +16,11 @@ public class ExceptionHandlingMiddleware(
     private readonly RequestDelegate _next = next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger = logger;
     private readonly IWebHostEnvironment _environment = environment;
+    /// <summary>
+    /// Performs  I n v o k e asynchronously
+    /// </summary>
+    /// <param name="context">The HTTP context</param>
+    /// <returns>A task representing the asynchronous operation</returns>
 
     public async Task InvokeAsync(HttpContext context)
     {

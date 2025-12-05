@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
@@ -11,11 +11,9 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class TrainingProgramService(
     CareerDbContext dbContext,
-    IMapper mapper,
     ILogger<TrainingProgramService> logger) : ITrainingProgramService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly ILogger<TrainingProgramService> _logger = logger;
 
     /// <inheritdoc />
@@ -35,7 +33,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = _mapper.Map<List<TrainingProgramResponse>>(programs);
+        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -60,7 +58,7 @@ public class TrainingProgramService(
             return null;
         }
 
-        return _mapper.Map<TrainingProgramResponse>(program);
+        return program.ToTrainingProgramResponse();
     }
 
     /// <inheritdoc />
@@ -95,7 +93,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = _mapper.Map<List<TrainingProgramResponse>>(programs);
+        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -122,7 +120,7 @@ public class TrainingProgramService(
             throw new InvalidOperationException($"A training program with code '{request.ProgramCode}' already exists.");
         }
 
-        var program = _mapper.Map<TrainingProgram>(request);
+        var program = request.ToTrainingProgram();
         program.CreatedBy = createdBy;
         program.UpdatedBy = createdBy;
 
@@ -131,7 +129,7 @@ public class TrainingProgramService(
 
         _logger.LogInformation("Training program {ProgramId} created with code {ProgramCode}", program.Id, program.ProgramCode);
 
-        return _mapper.Map<TrainingProgramResponse>(program);
+        return program.ToTrainingProgramResponse();
     }
 
     /// <inheritdoc />
@@ -157,7 +155,7 @@ public class TrainingProgramService(
         }
 
         // Map updated fields
-        _mapper.Map(request, program);
+        program.UpdateTrainingProgram(request);
         program.UpdatedBy = updatedBy;
 
         try
@@ -171,6 +169,6 @@ public class TrainingProgramService(
             throw;
         }
 
-        return _mapper.Map<TrainingProgramResponse>(program);
+        return program.ToTrainingProgramResponse();
     }
 }

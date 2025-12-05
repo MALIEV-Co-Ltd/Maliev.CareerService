@@ -12,6 +12,9 @@ public class EmailServiceClient : IEmailServiceClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<EmailServiceClient> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailServiceClient"/> class.
+    /// </summary>
 
     public EmailServiceClient(
         HttpClient httpClient,
@@ -118,6 +121,9 @@ public class EmailServiceClient : IEmailServiceClient
 /// </summary>
 public class EmailServiceOptions
 {
+    /// <summary>
+    /// Gets or sets the base URL for the Email Service.
+    /// </summary>
     public string BaseUrl { get; set; } = string.Empty;
 }
 

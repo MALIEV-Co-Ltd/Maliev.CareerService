@@ -9,6 +9,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class CreateDevelopmentGoalRequestValidator : AbstractValidator<CreateDevelopmentGoalRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateDevelopmentGoalRequestValidator"/> class.
+    /// </summary>
     public CreateDevelopmentGoalRequestValidator()
     {
         RuleFor(x => x.GoalTitle)

@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
@@ -12,15 +12,13 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class DevelopmentPlanService(
     CareerDbContext dbContext,
-    IMapper mapper,
     IEmployeeServiceClient employeeService,
     ILogger<DevelopmentPlanService> logger) : IDevelopmentPlanService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly IEmployeeServiceClient _employeeService = employeeService;
     private readonly ILogger<DevelopmentPlanService> _logger = logger;
-
+    /// <inheritdoc/>
     public async Task<IDPListResponse> GetEmployeeIDPsAsync(
         Guid employeeId,
         int? planYear = null,
@@ -45,7 +43,7 @@ public class DevelopmentPlanService(
             .OrderByDescending(idp => idp.PlanYear)
             .ToListAsync(cancellationToken);
 
-        var responses = _mapper.Map<List<IDPResponse>>(idps);
+        var responses = idps.Select(i => i.ToIDPResponse()).ToList();
 
         return new IDPListResponse
         {
@@ -54,6 +52,7 @@ public class DevelopmentPlanService(
         };
     }
 
+    /// <inheritdoc/>
     public async Task<IDPResponse?> GetIDPByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -67,9 +66,9 @@ public class DevelopmentPlanService(
             return null;
         }
 
-        return _mapper.Map<IDPResponse>(idp);
+        return idp.ToIDPResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<IDPResponse> CreateIDPAsync(
         Guid employeeId,
         CreateIDPRequest request,
@@ -84,7 +83,7 @@ public class DevelopmentPlanService(
             throw new InvalidOperationException($"An IDP for year {request.PlanYear} already exists for this employee.");
         }
 
-        var idp = _mapper.Map<IndividualDevelopmentPlan>(request);
+        var idp = request.ToIndividualDevelopmentPlan();
         idp.EmployeeId = employeeId;
         idp.CreatedBy = employeeId;
         idp.UpdatedBy = employeeId;
@@ -98,9 +97,9 @@ public class DevelopmentPlanService(
             employeeId,
             request.PlanYear);
 
-        return _mapper.Map<IDPResponse>(idp);
+        return idp.ToIDPResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<IDPResponse> UpdateIDPAsync(
         Guid idpId,
         UpdateIDPRequest request,
@@ -146,9 +145,9 @@ public class DevelopmentPlanService(
 
         _logger.LogInformation("Updated IDP {IdpId}", idpId);
 
-        return _mapper.Map<IDPResponse>(idp);
+        return idp.ToIDPResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<IDPResponse> SubmitIDPAsync(
         Guid idpId,
         Guid employeeId,
@@ -179,9 +178,9 @@ public class DevelopmentPlanService(
 
         _logger.LogInformation("Submitted IDP {IdpId} for approval", idpId);
 
-        return _mapper.Map<IDPResponse>(idp);
+        return idp.ToIDPResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<IDPResponse> ApproveIDPAsync(
         Guid idpId,
         ApproveIDPRequest request,
@@ -227,9 +226,9 @@ public class DevelopmentPlanService(
             idpId,
             hrUserId);
 
-        return _mapper.Map<IDPResponse>(idp);
+        return idp.ToIDPResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<bool> CheckDuplicateYearAsync(
         Guid employeeId,
         int planYear,

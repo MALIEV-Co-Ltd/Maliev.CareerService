@@ -8,6 +8,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class EnrollInTrainingRequestValidator : AbstractValidator<EnrollInTrainingRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EnrollInTrainingRequestValidator"/> class.
+    /// </summary>
     public EnrollInTrainingRequestValidator()
     {
         RuleFor(x => x.TrainingProgramId)

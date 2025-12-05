@@ -5,9 +5,8 @@
     <UserSecretsId>maliev-careerservice-api</UserSecretsId>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +15,8 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
-    <PackageReference Include="MassTransit" Version="8.5.5" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.5" />
+    <PackageReference Include="MassTransit" Version="8.5.7" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
@@ -28,20 +27,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
-    <PackageReference Include="Markdig" Version="0.37.0" />
-    <PackageReference Include="HtmlSanitizer" Version="8.1.870" />
-    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <PackageReference Include="Markdig" Version="0.44.0" />
+    <PackageReference Include="HtmlSanitizer" Version="9.0.889" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Maliev.CareerService.Data\Maliev.CareerService.Data.csproj" />
-    <PackageReference Include="Maliev.Aspire.ServiceDefaults" Version="1.0.*" />
+    <ProjectReference Include="..\..\Maliev.Aspire\Maliev.Aspire.ServiceDefaults\Maliev.Aspire.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

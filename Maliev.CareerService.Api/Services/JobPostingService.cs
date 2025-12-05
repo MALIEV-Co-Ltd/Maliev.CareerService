@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.Common;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Data;
@@ -12,13 +12,11 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class JobPostingService(
     CareerDbContext dbContext,
-    IMapper mapper,
     IMarkdownService markdownService,
     IMetricsService metricsService,
     ILogger<JobPostingService> logger) : IJobPostingService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly IMarkdownService _markdownService = markdownService;
     private readonly IMetricsService _metricsService = metricsService;
     private readonly ILogger<JobPostingService> _logger = logger;
@@ -149,7 +147,7 @@ public class JobPostingService(
             throw new InvalidOperationException($"A job posting with position code '{request.PositionCode}' already exists.");
         }
 
-        var posting = _mapper.Map<JobPosting>(request);
+        var posting = request.ToJobPosting();
         posting.CreatedBy = createdBy;
         posting.UpdatedBy = createdBy;
 
@@ -192,7 +190,7 @@ public class JobPostingService(
         }
 
         // Map updated fields
-        _mapper.Map(request, posting);
+        posting.UpdateJobPosting(request);
         posting.UpdatedBy = updatedBy;
 
         try
@@ -247,7 +245,7 @@ public class JobPostingService(
     /// </summary>
     private JobPostingResponse MapToResponse(JobPosting posting)
     {
-        var response = _mapper.Map<JobPostingResponse>(posting);
+        var response = posting.ToJobPostingResponse();
 
         // Convert Markdown fields to HTML
         response.DescriptionHtml = _markdownService.ToHtml(posting.Description);

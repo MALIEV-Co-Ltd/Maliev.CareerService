@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.DevelopmentGoals;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
@@ -11,13 +11,11 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class DevelopmentGoalService(
     CareerDbContext dbContext,
-    IMapper mapper,
     ILogger<DevelopmentGoalService> logger) : IDevelopmentGoalService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly ILogger<DevelopmentGoalService> _logger = logger;
-
+    /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> CreateGoalAsync(
         Guid idpId,
         CreateDevelopmentGoalRequest request,
@@ -32,7 +30,7 @@ public class DevelopmentGoalService(
             throw new UnauthorizedAccessException("You can only add goals to your own IDPs.");
         }
 
-        var goal = _mapper.Map<EmployeeDevelopmentGoal>(request);
+        var goal = request.ToEmployeeDevelopmentGoal();
         goal.IdpId = idpId;
         goal.CreatedBy = employeeId;
         goal.UpdatedBy = employeeId;
@@ -45,9 +43,9 @@ public class DevelopmentGoalService(
             goal.Id,
             idpId);
 
-        return _mapper.Map<DevelopmentGoalResponse>(goal);
+        return goal.ToDevelopmentGoalResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalAsync(
         Guid goalId,
         UpdateDevelopmentGoalRequest request,
@@ -79,12 +77,8 @@ public class DevelopmentGoalService(
         }
 
         // Update fields
-        goal.GoalTitle = request.GoalTitle;
-        goal.GoalDescription = request.GoalDescription;
-        goal.Category = request.Category;
-        goal.TargetDate = request.TargetDate;
-        goal.ActionItems = request.ActionItems;
-        goal.ProgressNotes = request.ProgressNotes;
+        // Update fields
+        goal.UpdateDevelopmentGoal(request);
         goal.UpdatedBy = employeeId;
         goal.UpdatedAt = DateTime.UtcNow;
 
@@ -100,9 +94,9 @@ public class DevelopmentGoalService(
 
         _logger.LogInformation("Updated goal {GoalId}", goalId);
 
-        return _mapper.Map<DevelopmentGoalResponse>(goal);
+        return goal.ToDevelopmentGoalResponse();
     }
-
+    /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalStatusAsync(
         Guid goalId,
         UpdateGoalStatusRequest request,
@@ -159,9 +153,10 @@ public class DevelopmentGoalService(
             goalId,
             request.Status);
 
-        return _mapper.Map<DevelopmentGoalResponse>(goal);
+        return goal.ToDevelopmentGoalResponse();
     }
 
+    /// <inheritdoc/>
     public async Task<List<DevelopmentGoalResponse>> GetGoalsByIDPAsync(
         Guid idpId,
         CancellationToken cancellationToken = default)
@@ -171,6 +166,6 @@ public class DevelopmentGoalService(
             .OrderBy(g => g.TargetDate)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<List<DevelopmentGoalResponse>>(goals);
+        return goals.Select(g => g.ToDevelopmentGoalResponse()).ToList();
     }
 }

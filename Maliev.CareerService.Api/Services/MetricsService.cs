@@ -1,9 +1,9 @@
-using Prometheus;
+using System.Diagnostics.Metrics;
 
 namespace Maliev.CareerService.Api.Services;
 
 /// <summary>
-/// Service for managing Prometheus metrics
+/// Service for managing OpenTelemetry metrics
 /// </summary>
 public interface IMetricsService
 {
@@ -34,68 +34,100 @@ public interface IMetricsService
 }
 
 /// <summary>
-/// Implementation of Prometheus metrics service
+/// Implementation of metrics service using System.Diagnostics.Metrics (OpenTelemetry)
 /// </summary>
 public class MetricsService : IMetricsService
 {
-    private readonly Counter _jobApplicationsCounter;
-    private readonly Counter _trainingEnrollmentsCounter;
-    private readonly Gauge _activeJobPostingsGauge;
-    private readonly Gauge _concurrentUsersGauge;
+    private readonly Meter _meter;
+    private readonly Counter<long> _jobApplicationsCounter;
+    private readonly Counter<long> _trainingEnrollmentsCounter;
+    private readonly ObservableGauge<long> _activeJobPostingsGauge;
+    private readonly ObservableGauge<long> _concurrentUsersGauge;
 
+    // Backing fields reported by observable gauges
+    private long _activeJobPostings;
+    private long _concurrentUsers;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MetricsService"/> class.
+    /// </summary>
     public MetricsService()
     {
+        _meter = new Meter("careers", "1.0.0");
+
         // Counter: Total job applications by status
-        _jobApplicationsCounter = Metrics.CreateCounter(
+        _jobApplicationsCounter = _meter.CreateCounter<long>(
             "career_job_applications_total",
-            "Total number of job applications submitted",
-            new CounterConfiguration
-            {
-                LabelNames = ["status"]
-            });
+            description: "Total number of job applications submitted");
 
         // Counter: Total training enrollments by status
-        _trainingEnrollmentsCounter = Metrics.CreateCounter(
+        _trainingEnrollmentsCounter = _meter.CreateCounter<long>(
             "career_training_enrollments_total",
-            "Total number of training program enrollments",
-            new CounterConfiguration
-            {
-                LabelNames = ["status"]
-            });
+            description: "Total number of training program enrollments");
 
-        // Gauge: Current number of active job postings
-        _activeJobPostingsGauge = Metrics.CreateGauge(
+        // Observable Gauge: Current number of active job postings
+        _activeJobPostingsGauge = _meter.CreateObservableGauge<long>(
             "career_active_job_postings",
-            "Current number of active job postings");
+            observeValues: () => new[]
+            {
+                new Measurement<long>(Interlocked.Read(ref _activeJobPostings))
+            },
+            description: "Current number of active job postings");
 
-        // Gauge: Current number of concurrent users
-        _concurrentUsersGauge = Metrics.CreateGauge(
+        // Observable Gauge: Current number of concurrent users
+        _concurrentUsersGauge = _meter.CreateObservableGauge<long>(
             "career_concurrent_users",
-            "Current number of concurrent API users");
+            observeValues: () => new[]
+            {
+                new Measurement<long>(Interlocked.Read(ref _concurrentUsers))
+            },
+            description: "Current number of concurrent API users");
     }
 
+    /// <summary>
+    /// Performs the IncrementJobApplications operation
+    /// </summary>
+    /// <param name="status">The status</param>
     public void IncrementJobApplications(string status)
     {
-        _jobApplicationsCounter.WithLabels(status).Inc();
+        _jobApplicationsCounter.Add(
+            1,
+            new[] { new KeyValuePair<string, object?>("status", status) });
     }
 
+    /// <summary>
+    /// Performs the IncrementTrainingEnrollments operation
+    /// </summary>
+    /// <param name="status">The status</param>
     public void IncrementTrainingEnrollments(string status)
     {
-        _trainingEnrollmentsCounter.WithLabels(status).Inc();
+        _trainingEnrollmentsCounter.Add(
+            1,
+            new[] { new KeyValuePair<string, object?>("status", status) });
     }
 
+    /// <summary>
+    /// Sets ActiveJobPostings
+    /// </summary>
+    /// <param name="count">The count</param>
     public void SetActiveJobPostings(int count)
     {
-        _activeJobPostingsGauge.Set(count);
+        Interlocked.Exchange(ref _activeJobPostings, count);
     }
 
+    /// <summary>
+    /// Performs the IncrementConcurrentUsers operation
+    /// </summary>
     public void IncrementConcurrentUsers()
     {
-        _concurrentUsersGauge.Inc();
+        Interlocked.Increment(ref _concurrentUsers);
     }
 
+    /// <summary>
+    /// Performs the DecrementConcurrentUsers operation
+    /// </summary>
     public void DecrementConcurrentUsers()
     {
-        _concurrentUsersGauge.Dec();
+        Interlocked.Decrement(ref _concurrentUsers);
     }
 }

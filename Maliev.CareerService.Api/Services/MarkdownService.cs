@@ -10,6 +10,9 @@ public class MarkdownService : IMarkdownService
 {
     private readonly MarkdownPipeline _pipeline;
     private readonly HtmlSanitizer _sanitizer;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MarkdownService"/> class.
+    /// </summary>
 
     public MarkdownService()
     {

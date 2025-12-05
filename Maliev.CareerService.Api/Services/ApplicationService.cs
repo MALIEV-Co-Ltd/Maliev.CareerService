@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Models.Common;
 using Maliev.CareerService.Api.Services.External;
@@ -13,23 +13,23 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class ApplicationService(
     CareerDbContext dbContext,
-    IMapper mapper,
     IMarkdownService markdownService,
     IUploadServiceClient uploadService,
     ICountryServiceClient countryService,
     IEmailServiceClient emailService,
     IEmployeeServiceClient employeeService,
     IMetricsService metricsService,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<ApplicationService> logger) : IApplicationService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly IMarkdownService _markdownService = markdownService;
     private readonly IUploadServiceClient _uploadService = uploadService;
     private readonly ICountryServiceClient _countryService = countryService;
     private readonly IEmailServiceClient _emailService = emailService;
     private readonly IEmployeeServiceClient _employeeService = employeeService;
     private readonly IMetricsService _metricsService = metricsService;
+    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
     private readonly ILogger<ApplicationService> _logger = logger;
 
     /// <inheritdoc />
@@ -74,7 +74,7 @@ public class ApplicationService(
         }
 
         // Create application entity
-        var application = _mapper.Map<JobApplication>(request);
+        var application = request.ToJobApplication();
 
         _dbContext.JobApplications.Add(application);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -93,12 +93,16 @@ public class ApplicationService(
         {
             try
             {
-                var jobPosting = await _dbContext.JobPostings
+                using var scope = _serviceScopeFactory.CreateScope();
+                var scopedDbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
+                var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailServiceClient>();
+
+                var jobPosting = await scopedDbContext.JobPostings
                     .FirstOrDefaultAsync(jp => jp.Id == request.JobPostingId, cancellationToken);
 
                 if (jobPosting != null)
                 {
-                    await _emailService.SendApplicationConfirmationAsync(
+                    await scopedEmailService.SendApplicationConfirmationAsync(
                         application.ApplicantEmail,
                         $"{application.ApplicantFirstName} {application.ApplicantLastName}",
                         jobPosting.PositionTitle,
@@ -198,7 +202,7 @@ public class ApplicationService(
         JobApplication application,
         CancellationToken cancellationToken)
     {
-        var response = _mapper.Map<JobApplicationResponse>(application);
+        var response = application.ToJobApplicationResponse();
 
         // Get file URLs from Upload Service
         var fileIds = new List<Guid> { application.ResumeFileId };
@@ -240,7 +244,7 @@ public class ApplicationService(
         // Map JobPosting if included
         if (application.JobPosting != null)
         {
-            var jobPostingResponse = _mapper.Map<Models.JobPostings.JobPostingResponse>(application.JobPosting);
+            var jobPostingResponse = application.JobPosting.ToJobPostingResponse();
             if (jobPostingResponse != null)
             {
                 jobPostingResponse.DescriptionHtml = _markdownService.ToHtml(application.JobPosting.Description);

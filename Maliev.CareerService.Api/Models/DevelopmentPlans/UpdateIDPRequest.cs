@@ -5,5 +5,8 @@ namespace Maliev.CareerService.Api.Models.DevelopmentPlans;
 /// </summary>
 public class UpdateIDPRequest
 {
+    /// <summary>
+    /// Gets or sets the row version for optimistic concurrency control.
+    /// </summary>
     public string RowVersion { get; set; } = string.Empty;
 }

@@ -8,6 +8,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class UpdateIDPRequestValidator : AbstractValidator<UpdateIDPRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateIDPRequestValidator"/> class.
+    /// </summary>
     public UpdateIDPRequestValidator()
     {
         RuleFor(x => x.RowVersion)

@@ -9,6 +9,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class UpdateGoalStatusRequestValidator : AbstractValidator<UpdateGoalStatusRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateGoalStatusRequestValidator"/> class.
+    /// </summary>
     public UpdateGoalStatusRequestValidator()
     {
         RuleFor(x => x.Status)

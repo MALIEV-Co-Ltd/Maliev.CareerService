@@ -12,6 +12,9 @@ public class CountryServiceClient : ICountryServiceClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<CountryServiceClient> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CountryServiceClient"/> class.
+    /// </summary>
 
     public CountryServiceClient(
         HttpClient httpClient,
@@ -91,6 +94,9 @@ public class CountryServiceClient : ICountryServiceClient
 /// </summary>
 public class CountryServiceOptions
 {
+    /// <summary>
+    /// Gets or sets the base URL for the Country Service.
+    /// </summary>
     public string BaseUrl { get; set; } = string.Empty;
 }
 

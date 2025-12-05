@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.ELearningResources;
 using Maliev.CareerService.Data;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +10,9 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class ELearningResourceService(
     CareerDbContext dbContext,
-    IMapper mapper,
     ILogger<ELearningResourceService> logger) : IELearningResourceService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly ILogger<ELearningResourceService> _logger = logger;
 
     /// <inheritdoc />
@@ -34,7 +32,7 @@ public class ELearningResourceService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = _mapper.Map<List<ELearningResourceResponse>>(resources);
+        var responses = resources.Select(r => r.ToELearningResourceResponse()).ToList();
 
         return new ELearningResourceListResponse
         {
@@ -59,7 +57,7 @@ public class ELearningResourceService(
             return null;
         }
 
-        return _mapper.Map<ELearningResourceResponse>(resource);
+        return resource.ToELearningResourceResponse();
     }
 
     /// <inheritdoc />
@@ -94,7 +92,7 @@ public class ELearningResourceService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = _mapper.Map<List<ELearningResourceResponse>>(resources);
+        var responses = resources.Select(r => r.ToELearningResourceResponse()).ToList();
 
         return new ELearningResourceListResponse
         {

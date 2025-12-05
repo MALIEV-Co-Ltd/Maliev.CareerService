@@ -12,6 +12,9 @@ public class EmployeeServiceClient : IEmployeeServiceClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<EmployeeServiceClient> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmployeeServiceClient"/> class.
+    /// </summary>
 
     public EmployeeServiceClient(
         HttpClient httpClient,
@@ -71,5 +74,8 @@ public class EmployeeServiceClient : IEmployeeServiceClient
 /// </summary>
 public class EmployeeServiceOptions
 {
+    /// <summary>
+    /// Gets or sets the base URL for the Employee Service.
+    /// </summary>
     public string BaseUrl { get; set; } = string.Empty;
 }

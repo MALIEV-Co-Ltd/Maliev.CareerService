@@ -1,4 +1,4 @@
-using AutoMapper;
+using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
@@ -12,13 +12,11 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class EnrollmentService(
     CareerDbContext dbContext,
-    IMapper mapper,
     IEmployeeServiceClient employeeService,
     IMetricsService metricsService,
     ILogger<EnrollmentService> logger) : IEnrollmentService
 {
     private readonly CareerDbContext _dbContext = dbContext;
-    private readonly IMapper _mapper = mapper;
     private readonly IEmployeeServiceClient _employeeService = employeeService;
     private readonly IMetricsService _metricsService = metricsService;
     private readonly ILogger<EnrollmentService> _logger = logger;
@@ -58,7 +56,7 @@ public class EnrollmentService(
             throw new InvalidOperationException($"Training program {request.TrainingProgramId} has reached maximum capacity.");
         }
 
-        var enrollment = _mapper.Map<EmployeeTrainingEnrollment>(request);
+        var enrollment = request.ToEmployeeTrainingEnrollment();
         enrollment.EmployeeId = employeeId;
         enrollment.EnrolledAt = DateTime.UtcNow;
 
@@ -78,7 +76,7 @@ public class EnrollmentService(
 
         _logger.LogInformation("Employee {EmployeeId} enrolled in training program {ProgramId}", employeeId, request.TrainingProgramId);
 
-        return _mapper.Map<TrainingEnrollmentResponse>(enrollment);
+        return enrollment.ToTrainingEnrollmentResponse();
     }
 
     /// <inheritdoc />
@@ -110,8 +108,8 @@ public class EnrollmentService(
 
         var responses = enrollments.Select(e =>
         {
-            var response = _mapper.Map<TrainingEnrollmentResponse>(e);
-            response.TrainingProgram = _mapper.Map<Models.TrainingPrograms.TrainingProgramResponse>(e.TrainingProgram);
+            var response = e.ToTrainingEnrollmentResponse();
+            response.TrainingProgram = e.TrainingProgram.ToTrainingProgramResponse();
             return response;
         }).ToList();
 
@@ -176,8 +174,8 @@ public class EnrollmentService(
             throw;
         }
 
-        var response = _mapper.Map<TrainingEnrollmentResponse>(enrollment);
-        response.TrainingProgram = _mapper.Map<Models.TrainingPrograms.TrainingProgramResponse>(enrollment.TrainingProgram);
+        var response = enrollment.ToTrainingEnrollmentResponse();
+        response.TrainingProgram = enrollment.TrainingProgram.ToTrainingProgramResponse();
         return response;
     }
 

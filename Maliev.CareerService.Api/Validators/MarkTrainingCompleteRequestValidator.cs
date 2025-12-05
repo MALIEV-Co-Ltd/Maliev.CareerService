@@ -8,6 +8,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class MarkTrainingCompleteRequestValidator : AbstractValidator<MarkTrainingCompleteRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MarkTrainingCompleteRequestValidator"/> class.
+    /// </summary>
     public MarkTrainingCompleteRequestValidator()
     {
         RuleFor(x => x.CompletionNotes)

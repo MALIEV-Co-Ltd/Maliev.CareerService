@@ -12,6 +12,9 @@ public class UploadServiceClient : IUploadServiceClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<UploadServiceClient> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UploadServiceClient"/> class.
+    /// </summary>
 
     public UploadServiceClient(
         HttpClient httpClient,
@@ -108,6 +111,9 @@ public class UploadServiceClient : IUploadServiceClient
 /// </summary>
 public class UploadServiceOptions
 {
+    /// <summary>
+    /// Gets or sets the base URL for the Upload Service.
+    /// </summary>
     public string BaseUrl { get; set; } = string.Empty;
 }
 

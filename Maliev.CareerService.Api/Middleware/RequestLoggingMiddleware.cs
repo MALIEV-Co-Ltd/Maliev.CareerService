@@ -11,6 +11,11 @@ public class RequestLoggingMiddleware(
 {
     private readonly RequestDelegate _next = next;
     private readonly ILogger<RequestLoggingMiddleware> _logger = logger;
+    /// <summary>
+    /// Performs  I n v o k e asynchronously
+    /// </summary>
+    /// <param name="context">The HTTP context</param>
+    /// <returns>A task representing the asynchronous operation</returns>
 
     public async Task InvokeAsync(HttpContext context)
     {

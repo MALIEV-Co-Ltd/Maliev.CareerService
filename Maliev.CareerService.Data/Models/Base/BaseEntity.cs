@@ -40,6 +40,6 @@ public abstract class BaseEntity
     /// <summary>
     /// Optimistic concurrency token
     /// </summary>
-    [Timestamp]
+    [ConcurrencyCheck]
     public byte[] RowVersion { get; set; } = [];
 }

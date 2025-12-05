@@ -8,6 +8,9 @@ namespace Maliev.CareerService.Api.Validators;
 /// </summary>
 public class SubmitJobApplicationRequestValidator : AbstractValidator<SubmitJobApplicationRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SubmitJobApplicationRequestValidator"/> class.
+    /// </summary>
     public SubmitJobApplicationRequestValidator()
     {
         RuleFor(x => x.JobPostingId)

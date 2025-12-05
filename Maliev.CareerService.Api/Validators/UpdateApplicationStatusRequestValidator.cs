@@ -20,6 +20,9 @@ public class UpdateApplicationStatusRequestValidator : AbstractValidator<UpdateA
         ApplicationStatus.Withdrawn
     ];
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateApplicationStatusRequestValidator"/> class.
+    /// </summary>
     public UpdateApplicationStatusRequestValidator()
     {
         RuleFor(x => x.NewStatus)
