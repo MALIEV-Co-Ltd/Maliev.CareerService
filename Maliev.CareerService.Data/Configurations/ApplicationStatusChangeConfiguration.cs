@@ -39,5 +39,8 @@ public class ApplicationStatusChangeConfiguration : IEntityTypeConfiguration<App
             .WithMany(a => a.StatusChanges)
             .HasForeignKey(e => e.ApplicationId)
             .OnDelete(DeleteBehavior.Cascade);
+            
+        // Query Filter to exclude status changes for soft-deleted applications
+        builder.HasQueryFilter(asc => asc.Application.IsDeleted == false);
     }
 }
