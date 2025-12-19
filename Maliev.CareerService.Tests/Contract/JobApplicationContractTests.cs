@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Contract;
 
@@ -16,7 +15,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
     private readonly TestWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_AcceptsCorrectRequestStructure()
     {
         // Arrange
@@ -34,7 +33,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.Created ||
@@ -54,24 +53,25 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_RequiresAuthentication()
     {
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications");
+        var response = await _client.GetAsync("/career/v1/job-applications");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_WithAuth_ReturnsCorrectResponseStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Applicant test@example.com");
+        var additionalClaims = new Dictionary<string, string> { { "email", "applicant@example.com" } };
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications");
+        var response = await _client.GetAsync("/career/v1/job-applications");
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotImplemented);
@@ -93,15 +93,15 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplication_ById_ReturnsCorrectResponseStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Applicant test@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }));
         var testId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{testId}");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{testId}");
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.OK ||
@@ -127,7 +127,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public void JobApplicationResponse_ContainsAllRequiredFields()
     {
         // This test verifies the response model structure by deserializing a sample
@@ -166,7 +166,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         Assert.False(string.IsNullOrEmpty(result.ApplicantFullName));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplicationRequest_ValidatesRequiredFields()
     {
         // Arrange - Missing required fields
@@ -177,13 +177,13 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", invalidRequest);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", invalidRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplicationRequest_ValidatesEmailFormat()
     {
         // Arrange - Invalid email format
@@ -198,13 +198,13 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplicationRequest_ValidatesFileCount()
     {
         // Arrange - Too many additional files
@@ -219,21 +219,22 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_SupportsPagination()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Applicant test@example.com");
+        var additionalClaims = new Dictionary<string, string> { { "email", "applicant@example.com" } };
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications?offset=0&limit=10");
+        var response = await _client.GetAsync("/career/v1/job-applications?offset=0&limit=10");
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotImplemented);

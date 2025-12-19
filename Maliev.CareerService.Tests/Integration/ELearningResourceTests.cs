@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -23,17 +22,17 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Add Employee authorization header
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithoutFilters_ReturnsActiveResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources");
+        var response = await _client.GetAsync("/career/v1/elearning-resources");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -45,14 +44,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.All(result.Items, r => Assert.True(r.IsActive));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithCategoryFilter_ReturnsFilteredResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources?category=Technical");
+        var response = await _client.GetAsync("/career/v1/elearning-resources?category=Technical");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -62,14 +61,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.All(result!.Items, r => Assert.Equal("Technical", r.Category));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithResourceTypeFilter_ReturnsFilteredResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources?resourceType=Video");
+        var response = await _client.GetAsync("/career/v1/elearning-resources?resourceType=Video");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,14 +78,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.All(result!.Items, r => Assert.Equal("Video", r.ResourceType));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithCategoryAndTypeFilter_ReturnsFilteredResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources?category=Leadership&resourceType=Document");
+        var response = await _client.GetAsync("/career/v1/elearning-resources?category=Leadership&resourceType=Document");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -96,14 +95,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.All(result!.Items, r => { Assert.Equal("Leadership", r.Category); Assert.Equal("Document", r.ResourceType); });
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources?offset=0&limit=2");
+        var response = await _client.GetAsync("/career/v1/elearning-resources?offset=0&limit=2");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -115,12 +114,12 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(2, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_WithInvalidLimit_ReturnsBadRequest()
     {
         // Arrange - limit too high
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources?limit=101");
+        var response = await _client.GetAsync("/career/v1/elearning-resources?limit=101");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -128,14 +127,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.Contains("Limit must be between 1 and 100", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResourceById_ExistingId_ReturnsResource()
     {
         // Arrange
         var resourceId = await SeedSingleResourceAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/elearning-resources/{resourceId}");
+        var response = await _client.GetAsync($"/career/v1/elearning-resources/{resourceId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -147,14 +146,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.False(string.IsNullOrEmpty(result.ResourceType));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResourceById_WithExternalLmsUrl_ReturnsResourceWithUrl()
     {
         // Arrange
         var resourceId = await SeedResourceWithExternalLmsAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/elearning-resources/{resourceId}");
+        var response = await _client.GetAsync($"/career/v1/elearning-resources/{resourceId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -166,30 +165,30 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.StartsWith("https://", result.ExternalLmsUrl);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResourceById_NonExistingId_ReturnsNotFound()
     {
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/elearning-resources/{nonExistingId}");
+        var response = await _client.GetAsync($"/career/v1/elearning-resources/{nonExistingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_AsHRStaff_ReturnsResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources");
+        var response = await _client.GetAsync("/career/v1/elearning-resources");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -199,14 +198,14 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEmpty(result!.Items);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetELearningResources_Unauthenticated_ReturnsUnauthorized()
     {
         // Arrange
         _client.DefaultRequestHeaders.Remove("Authorization");
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/elearning-resources");
+        var response = await _client.GetAsync("/career/v1/elearning-resources");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

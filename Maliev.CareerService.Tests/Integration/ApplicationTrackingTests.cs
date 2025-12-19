@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -22,7 +21,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
     private readonly CustomWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_AsApplicant_ReturnsOwnApplicationsOnly()
     {
         // Arrange
@@ -30,10 +29,12 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         await SeedTestApplicationsAsync(applicantEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Applicant {applicantEmail}");
+        var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
+        var token = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications");
+        var response = await _client.GetAsync("/career/v1/job-applications");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -43,17 +44,17 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         Assert.All(result!.Items, a => Assert.Equal(applicantEmail, a.ApplicantEmail));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications");
+        var response = await _client.GetAsync("/career/v1/job-applications");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplications_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
@@ -61,10 +62,12 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         await SeedMultipleApplicationsAsync(applicantEmail, 5);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Applicant {applicantEmail}");
+        var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
+        var token2 = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token2}");
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-applications?offset=0&limit=2");
+        var response = await _client.GetAsync("/career/v1/job-applications?offset=0&limit=2");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,7 +78,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         Assert.Equal(2, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplication_ById_AsOwner_ReturnsApplication()
     {
         // Arrange
@@ -83,10 +86,12 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var applicationId = await SeedSingleApplicationAsync(applicantEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Applicant {applicantEmail}");
+        var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
+        var token3 = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token3}");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -98,25 +103,26 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         Assert.NotNull(result.JobPosting);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplication_ById_AsNonOwner_ReturnsForbidden()
     {
         // Arrange
         var ownerEmail = "owner@example.com";
-        var otherEmail = "other@example.com";
         var applicationId = await SeedSingleApplicationAsync(ownerEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Applicant {otherEmail}");
+        var additionalClaims = new Dictionary<string, string> { { "email", "other-applicant@example.com" } };
+        var token4 = _factory.CreateTestJwtToken("other-applicant-id", new[] { "Applicant" }, additionalClaims);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token4}");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplication_ById_AsHRStaff_ReturnsApplication()
     {
         // Arrange
@@ -124,10 +130,10 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var applicationId = await SeedSingleApplicationAsync(applicantEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@company.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -137,16 +143,16 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         Assert.Equal(applicationId, result!.Id);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetApplication_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
         var invalidId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Applicant test@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }));
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{invalidId}");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{invalidId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

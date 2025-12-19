@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -24,10 +23,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer HRStaff hr@example.com {_hrStaffId}");
+        var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_ValidDateRange_ReturnsMetrics()
     {
         // Arrange
@@ -37,7 +37,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -46,7 +46,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_CalculatesEnrollmentRates_ReturnsPercentages()
     {
         // Arrange
@@ -56,7 +56,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -66,7 +66,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result!.EnrollmentRates);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_CalculatesCompletionRates_ReturnsAccuratePercentages()
     {
         // Arrange
@@ -76,7 +76,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -87,7 +87,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result.CompletionRates <= 100);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_CalculatesAverageTimeToComplete_ReturnsValidDuration()
     {
         // Arrange
@@ -97,7 +97,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -107,7 +107,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result!.TimeToComplete >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_IdentifiesPopularPrograms_ReturnsTopPrograms()
     {
         // Arrange
@@ -117,7 +117,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -128,7 +128,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEmpty(result.PopularPrograms);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_CalculatesCertificationRates_ReturnsPercentages()
     {
         // Arrange
@@ -138,7 +138,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -148,7 +148,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result!.CertificationRates >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_TracksIDPAdoption_ReturnsAdoptionMetrics()
     {
         // Arrange
@@ -158,7 +158,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -168,14 +168,14 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result!.IDPAdoption >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_WithoutDateRange_ReturnsLast30Days()
     {
         // Arrange
         await SeedTestLearningDataAsync();
 
         // Act - No date parameters, should default to last 30 days
-        var response = await _client.GetAsync("/careers/v1/reports/learning-metrics");
+        var response = await _client.GetAsync("/career/v1/reports/learning-metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -184,21 +184,21 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_AsEmployee_ReturnsForbidden()
     {
         // Arrange
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/reports/learning-metrics");
+        var response = await _client.GetAsync("/career/v1/reports/learning-metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetLearningMetrics_CachesResults_ReturnsSameDataWithin5Minutes()
     {
         // Arrange
@@ -208,11 +208,11 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act - First request
-        var response1 = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response1 = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
         var result1 = await response1.Content.ReadFromJsonAsync<LearningMetricsResponse>();
 
         // Act - Second request (should be cached)
-        var response2 = await _client.GetAsync($"/careers/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
+        var response2 = await _client.GetAsync($"/career/v1/reports/learning-metrics?start_date={startDate}&end_date={endDate}");
         var result2 = await response2.Content.ReadFromJsonAsync<LearningMetricsResponse>();
 
         // Assert - Results should be identical (cached)

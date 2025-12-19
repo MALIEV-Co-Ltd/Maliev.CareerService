@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -23,17 +22,17 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         _client = factory.CreateClient();
 
         // Add Employee authorization header
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_WithoutFilters_ReturnsActivePrograms()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs");
+        var response = await _client.GetAsync("/career/v1/training-programs");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -45,14 +44,14 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.All(result.Items, p => Assert.True(p.IsActive));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_WithCategoryFilter_ReturnsFilteredPrograms()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs?category=Leadership");
+        var response = await _client.GetAsync("/career/v1/training-programs?category=Leadership");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -62,14 +61,14 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.All(result!.Items, p => Assert.Equal("Leadership", p.Category));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_WithMandatoryFilter_ReturnsFilteredPrograms()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs?isMandatory=true");
+        var response = await _client.GetAsync("/career/v1/training-programs?isMandatory=true");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,14 +78,14 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.All(result!.Items, p => Assert.True(p.IsMandatory));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs?offset=0&limit=2");
+        var response = await _client.GetAsync("/career/v1/training-programs?offset=0&limit=2");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -98,14 +97,14 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.Equal(2, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingProgramById_ExistingId_ReturnsProgram()
     {
         // Arrange
         var programId = await SeedSingleProgramAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/training-programs/{programId}");
+        var response = await _client.GetAsync($"/career/v1/training-programs/{programId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -117,25 +116,25 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.True(result.DurationHours > 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingProgramById_NonExistingId_ReturnsNotFound()
     {
         // Arrange
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/training-programs/{nonExistingId}");
+        var response = await _client.GetAsync($"/career/v1/training-programs/{nonExistingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateTrainingProgram_AsHRStaff_ReturnsCreated()
     {
         // Arrange
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         var request = new CreateTrainingProgramRequest
         {
@@ -152,7 +151,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-programs", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -164,7 +163,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         Assert.Equal(request.DurationHours, result.DurationHours);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateTrainingProgram_AsEmployee_ReturnsForbidden()
     {
         // Arrange - Already set to Employee in constructor
@@ -182,23 +181,23 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-programs", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateTrainingProgram_AsHRStaff_ReturnsOk()
     {
         // Arrange
         var programId = await SeedSingleProgramAsync();
 
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         // Get current program to get RowVersion
-        var getResponse = await _client.GetAsync($"/careers/v1/training-programs/{programId}");
+        var getResponse = await _client.GetAsync($"/career/v1/training-programs/{programId}");
         var program = await getResponse.Content.ReadFromJsonAsync<TrainingProgramResponse>();
 
         var request = new UpdateTrainingProgramRequest
@@ -216,7 +215,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/careers/v1/training-programs/{programId}", request);
+        var response = await _client.PutAsJsonAsync($"/career/v1/training-programs/{programId}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

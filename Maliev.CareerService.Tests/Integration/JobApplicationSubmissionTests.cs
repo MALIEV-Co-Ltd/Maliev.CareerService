@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -24,7 +23,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
     private readonly CustomWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_WithValidData_ReturnsCreated()
     {
         // Arrange
@@ -45,7 +44,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -57,7 +56,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         Assert.False(string.IsNullOrEmpty(result.ResumeFileUrl));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_WithAdditionalFiles_ReturnsCreated()
     {
         // Arrange
@@ -76,7 +75,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -86,7 +85,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         Assert.Single(result!.AdditionalFileUrls);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_WithInvalidFileId_ReturnsBadRequest()
     {
         // Arrange
@@ -104,13 +103,13 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_AfterDeadline_ReturnsConflict()
     {
         // Arrange
@@ -128,13 +127,13 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_DuplicateEmail_ReturnsConflict()
     {
         // Arrange
@@ -153,7 +152,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
             AdditionalFileIds = []
         };
 
-        await _client.PostAsJsonAsync("/careers/v1/job-applications", firstRequest);
+        await _client.PostAsJsonAsync("/career/v1/job-applications", firstRequest);
 
         // Submit duplicate application
         var duplicateRequest = new SubmitJobApplicationRequest
@@ -167,13 +166,13 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", duplicateRequest);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", duplicateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitApplication_WithTooManyFiles_FailsValidation()
     {
         // Arrange
@@ -199,7 +198,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-applications", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-applications", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Contract;
 
@@ -16,15 +15,15 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     private readonly TestWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_ReturnsCorrectResponseStructure()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs");
+        var response = await _client.GetAsync("/career/v1/training-programs");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -42,16 +41,16 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         Assert.True(result.TotalPages >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingProgram_ReturnsCorrectResponseStructure()
     {
         // Arrange - Use a random ID that will return 404
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
         var testId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/training-programs/{testId}");
+        var response = await _client.GetAsync($"/career/v1/training-programs/{testId}");
 
         // Assert - We expect 404, but we're testing the endpoint exists and responds
         Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound);
@@ -76,12 +75,12 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         var request = new CreateTrainingProgramRequest
         {
@@ -98,7 +97,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-programs", request);
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.Created ||
@@ -120,12 +119,12 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
         var testId = Guid.NewGuid();
 
         var request = new UpdateTrainingProgramRequest
@@ -143,7 +142,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/careers/v1/training-programs/{testId}", request);
+        var response = await _client.PutAsJsonAsync($"/career/v1/training-programs/{testId}", request);
 
         // Assert - We expect 404 for non-existent resource, but we're testing contract
         Assert.True(response.StatusCode == HttpStatusCode.OK ||
@@ -163,16 +162,16 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_SupportsQueryParameters()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
         var response = await _client.GetAsync(
-            "/careers/v1/training-programs?category=Technical&isMandatory=true&offset=0&limit=10");
+            "/career/v1/training-programs?category=Technical&isMandatory=true&offset=0&limit=10");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -182,7 +181,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         Assert.Equal(10, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public void TrainingProgramResponse_ContainsAllRequiredFields()
     {
         // This test verifies the response model structure by deserializing a sample
@@ -221,15 +220,15 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         Assert.False(string.IsNullOrEmpty(result.RowVersion));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task TrainingProgramListResponse_SupportsPagination()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs?offset=0&limit=5");
+        var response = await _client.GetAsync("/career/v1/training-programs?offset=0&limit=5");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -244,12 +243,12 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         Assert.True(result.TotalPages >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateTrainingProgramRequest_ValidatesRequiredFields()
     {
         // Arrange
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff hr@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         // Invalid request - missing required fields
         var invalidRequest = new CreateTrainingProgramRequest
@@ -266,30 +265,30 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", invalidRequest);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-programs", invalidRequest);
 
         // Assert - Should return BadRequest for validation errors
         Assert.True(response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Forbidden);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetTrainingPrograms_RequiresAuthentication()
     {
         // Arrange - No authorization header
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-programs");
+        var response = await _client.GetAsync("/career/v1/training-programs");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateTrainingProgram_RequiresHRStaffRole()
     {
         // Arrange - Employee role (not HRStaff)
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         var request = new CreateTrainingProgramRequest
         {
@@ -305,7 +304,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-programs", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-programs", request);
 
         // Assert - Should return Forbidden for non-HRStaff users
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

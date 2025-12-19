@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -24,10 +23,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer HRStaff hr@example.com {_hrStaffId}");
+        var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_ValidDateRange_ReturnsMetrics()
     {
         // Arrange
@@ -37,7 +37,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,7 +47,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result!.TotalApplications > 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_CalculatesApplicationsPerPosting_ReturnsCorrectCounts()
     {
         // Arrange
@@ -57,7 +57,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -68,7 +68,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEmpty(result.ApplicationsPerPosting);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_CalculatesConversionRates_ReturnsPercentages()
     {
         // Arrange
@@ -78,7 +78,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -88,7 +88,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result!.ConversionRates);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_CalculatesAverageTimeToHire_ReturnsValidDuration()
     {
         // Arrange
@@ -98,7 +98,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -108,7 +108,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result!.AverageTimeToHire > 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_CountsPositionsFilled_ReturnsAccurateCounts()
     {
         // Arrange
@@ -118,7 +118,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -129,7 +129,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result.PositionsOpen >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_ApplicationVolumeTrends_ReturnsTimeSeriesData()
     {
         // Arrange
@@ -139,7 +139,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -149,14 +149,14 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result!.ApplicationVolumeTrends);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_WithoutDateRange_ReturnsLast30Days()
     {
         // Arrange
         await SeedTestRecruitmentDataAsync();
 
         // Act - No date parameters, should default to last 30 days
-        var response = await _client.GetAsync("/careers/v1/reports/recruitment-metrics");
+        var response = await _client.GetAsync("/career/v1/reports/recruitment-metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -165,21 +165,21 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(result);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_AsEmployee_ReturnsForbidden()
     {
         // Arrange
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/reports/recruitment-metrics");
+        var response = await _client.GetAsync("/career/v1/reports/recruitment-metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetRecruitmentMetrics_CachesResults_ReturnsSameDataWithin5Minutes()
     {
         // Arrange
@@ -189,11 +189,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
         // Act - First request
-        var response1 = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response1 = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
         var result1 = await response1.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
 
         // Act - Second request (should be cached)
-        var response2 = await _client.GetAsync($"/careers/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
+        var response2 = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
         var result2 = await response2.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
 
         // Assert - Results should be identical (cached)

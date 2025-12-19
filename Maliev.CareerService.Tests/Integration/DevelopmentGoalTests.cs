@@ -3,7 +3,6 @@ using Maliev.CareerService.Data.Models;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -12,7 +11,7 @@ namespace Maliev.CareerService.Tests.Integration;
 /// </summary>
 public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : IntegrationTestBase(factory)
 {
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateGoal_WithValidRequest_CreatesNewGoal()
     {
         // Arrange
@@ -42,7 +41,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync($"/careers/v1/idps/{idp.Id}/goals", request);
+        var response = await Client.PostAsJsonAsync($"/career/v1/idps/{idp.Id}/goals", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -53,7 +52,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         Assert.Equal(idp.Id, result.IdpId);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateGoal_ForOtherEmployeesIDP_ReturnsForbidden()
     {
         // Arrange
@@ -84,13 +83,13 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync($"/careers/v1/idps/{idp.Id}/goals", request);
+        var response = await Client.PostAsJsonAsync($"/career/v1/idps/{idp.Id}/goals", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateGoal_WithValidRequest_UpdatesGoal()
     {
         // Arrange
@@ -135,7 +134,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"/careers/v1/goals/{goal.Id}", request);
+        var response = await Client.PutAsJsonAsync($"/career/v1/goals/{goal.Id}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -145,7 +144,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         Assert.Equal(request.Category, result.Category);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateGoal_WithStaleRowVersion_ReturnsConflict()
     {
         // Arrange
@@ -190,13 +189,13 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"/careers/v1/goals/{goal.Id}", request);
+        var response = await Client.PutAsJsonAsync($"/career/v1/goals/{goal.Id}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateGoalStatus_ToCompleted_UpdatesStatusAndCompletionDate()
     {
         // Arrange
@@ -238,7 +237,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PatchAsJsonAsync($"/careers/v1/goals/{goal.Id}/status", request);
+        var response = await Client.PatchAsJsonAsync($"/career/v1/goals/{goal.Id}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -248,7 +247,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         Assert.NotNull(result.CompletionDate);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateGoalStatus_ToCompletedWithoutDate_ReturnsBadRequest()
     {
         // Arrange
@@ -290,7 +289,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
         };
 
         // Act
-        var response = await Client.PatchAsJsonAsync($"/careers/v1/goals/{goal.Id}/status", request);
+        var response = await Client.PatchAsJsonAsync($"/career/v1/goals/{goal.Id}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -17,14 +16,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     private readonly TestWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithoutFilters_ReturnsActivePostings()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings");
+        var response = await _client.GetAsync("/career/v1/job-postings");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -36,14 +35,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.All(result.Items, p => Assert.True(p.IsActive));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithDepartmentFilter_ReturnsFilteredPostings()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?department=Engineering");
+        var response = await _client.GetAsync("/career/v1/job-postings?department=Engineering");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -53,14 +52,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.All(result!.Items, p => Assert.Equal("Engineering", p.Department));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithLocationFilter_ReturnsFilteredPostings()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?location=Bangkok");
+        var response = await _client.GetAsync("/career/v1/job-postings?location=Bangkok");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -70,14 +69,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.All(result!.Items, p => Assert.Equal("Bangkok", p.Location));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithEmploymentTypeFilter_ReturnsFilteredPostings()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?employmentType=Full-time");
+        var response = await _client.GetAsync("/career/v1/job-postings?employmentType=Full-time");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -87,14 +86,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.All(result!.Items, p => Assert.Equal("Full-time", p.EmploymentType));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithSearchKeyword_ReturnsMatchingPostings()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?search=Software");
+        var response = await _client.GetAsync("/career/v1/job-postings?search=Software");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -104,14 +103,14 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.NotEmpty(result!.Items);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
         await SeedTestDataAsync();
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?offset=0&limit=2");
+        var response = await _client.GetAsync("/career/v1/job-postings?offset=0&limit=2");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -122,24 +121,24 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.Equal(2, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_WithInvalidLimit_ReturnsBadRequest()
     {
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?limit=200");
+        var response = await _client.GetAsync("/career/v1/job-postings?limit=200");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPosting_WithValidId_ReturnsPosting()
     {
         // Arrange
         var postingId = await SeedSinglePostingAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-postings/{postingId}");
+        var response = await _client.GetAsync($"/career/v1/job-postings/{postingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -152,24 +151,24 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.False(string.IsNullOrEmpty(result.ResponsibilitiesHtml));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPosting_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
         var invalidId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-postings/{invalidId}");
+        var response = await _client.GetAsync($"/career/v1/job-postings/{invalidId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateJobPosting_WithValidRequest_ReturnsCreated()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer admin HRStaff");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         var request = new CreateJobPostingRequest
         {
@@ -189,7 +188,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-postings", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-postings", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -200,15 +199,15 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.Equal(request.PositionCode, result.PositionCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateJobPosting_WithValidRequest_ReturnsOk()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer admin HRStaff");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
         var postingId = await SeedSinglePostingAsync();
 
         // Get current posting for RowVersion
-        var getResponse = await _client.GetAsync($"/careers/v1/job-postings/{postingId}");
+        var getResponse = await _client.GetAsync($"/career/v1/job-postings/{postingId}");
         var currentPosting = await getResponse.Content.ReadFromJsonAsync<JobPostingResponse>();
 
         var request = new UpdateJobPostingRequest
@@ -225,7 +224,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/careers/v1/job-postings/{postingId}", request);
+        var response = await _client.PutAsJsonAsync($"/career/v1/job-postings/{postingId}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -235,15 +234,15 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         Assert.Equal(request.PositionTitle, result!.PositionTitle);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task DeleteJobPosting_WithValidId_ReturnsNoContent()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer admin HRStaff");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
         var postingId = await SeedSinglePostingAsync();
 
         // Act
-        var response = await _client.DeleteAsync($"/careers/v1/job-postings/{postingId}");
+        var response = await _client.DeleteAsync($"/career/v1/job-postings/{postingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

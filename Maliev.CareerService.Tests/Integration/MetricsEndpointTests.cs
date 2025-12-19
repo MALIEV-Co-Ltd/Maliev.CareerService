@@ -1,6 +1,5 @@
 using System.Net;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -9,11 +8,11 @@ namespace Maliev.CareerService.Tests.Integration;
 /// </summary>
 public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegrationTest(factory)
 {
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_ReturnsPrometheusFormat()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -27,11 +26,11 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.Contains("# TYPE", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_ContainsHttpMetrics()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -48,11 +47,11 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.True(hasHttpMetrics, "Expected HTTP metrics to be present in Prometheus output");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_ContainsDotNetMetrics()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -63,11 +62,11 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.Contains("dotnet_", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_ContainsProcessMetrics()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -81,11 +80,11 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.True(hasProcessMetrics, "Expected process or runtime metrics to be present");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_DoesNotExposePII()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -102,25 +101,25 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.DoesNotContain("password=", lowerContent);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_AllowsAnonymousAccess()
     {
         // Arrange - No authentication header set
 
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetMetrics_HasAcceptableResponseTime()
     {
         // Act
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
         stopwatch.Stop();
 
         // Assert

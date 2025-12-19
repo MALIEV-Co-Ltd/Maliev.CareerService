@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -28,17 +27,18 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer HRStaff hr@example.com {_hrStaffId}");
+        var token = factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_ExistingApplication_ReturnsFullAuditTrail()
     {
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -50,14 +50,14 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         Assert.True(result.Changes.Count >= 3); // At least Submitted, UnderReview, Interview
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_OrderedByChangedAtDesc_ReturnsNewestFirst()
     {
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -72,14 +72,14 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_IncludesReversals_MarkedAsReversalInHistory()
     {
         // Arrange
         var applicationId = await SeedApplicationWithReversalHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -89,14 +89,14 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         Assert.Contains(result!.Changes, c => c.IsReversal == true);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_IncludesUserNames_PopulatesChangedByName()
     {
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -111,14 +111,14 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_IncludesReasons_DisplaysStatusChangeReasons()
     {
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -130,43 +130,43 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         Assert.Contains(result!.Changes, c => !string.IsNullOrEmpty(c.Reason));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_NonExistentApplication_ReturnsNotFound()
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{nonExistentId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{nonExistentId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_AsEmployee_ReturnsForbidden()
     {
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetStatusHistory_EmptyHistory_ReturnsEmptyList()
     {
         // Arrange
         var applicationId = await SeedApplicationWithoutStatusHistoryAsync();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-applications/{applicationId}/status-history");
+        var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

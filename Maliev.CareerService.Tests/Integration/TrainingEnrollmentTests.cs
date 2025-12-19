@@ -5,32 +5,29 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Maliev.CareerService.Tests.Integration;
 
 /// <summary>
 /// Integration tests for training enrollment functionality
 /// </summary>
-public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.CustomWebApplicationFactory>
+public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly CustomWebApplicationFactory _factory;
+    private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
     private readonly Guid _testEmployeeId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    public TrainingEnrollmentTests(CustomWebApplicationFactory factory)
+    public TrainingEnrollmentTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
 
-        // Add Employee authorization header with specific employee ID
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {_testEmployeeId}");
+        // Default to Employee authorization with specific employee ID
+        var token = factory.CreateTestJwtToken(_testEmployeeId.ToString(), new[] { "Employee" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task EnrollInTraining_ValidRequest_ReturnsCreated()
     {
         // Arrange
@@ -42,7 +39,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-enrollments", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -55,7 +52,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         Assert.True(Math.Abs((result.EnrolledAt - DateTime.UtcNow).TotalMinutes) <= 1);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task EnrollInTraining_DuplicateEnrollment_ReturnsConflict()
     {
         // Arrange
@@ -68,13 +65,13 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-enrollments", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task EnrollInTraining_CapacityExceeded_ReturnsBadRequest()
     {
         // Arrange
@@ -92,7 +89,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-enrollments", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -100,7 +97,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         Assert.Contains("capacity", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task EnrollInTraining_InactiveProgram_ReturnsBadRequest()
     {
         // Arrange
@@ -112,7 +109,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/training-enrollments", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/training-enrollments", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -120,13 +117,13 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         Assert.Contains("not active", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetEnrollments_ViewOwnEnrollments_ReturnsEmployeeEnrollments()
     {
         // Arrange - Use unique employee ID for test isolation
         var testEmployeeId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {testEmployeeId}");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), new[] { "Employee" }));
 
         var program1 = await SeedTrainingProgramAsync("PROG-001");
         var program2 = await SeedTrainingProgramAsync("PROG-002");
@@ -138,7 +135,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         await EnrollEmployeeInProgramAsync(program1, otherEmployee);
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-enrollments");
+        var response = await _client.GetAsync("/career/v1/training-enrollments");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -152,13 +149,13 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetEnrollments_WithStatusFilter_ReturnsFilteredEnrollments()
     {
         // Arrange - Use unique employee ID for test isolation
         var testEmployeeId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {testEmployeeId}");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), new[] { "Employee" }));
 
         var program1 = await SeedTrainingProgramAsync("PROG-003");
         var program2 = await SeedTrainingProgramAsync("PROG-004");
@@ -169,7 +166,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         await MarkEnrollmentCompletedAsync(enrollmentId);
 
         // Act
-        var response = await _client.GetAsync("/careers/v1/training-enrollments?status=completed");
+        var response = await _client.GetAsync("/career/v1/training-enrollments?status=completed");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -183,7 +180,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MarkTrainingComplete_AsHRStaff_ReturnsOk()
     {
         // Arrange
@@ -192,7 +189,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
 
         _client.DefaultRequestHeaders.Remove("Authorization");
         var hrStaffId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer HRStaff hr@example.com {hrStaffId}");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(hrStaffId.ToString(), new[] { "HRStaff" }));
 
         // Get enrollment to get RowVersion
         using var scope = _factory.Services.CreateScope();
@@ -206,7 +203,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/training-enrollments/{enrollmentId}/complete", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/training-enrollments/{enrollmentId}/complete", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -219,7 +216,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         Assert.Equal("Completed successfully", result.CompletionNotes);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MarkTrainingComplete_AsEmployee_ReturnsForbidden()
     {
         // Arrange
@@ -228,7 +225,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
 
         // Reset to Employee authorization
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer Employee employee@example.com {_testEmployeeId}");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(_testEmployeeId.ToString(), new[] { "Employee" }));
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -241,7 +238,7 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/training-enrollments/{enrollmentId}/complete", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/training-enrollments/{enrollmentId}/complete", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -367,24 +364,4 @@ public class TrainingEnrollmentTests : IClassFixture<TrainingEnrollmentTests.Cus
         }
     }
 
-    /// <summary>
-    /// Custom WebApplicationFactory that registers mock external services
-    /// </summary>
-    public class CustomWebApplicationFactory : TestWebApplicationFactory
-    {
-        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
-        {
-            // IMPORTANT: Set environment BEFORE calling base to ensure Program.cs sees Testing environment
-            builder.UseEnvironment("Testing");
-
-            base.ConfigureWebHost(builder);
-
-            builder.ConfigureTestServices(services =>
-            {
-                // Replace external services with mocks
-                services.RemoveAll<Api.Services.External.IEmployeeServiceClient>();
-                services.AddSingleton<Api.Services.External.IEmployeeServiceClient, Mocks.MockEmployeeServiceClient>();
-            });
-        }
-    }
 }

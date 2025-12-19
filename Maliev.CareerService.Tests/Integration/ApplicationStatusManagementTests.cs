@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -29,10 +28,11 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer HRStaff hr@example.com {_hrStaffId}");
+        var token = factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_ValidTransition_ReturnsOk()
     {
         // Arrange
@@ -51,7 +51,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -61,7 +61,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         Assert.Equal("under_review", result!.Status);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_WithEmailNotification_SendsEmail()
     {
         // Arrange
@@ -79,7 +79,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -91,7 +91,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         Assert.Contains(changes, c => c.ToStatus == "interviewing" && c.ChangedBy == _hrStaffId);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_Reversal_RecordsReversalInAuditTrail()
     {
         // Arrange
@@ -127,7 +127,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -140,7 +140,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         Assert.Contains(changes, c => c.Reason == "Interview cancelled - reverting status");
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_InvalidTransition_ReturnsBadRequest()
     {
         // Arrange
@@ -158,7 +158,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -166,7 +166,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         Assert.Contains("transition", content);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_ConcurrencyConflict_ReturnsConflict()
     {
         // Arrange
@@ -189,20 +189,21 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_AsEmployee_ReturnsForbidden()
     {
         // Arrange
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer Employee employee@example.com");
+        var employeeToken = _factory.CreateTestJwtToken("employee-id", new[] { "Employee" });
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {employeeToken}");
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
@@ -216,13 +217,13 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_NonExistentApplication_ReturnsNotFound()
     {
         // Arrange
@@ -236,13 +237,13 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{nonExistentId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{nonExistentId}/status", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateApplicationStatus_WithLongReason_TruncatesGracefully()
     {
         // Arrange
@@ -260,7 +261,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/careers/v1/job-applications/{applicationId}/status", request);
+        var response = await _client.PatchAsJsonAsync($"/career/v1/job-applications/{applicationId}/status", request);
 
         // Assert - Should be rejected by validation
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

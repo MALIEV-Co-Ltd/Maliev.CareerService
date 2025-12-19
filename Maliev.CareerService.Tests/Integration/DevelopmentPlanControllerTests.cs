@@ -3,7 +3,6 @@ using Maliev.CareerService.Data.Models;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
@@ -34,7 +33,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return $"Employee test@example.com {userId}";
+        return _factory.CreateTestJwtToken(userId.ToString(), new[] { "Employee" });
     }
 
     /// <summary>
@@ -42,7 +41,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return $"HRStaff hr@example.com {userId}";
+        return _factory.CreateTestJwtToken(userId.ToString(), new[] { "HRStaff" });
     }
 
     /// <summary>
@@ -57,7 +56,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         }
         await dbContext.SaveChangesAsync();
     }
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetIDPs_AsEmployee_ReturnsOwnPlans()
     {
         // Arrange
@@ -78,7 +77,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         await SeedDatabaseAsync(idp);
 
         // Act
-        var response = await Client.GetAsync("/careers/v1/idps");
+        var response = await Client.GetAsync("/career/v1/idps");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -88,17 +87,17 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         Assert.Equal(employeeId, result.Items[0].EmployeeId);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetIDPs_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await Client.GetAsync("/careers/v1/idps");
+        var response = await Client.GetAsync("/career/v1/idps");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateIDP_WithValidRequest_CreatesNewPlan()
     {
         // Arrange
@@ -117,7 +116,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/careers/v1/idps", request);
+        var response = await Client.PostAsJsonAsync("/career/v1/idps", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -128,7 +127,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         Assert.Equal("draft", result.Status);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateIDP_DuplicatePlanYear_ReturnsConflict()
     {
         // Arrange
@@ -159,13 +158,13 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/careers/v1/idps", request);
+        var response = await Client.PostAsJsonAsync("/career/v1/idps", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task UpdateIDP_WithValidRequest_UpdatesPlan()
     {
         // Arrange
@@ -201,13 +200,13 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await Client.PutAsJsonAsync($"/careers/v1/idps/{idp.Id}", request);
+        var response = await Client.PutAsJsonAsync($"/career/v1/idps/{idp.Id}", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task SubmitIDP_WithDraftStatus_SubmitsPlan()
     {
         // Arrange
@@ -233,7 +232,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         await SeedDatabaseAsync(idp);
 
         // Act
-        var response = await Client.PatchAsync($"/careers/v1/idps/{idp.Id}/submit", null);
+        var response = await Client.PatchAsync($"/career/v1/idps/{idp.Id}/submit", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -243,7 +242,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         Assert.NotNull(result.SubmittedAt);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task ApproveIDP_AsHRStaff_ApprovesPlan()
     {
         // Arrange
@@ -282,7 +281,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await Client.PatchAsJsonAsync($"/careers/v1/idps/{idp.Id}/approve", request);
+        var response = await Client.PatchAsJsonAsync($"/career/v1/idps/{idp.Id}/approve", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -293,7 +292,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         Assert.Equal(hrUserId, result.ApprovedBy);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task ApproveIDP_AsEmployee_ReturnsForbidden()
     {
         // Arrange
@@ -321,7 +320,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await Client.PatchAsJsonAsync($"/careers/v1/idps/{idp.Id}/approve", request);
+        var response = await Client.PatchAsJsonAsync($"/career/v1/idps/{idp.Id}/approve", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

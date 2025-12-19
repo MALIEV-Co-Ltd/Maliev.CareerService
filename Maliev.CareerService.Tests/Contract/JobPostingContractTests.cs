@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Contract;
 
@@ -16,11 +15,11 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
     private readonly TestWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_ReturnsCorrectResponseStructure()
     {
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings");
+        var response = await _client.GetAsync("/career/v1/job-postings");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -38,14 +37,14 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         Assert.True(result.TotalPages >= 0);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPosting_ReturnsCorrectResponseStructure()
     {
         // Arrange - Use a random ID that will return 404
         var testId = Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/careers/v1/job-postings/{testId}");
+        var response = await _client.GetAsync($"/career/v1/job-postings/{testId}");
 
         // Assert - We expect 404, but we're testing the endpoint exists and responds
         Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound);
@@ -72,11 +71,11 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task CreateJobPosting_AcceptsCorrectRequestStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer HRStaff");
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
 
         var request = new CreateJobPostingRequest
         {
@@ -93,7 +92,7 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/careers/v1/job-postings", request);
+        var response = await _client.PostAsJsonAsync("/career/v1/job-postings", request);
 
         // Assert
         Assert.True(response.StatusCode == HttpStatusCode.Created ||
@@ -114,12 +113,12 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task GetJobPostings_SupportsQueryParameters()
     {
         // Act
         var response = await _client.GetAsync(
-            "/careers/v1/job-postings?department=Engineering&location=Bangkok&employmentType=Full-time&search=software&offset=0&limit=10");
+            "/career/v1/job-postings?department=Engineering&location=Bangkok&employmentType=Full-time&search=software&offset=0&limit=10");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -129,7 +128,7 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         Assert.Equal(10, result.PageSize);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public void JobPostingResponse_ContainsAllRequiredFields()
     {
         // This test verifies the response model structure by deserializing a sample
@@ -173,11 +172,11 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
         Assert.False(string.IsNullOrEmpty(result.RowVersion));
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task JobPostingListResponse_SupportsPagination()
     {
         // Act
-        var response = await _client.GetAsync("/careers/v1/job-postings?offset=0&limit=5");
+        var response = await _client.GetAsync("/career/v1/job-postings?offset=0&limit=5");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

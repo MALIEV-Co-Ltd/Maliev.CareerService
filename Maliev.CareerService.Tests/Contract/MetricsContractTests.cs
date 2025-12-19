@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http;
 using Xunit;
-using Maliev.CareerService.Tests.Helpers;
 
 namespace Maliev.CareerService.Tests.Contract;
 
@@ -10,11 +9,11 @@ namespace Maliev.CareerService.Tests.Contract;
 /// </summary>
 public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegrationTest(factory)
 {
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_ReturnsTextPlainContentType()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -29,11 +28,11 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
                    response.Content.Headers.ContentType.CharSet == null);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_ReturnsNonEmptyContent()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -43,11 +42,11 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.True(content.Length > 100); // Reasonable minimum for metrics output
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_FollowsPrometheusLineFormat()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,11 +74,11 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_ContainsHelpComments()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -100,11 +99,11 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_ContainsTypeComments()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -125,36 +124,36 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
         }
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_SupportsHttpGet()
     {
         // Act
-        var response = await Client.GetAsync("/careers/metrics");
+        var response = await Client.GetAsync("/career/metrics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_HandlesHttpPost()
     {
         // Act - POST should still work (body ignored, returns same metrics)
-        var response = await Client.PostAsync("/careers/metrics", new StringContent(string.Empty));
+        var response = await Client.PostAsync("/career/metrics", new StringContent(string.Empty));
 
         // Assert - Prometheus scraper endpoints typically accept any HTTP method
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [DockerRequiredFact]
+    [Fact]
     public async Task MetricsEndpoint_IsIdempotent()
     {
         // Act - Call twice
-        var response1 = await Client.GetAsync("/careers/metrics");
+        var response1 = await Client.GetAsync("/career/metrics");
         var content1 = await response1.Content.ReadAsStringAsync();
 
         await Task.Delay(100); // Small delay
 
-        var response2 = await Client.GetAsync("/careers/metrics");
+        var response2 = await Client.GetAsync("/career/metrics");
         var content2 = await response2.Content.ReadAsStringAsync();
 
         // Assert - Both should succeed
