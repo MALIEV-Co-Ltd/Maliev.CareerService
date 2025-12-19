@@ -12,16 +12,8 @@ public class CareerDbContextFactory : IDesignTimeDbContextFactory<CareerDbContex
     {
         var optionsBuilder = new DbContextOptionsBuilder<CareerDbContext>();
 
-        // Use environment variable for connection string during migrations
-        // Example: export CareerDbContext="Server=localhost;Port=5432;Database=career_db;User Id=postgres;Password=your_password;"
-        var connectionString = Environment.GetEnvironmentVariable("CareerDbContext");
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException(
-                "CareerDbContext environment variable not set. " +
-                "Set it before running migrations: export CareerDbContext=\"Server=localhost;Port=5432;Database=career_db;User Id=postgres;Password=your_password;\"");
-        }
+        // Use hardcoded connection string for design-time operations
+        var connectionString = "Host=localhost;Database=career_design;Username=postgres;Password=postgres";
 
         optionsBuilder.UseNpgsql(connectionString);
 

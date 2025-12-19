@@ -11,7 +11,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
-[Route("careers/v{version:apiVersion}/reports")]
+[Route("career/v{version:apiVersion}/reports")]
 [Produces("application/json")]
 [Authorize(Roles = "HRStaff")]
 public class ReportsController(

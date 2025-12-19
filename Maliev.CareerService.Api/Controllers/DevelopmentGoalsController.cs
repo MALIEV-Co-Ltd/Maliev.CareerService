@@ -12,7 +12,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
-[Route("careers/v{version:apiVersion}")]
+[Route("career/v{version:apiVersion}")]
 [Produces("application/json")]
 [Authorize(Roles = "Employee")]
 public class DevelopmentGoalsController(

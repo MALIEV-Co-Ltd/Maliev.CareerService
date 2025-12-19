@@ -33,7 +33,7 @@ public class CountryServiceClient : ICountryServiceClient
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/countries/v1/{countryCode.ToUpperInvariant()}", cancellationToken);
+            var response = await _httpClient.GetAsync($"/country/v1/{countryCode.ToUpperInvariant()}", cancellationToken);
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

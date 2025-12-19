@@ -12,7 +12,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
-[Route("careers/v{version:apiVersion}/training-programs")]
+[Route("career/v{version:apiVersion}/training-programs")]
 [Produces("application/json")]
 public class TrainingProgramsController(
     ITrainingProgramService trainingProgramService,

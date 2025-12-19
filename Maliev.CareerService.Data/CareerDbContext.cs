@@ -2,6 +2,7 @@ using Maliev.CareerService.Data.Configurations;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Data.Models.Base;
 using Microsoft.EntityFrameworkCore;
+using Maliev.Aspire.ServiceDefaults.Database;
 
 namespace Maliev.CareerService.Data;
 
@@ -46,7 +47,10 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
                 if (!string.IsNullOrEmpty(columnName))
                 {
                     property.SetColumnName(ToSnakeCase(columnName));
-                }
+            
+        // Apply PostgreSQL snake_case naming convention globally
+        SnakeCaseNamingHelper.ApplySnakeCaseNaming(modelBuilder);
+    }
             }
 
             // Convert foreign key names to snake_case

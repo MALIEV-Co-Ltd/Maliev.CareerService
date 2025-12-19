@@ -13,7 +13,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
-[Route("careers/v{version:apiVersion}/job-postings")]
+[Route("career/v{version:apiVersion}/job-postings")]
 [Produces("application/json")]
 public class JobPostingsController(
     IJobPostingService jobPostingService,

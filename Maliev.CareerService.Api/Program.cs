@@ -10,9 +10,9 @@ builder.AddGoogleSecretManagerVolume(); // Load secrets from /mnt/secrets if ava
 
 // --- Infrastructure & Observability ---
 builder.AddServiceDefaults(); // OpenTelemetry, health checks, resilience
-builder.AddServiceMeters("careers"); // Register service meters for OpenTelemetry business metrics
+builder.AddServiceMeters("careers-meter"); // Register service meters for OpenTelemetry business metrics
 
-builder.AddRedisDistributedCache(instanceName: "Career:"); // Redis with in-memory fallback
+builder.AddRedisDistributedCache(instanceName: "career:"); // Redis with in-memory fallback
 builder.AddMassTransitWithRabbitMq(); // RabbitMQ message bus (non-blocking startup)
 builder.AddPostgresDbContext<CareerDbContext>(connectionStringName: "CareerDbContext"); // PostgreSQL with retry logic
 
@@ -41,6 +41,7 @@ if (!builder.Environment.IsProduction())
 
 // Configure Response Caching for read-heavy endpoints
 builder.Services.AddResponseCaching();
+builder.Services.AddMemoryCache();
 
 // Register application services
 builder.Services.AddScoped<IMarkdownService, MarkdownService>();
@@ -144,10 +145,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Map Aspire default endpoints (/health, /alive, /metrics)
-app.MapDefaultEndpoints(servicePrefix: "careers");
+app.MapDefaultEndpoints(servicePrefix: "career");
 
 // Map OpenAPI and Scalar documentation (dev/staging only)
-app.MapApiDocumentation(servicePrefix: "careers");
+app.MapApiDocumentation(servicePrefix: "career");
 
 logger.LogInformation("CareerService started successfully");
 await app.RunAsync();

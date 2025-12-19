@@ -12,7 +12,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
-[Route("careers/v{version:apiVersion}/idps")]
+[Route("career/v{version:apiVersion}/idps")]
 [Produces("application/json")]
 public class DevelopmentPlansController(
     IDevelopmentPlanService developmentPlanService,
