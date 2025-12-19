@@ -17,7 +17,7 @@ namespace Maliev.CareerService.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -64,7 +64,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("to_status");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_application_status_changes");
 
                     b.HasIndex("ApplicationId")
                         .HasDatabaseName("idx_status_changes_application");
@@ -135,7 +136,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -154,7 +154,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_e_learning_resources");
 
                     b.HasIndex("Category")
                         .HasDatabaseName("ix_elearning_resources_category");
@@ -233,7 +234,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -256,10 +256,11 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_employee_development_goals");
 
                     b.HasIndex("IdpId")
-                        .HasDatabaseName("i_x_employee_development_goals_idp_id");
+                        .HasDatabaseName("ix_employee_development_goals_idp_id");
 
                     b.HasIndex("TargetDate");
 
@@ -318,7 +319,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -345,7 +345,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_employee_training_enrollments");
 
                     b.HasIndex("EmployeeId")
                         .HasDatabaseName("ix_employee_training_enrollments_employee_id");
@@ -410,7 +411,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -433,7 +433,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_individual_development_plans");
 
                     b.HasIndex("EmployeeId");
 
@@ -517,7 +518,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -536,7 +536,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_job_applications");
 
                     b.HasIndex("ApplicantEmail")
                         .HasDatabaseName("idx_job_applications_email");
@@ -639,7 +640,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -662,7 +662,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_job_postings");
 
                     b.HasIndex("ApplicationDeadline")
                         .HasDatabaseName("idx_job_postings_deadline");
@@ -765,7 +766,6 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version")
                         .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
@@ -783,7 +783,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_training_programs");
 
                     b.HasIndex("Category")
                         .HasDatabaseName("ix_training_programs_category");
@@ -811,7 +812,7 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("f_k_application_status_changes__job_applications_application_id");
+                        .HasConstraintName("fk_application_status_changes__job_applications_application_id");
 
                     b.Navigation("Application");
                 });
@@ -823,7 +824,7 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("IdpId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("f_k_employee_development_goals__individual_development_plans_idp_id");
+                        .HasConstraintName("fk_employee_development_goals__individual_development_plans_idp_id");
 
                     b.Navigation("Idp");
                 });
@@ -835,7 +836,7 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("TrainingProgramId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("f_k_employee_training_enrollments__training_programs_training_pro~");
+                        .HasConstraintName("fk_employee_training_enrollments__training_programs_training_pro~");
 
                     b.Navigation("TrainingProgram");
                 });
@@ -847,7 +848,7 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("JobPostingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("f_k_job_applications__job_postings_job_posting_id");
+                        .HasConstraintName("fk_job_applications__job_postings_job_posting_id");
 
                     b.Navigation("JobPosting");
                 });

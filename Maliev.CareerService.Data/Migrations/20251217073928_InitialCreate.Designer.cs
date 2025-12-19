@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Maliev.CareerService.Data.Migrations
 {
     [DbContext(typeof(CareerDbContext))]
-    [Migration("20251022123306_AddDevelopmentPlanningEntities")]
-    partial class AddDevelopmentPlanningEntities
+    [Migration("20251217073928_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -67,7 +67,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("to_status");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_application_status_changes");
 
                     b.HasIndex("ApplicationId")
                         .HasDatabaseName("idx_status_changes_application");
@@ -138,9 +139,9 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -156,7 +157,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_e_learning_resources");
 
                     b.HasIndex("Category")
                         .HasDatabaseName("ix_elearning_resources_category");
@@ -175,6 +177,100 @@ namespace Maliev.CareerService.Data.Migrations
                         {
                             t.HasCheckConstraint("chk_elearning_resources_estimated_minutes_positive", "estimated_minutes IS NULL OR estimated_minutes > 0");
                         });
+                });
+
+            modelBuilder.Entity("Maliev.CareerService.Data.Models.EmployeeDevelopmentGoal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActionItems")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("action_items");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("category");
+
+                    b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completion_date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("GoalDescription")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("goal_description");
+
+                    b.Property<string>("GoalTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("goal_title");
+
+                    b.Property<Guid>("IdpId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("idp_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("ProgressNotes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("progress_notes");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("target_date");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_employee_development_goals");
+
+                    b.HasIndex("IdpId")
+                        .HasDatabaseName("ix_employee_development_goals_idp_id");
+
+                    b.HasIndex("TargetDate");
+
+                    b.HasIndex("IdpId", "Status")
+                        .HasDatabaseName("ix_employee_development_goals_idp_id_status");
+
+                    b.ToTable("employee_development_goals", (string)null);
                 });
 
             modelBuilder.Entity("Maliev.CareerService.Data.Models.EmployeeTrainingEnrollment", b =>
@@ -226,9 +322,9 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone")
@@ -252,7 +348,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_employee_training_enrollments");
 
                     b.HasIndex("EmployeeId")
                         .HasDatabaseName("ix_employee_training_enrollments_employee_id");
@@ -277,6 +374,80 @@ namespace Maliev.CareerService.Data.Migrations
                         {
                             t.HasCheckConstraint("chk_employee_training_enrollments_dates", "completed_at IS NULL OR started_at IS NOT NULL");
                         });
+                });
+
+            modelBuilder.Entity("Maliev.CareerService.Data.Models.IndividualDevelopmentPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("approved_by");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("PlanYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("plan_year");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_individual_development_plans");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("EmployeeId", "PlanYear")
+                        .IsUnique()
+                        .HasDatabaseName("ix_individual_development_plans_employee_id_plan_year_unique");
+
+                    b.ToTable("individual_development_plans", (string)null);
                 });
 
             modelBuilder.Entity("Maliev.CareerService.Data.Models.JobApplication", b =>
@@ -350,9 +521,9 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -368,7 +539,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_job_applications");
 
                     b.HasIndex("ApplicantEmail")
                         .HasDatabaseName("idx_job_applications_email");
@@ -471,9 +643,9 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
                     b.Property<decimal?>("SalaryMax")
                         .HasPrecision(18, 2)
@@ -493,7 +665,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_job_postings");
 
                     b.HasIndex("ApplicationDeadline")
                         .HasDatabaseName("idx_job_postings_deadline");
@@ -513,6 +686,9 @@ namespace Maliev.CareerService.Data.Migrations
 
                     b.HasIndex("PublishedAt")
                         .HasDatabaseName("idx_job_postings_published");
+
+                    b.HasIndex("IsActive", "PublishedAt", "ApplicationDeadline")
+                        .HasDatabaseName("idx_job_postings_active_list");
 
                     b.ToTable("job_postings", null, t =>
                         {
@@ -593,9 +769,9 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                        .HasColumnName("row_version")
+                        .HasDefaultValueSql("'\\x00000000000000000001'::bytea");
 
                     b.PrimitiveCollection<string[]>("TargetRoles")
                         .IsRequired()
@@ -610,7 +786,8 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_training_programs");
 
                     b.HasIndex("Category")
                         .HasDatabaseName("ix_training_programs_category");
@@ -638,9 +815,21 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("f_k_application_status_changes__job_applications_application_id");
+                        .HasConstraintName("fk_application_status_changes__job_applications_application_id");
 
                     b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("Maliev.CareerService.Data.Models.EmployeeDevelopmentGoal", b =>
+                {
+                    b.HasOne("Maliev.CareerService.Data.Models.IndividualDevelopmentPlan", "Idp")
+                        .WithMany("Goals")
+                        .HasForeignKey("IdpId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_employee_development_goals__individual_development_plans_idp_id");
+
+                    b.Navigation("Idp");
                 });
 
             modelBuilder.Entity("Maliev.CareerService.Data.Models.EmployeeTrainingEnrollment", b =>
@@ -650,7 +839,7 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("TrainingProgramId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("f_k_employee_training_enrollments__training_programs_training_pro~");
+                        .HasConstraintName("fk_employee_training_enrollments__training_programs_training_pro~");
 
                     b.Navigation("TrainingProgram");
                 });
@@ -662,9 +851,14 @@ namespace Maliev.CareerService.Data.Migrations
                         .HasForeignKey("JobPostingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("f_k_job_applications__job_postings_job_posting_id");
+                        .HasConstraintName("fk_job_applications__job_postings_job_posting_id");
 
                     b.Navigation("JobPosting");
+                });
+
+            modelBuilder.Entity("Maliev.CareerService.Data.Models.IndividualDevelopmentPlan", b =>
+                {
+                    b.Navigation("Goals");
                 });
 
             modelBuilder.Entity("Maliev.CareerService.Data.Models.JobApplication", b =>
