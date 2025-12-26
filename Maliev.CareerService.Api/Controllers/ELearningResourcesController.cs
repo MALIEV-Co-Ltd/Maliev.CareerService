@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.ELearningResources;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +32,7 @@ public class ELearningResourcesController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of e-learning resources</returns>
     [HttpGet]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Read)]
     [ResponseCache(Duration = 300, VaryByHeader = "Authorization", VaryByQueryKeys = new[] { "category", "resourceType", "offset", "limit" })]
     [ProducesResponseType(typeof(ELearningResourceListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -83,7 +85,7 @@ public class ELearningResourcesController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>E-learning resource details</returns>
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Read)]
     [ResponseCache(Duration = 600, VaryByHeader = "Authorization")]
     [ProducesResponseType(typeof(ELearningResourceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

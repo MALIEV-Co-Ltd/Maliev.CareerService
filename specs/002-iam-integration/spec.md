@@ -72,7 +72,15 @@ As an Employee, I want to enroll in trainings and view my own career path so tha
     - `career-hr`: All except `trainings.delete` and `paths.create`.
     - `career-manager`: `evaluations.*`, `development.view-team`, `development.manage`, `trainings.read`, `trainings.enroll`.
     - `career-employee`: `trainings.read`, `trainings.enroll`, `trainings.complete`, `evaluations.read` (own), `development.view-own`, `paths.view`.
-- **FR-007**: System MUST enforce these permissions across all relevant API endpoints.
+- **FR-007**: System MUST enforce these permissions across all relevant API controllers:
+    - `TrainingProgramsController`
+    - `DevelopmentPlansController`
+    - `DevelopmentGoalsController`
+    - `EnrollmentsController`
+    - `JobPostingsController`
+    - `ReportsController`
+    - `ELearningResourcesController`
+    - `ApplicationsController`
 
 ### Key Entities *(include if feature involves data)*
 

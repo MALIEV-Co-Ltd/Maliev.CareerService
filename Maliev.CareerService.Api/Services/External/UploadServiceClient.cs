@@ -18,14 +18,10 @@ public class UploadServiceClient : IUploadServiceClient
 
     public UploadServiceClient(
         HttpClient httpClient,
-        IOptions<UploadServiceOptions> options,
         ILogger<UploadServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-
-        // Configure base URL from options
-        _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
     }
 
     /// <inheritdoc />
@@ -104,17 +100,6 @@ public class UploadServiceClient : IUploadServiceClient
             throw;
         }
     }
-}
-
-/// <summary>
-/// Configuration options for Upload Service
-/// </summary>
-public class UploadServiceOptions
-{
-    /// <summary>
-    /// Gets or sets the base URL for the Upload Service.
-    /// </summary>
-    public string BaseUrl { get; set; } = string.Empty;
 }
 
 /// <summary>

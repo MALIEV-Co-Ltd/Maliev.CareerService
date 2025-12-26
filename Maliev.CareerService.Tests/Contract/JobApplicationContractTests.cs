@@ -68,7 +68,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
     {
         // Arrange
         var additionalClaims = new Dictionary<string, string> { { "email", "applicant@example.com" } };
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, new[] { "career.applications.read" }, additionalClaims));
 
         // Act
         var response = await _client.GetAsync("/career/v1/job-applications");
@@ -97,7 +97,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
     public async Task GetApplication_ById_ReturnsCorrectResponseStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, new[] { "career.applications.read" }));
         var testId = Guid.NewGuid();
 
         // Act
@@ -231,7 +231,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
         // Arrange
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", "applicant@example.com" } };
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, new[] { "career.applications.read" }, additionalClaims));
 
         // Act
         var response = await _client.GetAsync("/career/v1/job-applications?offset=0&limit=10");

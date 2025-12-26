@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.DevelopmentGoals;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +16,7 @@ namespace Maliev.CareerService.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("career/v{version:apiVersion}")]
 [Produces("application/json")]
-[Authorize(Roles = "Employee")]
+[RequirePermission(CareerPermissions.Development.ViewOwn)]
 public class DevelopmentGoalsController(
     IDevelopmentGoalService developmentGoalService,
     ILogger<DevelopmentGoalsController> logger) : ControllerBase

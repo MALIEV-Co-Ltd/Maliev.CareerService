@@ -1,0 +1,35 @@
+# .NET Build outputs
+bin/
+obj/
+publish/
+
+# Test results
+TestResults/
+coverage/
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.dockerignore
+
+# Documentation and Specifications
+specs/
+.specify/
+CLAUDE.md
+README.md
+
+# Source code to exclude (Tests)
+*Tests/

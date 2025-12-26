@@ -1,4 +1,5 @@
 using Maliev.CareerService.Tests.Factories;
+using Maliev.CareerService.Api.Authentication;
 using Xunit;
 
 namespace Maliev.CareerService.Tests;
@@ -22,7 +23,8 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return Factory.CreateTestJwtToken(userId.ToString(), new[] { "Employee" });
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.Employee }, permissions);
     }
 
     /// <summary>
@@ -30,7 +32,8 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return Factory.CreateTestJwtToken(userId.ToString(), new[] { "HRStaff" });
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
     }
 
     /// <summary>
@@ -80,7 +83,8 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return Factory.CreateTestJwtToken(userId.ToString(), new[] { "Employee" });
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.Employee }, permissions);
     }
 
     /// <summary>
@@ -88,7 +92,8 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return Factory.CreateTestJwtToken(userId.ToString(), new[] { "HRStaff" });
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
 
         // Verify HTTP metrics are present (OpenTelemetry naming convention)
         // At least one of these http-related metrics should be present
-        var hasHttpMetrics = content.Contains("http_server_") || 
+        var hasHttpMetrics = content.Contains("http_server_") ||
                              content.Contains("http_client_") ||
                              content.Contains("http.server.") ||
                              content.Contains("aspnetcore_") ||
@@ -74,7 +74,7 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         var content = await response.Content.ReadAsStringAsync();
 
         // Verify process metrics are present (memory, threads, etc.)
-        var hasProcessMetrics = content.Contains("process_") || 
+        var hasProcessMetrics = content.Contains("process_") ||
                                 content.Contains("dotnet_gc_") ||
                                 content.Contains("dotnet_jit_");
         Assert.True(hasProcessMetrics, "Expected process or runtime metrics to be present");
@@ -126,7 +126,7 @@ public class MetricsEndpointTests(CareerServiceFactory factory) : BaseIntegratio
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // Metrics endpoint should respond quickly (<500ms for first request, may include warmup)
-        Assert.True(stopwatch.ElapsedMilliseconds < 500, 
+        Assert.True(stopwatch.ElapsedMilliseconds < 500,
             $"Metrics endpoint took too long: {stopwatch.ElapsedMilliseconds}ms");
     }
 }

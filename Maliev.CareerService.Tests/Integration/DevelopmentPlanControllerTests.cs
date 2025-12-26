@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using System.Net;
 using System.Net.Http.Json;
@@ -29,19 +30,19 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
     protected CustomWebApplicationFactory Factory => _factory;
 
     /// <summary>
-    /// Generate JWT token for Employee role
+    /// Generate JWT token for Employee with necessary permissions
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        return _factory.CreateTestJwtToken(userId.ToString(), new[] { "Employee" });
+        return _factory.CreateTestJwtToken(userId.ToString(), null, new[] { CareerPermissions.Development.ViewOwn, CareerPermissions.Trainings.Read });
     }
 
     /// <summary>
-    /// Generate JWT token for HRStaff role
+    /// Generate JWT token for HRStaff with Admin permissions
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        return _factory.CreateTestJwtToken(userId.ToString(), new[] { "HRStaff" });
+        return _factory.CreateTestJwtToken(userId.ToString(), null, new[] { "career.*" });
     }
 
     /// <summary>

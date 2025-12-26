@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -119,7 +121,7 @@ public class JobPostingsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created job posting</returns>
     [HttpPost]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.JobPostings.Manage)]
     [ProducesResponseType(typeof(JobPostingResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -160,7 +162,7 @@ public class JobPostingsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated job posting</returns>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.JobPostings.Manage)]
     [ProducesResponseType(typeof(JobPostingResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -205,7 +207,7 @@ public class JobPostingsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>No content</returns>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.JobPostings.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

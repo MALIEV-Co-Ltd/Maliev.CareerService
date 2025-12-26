@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.TrainingPrograms;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;
 using System.Net.Http.Json;
@@ -19,8 +20,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_ReturnsCorrectResponseStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
         var response = await _client.GetAsync("/career/v1/training-programs");
@@ -45,8 +46,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingProgram_ReturnsCorrectResponseStructure()
     {
         // Arrange - Use a random ID that will return 404
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
         var testId = Guid.NewGuid();
 
         // Act
@@ -79,8 +80,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         var request = new CreateTrainingProgramRequest
         {
@@ -123,8 +124,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task UpdateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var testId = Guid.NewGuid();
 
         var request = new UpdateTrainingProgramRequest
@@ -166,8 +167,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_SupportsQueryParameters()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
         var response = await _client.GetAsync(
@@ -224,8 +225,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task TrainingProgramListResponse_SupportsPagination()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
         var response = await _client.GetAsync("/career/v1/training-programs?offset=0&limit=5");
@@ -247,8 +248,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgramRequest_ValidatesRequiredFields()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         // Invalid request - missing required fields
         var invalidRequest = new CreateTrainingProgramRequest
@@ -275,6 +276,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_RequiresAuthentication()
     {
         // Arrange - No authorization header
+        _client.DefaultRequestHeaders.Authorization = null;
 
         // Act
         var response = await _client.GetAsync("/career/v1/training-programs");
@@ -287,8 +289,8 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_RequiresHRStaffRole()
     {
         // Arrange - Employee role (not HRStaff)
-        _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         var request = new CreateTrainingProgramRequest
         {

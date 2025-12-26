@@ -34,8 +34,8 @@ RUN chown -R app:app /app
 # Switch to non-root user
 USER app
 
-# Copy published app (now owned by app)
-COPY --from=publish /app/publish .
+# Copy published application (now owned by app)
+COPY --chown=app:app --from=publish /app/publish .
 
 # Expose port
 EXPOSE 8080

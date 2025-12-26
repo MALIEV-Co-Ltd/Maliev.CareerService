@@ -1,6 +1,9 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
+using Maliev.Aspire.ServiceDefaults.IAM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,7 +74,7 @@ public class ApplicationsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of job applications</returns>
     [HttpGet]
-    [Authorize(Roles = "Applicant,HRStaff")]
+    [RequirePermission(CareerPermissions.Applications.Read)]
     [ProducesResponseType(typeof(JobApplicationListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -92,8 +95,10 @@ public class ApplicationsController(
         var pageNumber = (offset / limit) + 1;
         var pageSize = limit;
 
-        // Check user role
-        var isHRStaff = User.IsInRole("HRStaff");
+        // Check user permission
+        var permissions = User.FindAll("permissions").Select(c => c.Value).ToList();
+        var isHRStaff = PermissionMatcher.Match($"Permission:{CareerPermissions.Applications.ReadAll}", permissions) ||
+                        PermissionMatcher.Match("Permission:career.*", permissions);
 
         if (!isHRStaff)
         {
@@ -129,7 +134,7 @@ public class ApplicationsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Job application details</returns>
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Applicant,HRStaff")]
+    [RequirePermission(CareerPermissions.Applications.Read)]
     [ProducesResponseType(typeof(JobApplicationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -146,7 +151,9 @@ public class ApplicationsController(
         }
 
         // Check access: Applicants can only view their own applications
-        if (!User.IsInRole("HRStaff"))
+        var permissions = User.FindAll("permissions").Select(c => c.Value).ToList();
+        if (!PermissionMatcher.Match($"Permission:{CareerPermissions.Applications.ReadAll}", permissions) &&
+            !PermissionMatcher.Match("Permission:career.*", permissions))
         {
             var userEmail = GetAuthenticatedUserEmail();
             if (string.IsNullOrEmpty(userEmail) ||
@@ -167,7 +174,7 @@ public class ApplicationsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated job application</returns>
     [HttpPatch("{id:guid}/status")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Applications.ReadAll)]
     [ProducesResponseType(typeof(JobApplicationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -219,7 +226,7 @@ public class ApplicationsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Status change history</returns>
     [HttpGet("{id:guid}/status-history")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Applications.ReadAll)]
     [ProducesResponseType(typeof(StatusHistoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

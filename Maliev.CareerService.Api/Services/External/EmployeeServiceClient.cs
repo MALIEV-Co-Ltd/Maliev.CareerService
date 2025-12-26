@@ -18,14 +18,10 @@ public class EmployeeServiceClient : IEmployeeServiceClient
 
     public EmployeeServiceClient(
         HttpClient httpClient,
-        IOptions<EmployeeServiceOptions> options,
         ILogger<EmployeeServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-
-        // Configure base URL from options
-        _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
     }
 
     /// <inheritdoc />
@@ -67,15 +63,4 @@ public class EmployeeServiceClient : IEmployeeServiceClient
             return false;
         }
     }
-}
-
-/// <summary>
-/// Configuration options for Employee Service
-/// </summary>
-public class EmployeeServiceOptions
-{
-    /// <summary>
-    /// Gets or sets the base URL for the Employee Service.
-    /// </summary>
-    public string BaseUrl { get; set; } = string.Empty;
 }

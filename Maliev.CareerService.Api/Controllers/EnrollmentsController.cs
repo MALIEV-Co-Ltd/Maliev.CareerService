@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +32,7 @@ public class EnrollmentsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of enrollments</returns>
     [HttpGet]
-    [Authorize(Roles = "Employee")]
+    [RequirePermission(CareerPermissions.Trainings.Read)]
     [ProducesResponseType(typeof(TrainingEnrollmentListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -70,7 +72,7 @@ public class EnrollmentsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created enrollment</returns>
     [HttpPost]
-    [Authorize(Roles = "Employee")]
+    [RequirePermission(CareerPermissions.Trainings.Enroll)]
     [ProducesResponseType(typeof(TrainingEnrollmentResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -119,7 +121,7 @@ public class EnrollmentsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated enrollment</returns>
     [HttpPatch("{id:guid}/complete")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Complete)]
     [ProducesResponseType(typeof(TrainingEnrollmentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

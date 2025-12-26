@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.Applications;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
@@ -27,8 +28,9 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        var token = factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var token = factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 
     [Fact]
@@ -41,6 +43,11 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Expected OK but got {response.StatusCode}. Content: {content}");
+        }
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<StatusHistoryResponse>();
@@ -149,8 +156,9 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
         // Arrange
         var applicationId = await SeedApplicationWithStatusHistoryAsync();
 
-        _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token = _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act
         var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}/status-history");

@@ -18,14 +18,10 @@ public class EmailServiceClient : IEmailServiceClient
 
     public EmailServiceClient(
         HttpClient httpClient,
-        IOptions<EmailServiceOptions> options,
         ILogger<EmailServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-
-        // Configure base URL from options
-        _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
     }
 
     /// <inheritdoc />
@@ -114,17 +110,6 @@ public class EmailServiceClient : IEmailServiceClient
             throw;
         }
     }
-}
-
-/// <summary>
-/// Configuration options for Email Service
-/// </summary>
-public class EmailServiceOptions
-{
-    /// <summary>
-    /// Gets or sets the base URL for the Email Service.
-    /// </summary>
-    public string BaseUrl { get; set; } = string.Empty;
 }
 
 /// <summary>

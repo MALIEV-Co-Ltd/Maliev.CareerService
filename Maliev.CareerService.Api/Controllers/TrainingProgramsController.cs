@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +33,7 @@ public class TrainingProgramsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of training programs</returns>
     [HttpGet]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Read)]
     [ResponseCache(Duration = 300, VaryByHeader = "Authorization", VaryByQueryKeys = new[] { "category", "isMandatory", "offset", "limit" })]
     [ProducesResponseType(typeof(TrainingProgramListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -84,7 +86,7 @@ public class TrainingProgramsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Training program details</returns>
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Read)]
     [ResponseCache(Duration = 600, VaryByHeader = "Authorization")]
     [ProducesResponseType(typeof(TrainingProgramResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -111,7 +113,7 @@ public class TrainingProgramsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created training program</returns>
     [HttpPost]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Create)]
     [ProducesResponseType(typeof(TrainingProgramResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -152,7 +154,7 @@ public class TrainingProgramsController(
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated training program</returns>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Trainings.Update)]
     [ProducesResponseType(typeof(TrainingProgramResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -84,7 +84,7 @@ public static class DomainToDtoMapper
         jobPosting.Currency = request.Currency;
         jobPosting.ApplicationDeadline = request.ApplicationDeadline;
         jobPosting.IsActive = request.IsActive;
-        
+
         // Logic for PublishedAt update if becoming active
         if (request.IsActive && jobPosting.PublishedAt == null)
         {

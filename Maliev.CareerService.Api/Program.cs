@@ -1,6 +1,9 @@
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
+using Maliev.Aspire.ServiceDefaults;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,11 +13,15 @@ builder.AddGoogleSecretManagerVolume(); // Load secrets from /mnt/secrets if ava
 
 // --- Infrastructure & Observability ---
 builder.AddServiceDefaults(); // OpenTelemetry, health checks, resilience
+builder.AddStandardMiddleware(options =>
+{
+    options.EnableRequestLogging = true;
+});
 builder.AddServiceMeters("careers-meter"); // Register service meters for OpenTelemetry business metrics
 
 builder.AddRedisDistributedCache(instanceName: "career:"); // Redis with in-memory fallback
 builder.AddMassTransitWithRabbitMq(); // RabbitMQ message bus (non-blocking startup)
-builder.AddPostgresDbContext<CareerDbContext>(connectionStringName: "CareerDbContext"); // PostgreSQL with retry logic
+builder.AddPostgresDbContext<CareerDbContext>(connectionName: "CareerDbContext"); // PostgreSQL with retry logic
 
 // --- API Configuration ---
 builder.AddDefaultCors(); // CORS from CORS:AllowedOrigins config
@@ -23,20 +30,15 @@ builder.AddDefaultApiVersioning(); // API versioning with URL segment reader
 // JWT Authentication (tests override via PostConfigureAll with dynamic RSA keys)
 builder.AddJwtAuthentication();
 
+// Permission-based Authorization
+builder.Services.AddPermissionAuthorization();
+
 // Add OpenAPI (must be in Program.cs for XML comments to work via source generator)
 if (!builder.Environment.IsProduction())
 {
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddOpenApi("v1", options =>
-    {
-        options.AddDocumentTransformer((document, context, cancellationToken) =>
-        {
-            document.Info.Title = "MALIEV Career Service API";
-            document.Info.Version = "v1";
-            document.Info.Description = "Human resources and career development service. Manages job postings with search and filtering, job applications with status tracking, employee training programs and enrollments, e-learning resources, individual development plans and goals, and HR analytics reports.";
-            return Task.CompletedTask;
-        });
-    });
+    builder.AddStandardOpenApi(
+        title: "MALIEV Career Service API",
+        description: "Human resources and career development service. Manages job postings with search and filtering, job applications with status tracking, employee training programs and enrollments, e-learning resources, individual development plans and goals, and HR analytics reports.");
 }
 
 // Configure Response Caching for read-heavy endpoints
@@ -64,25 +66,14 @@ builder.Services.AddScoped<IDevelopmentGoalService, DevelopmentGoalService>();
 builder.Services.AddSingleton<IMetricsService, MetricsService>();
 
 // Configure External Service Clients with HttpClient
-builder.Services.Configure<EmployeeServiceOptions>(
-    builder.Configuration.GetSection("ExternalServices:EmployeeService"));
-builder.Services.AddHttpClient<IEmployeeServiceClient, EmployeeServiceClient>()
-    .AddStandardResilienceHandler();
+builder.Services.AddIAMClient(builder.Configuration, "CareerService");
 
-builder.Services.Configure<UploadServiceOptions>(
-    builder.Configuration.GetSection("ExternalServices:UploadService"));
-builder.Services.AddHttpClient<IUploadServiceClient, UploadServiceClient>()
-    .AddStandardResilienceHandler();
+builder.AddServiceClient<IEmployeeServiceClient, EmployeeServiceClient>("EmployeeService");
+builder.AddServiceClient<IUploadServiceClient, UploadServiceClient>("UploadService");
+builder.AddServiceClient<ICountryServiceClient, CountryServiceClient>("CountryService");
+builder.AddServiceClient<IEmailServiceClient, EmailServiceClient>("NotificationService");
 
-builder.Services.Configure<CountryServiceOptions>(
-    builder.Configuration.GetSection("ExternalServices:CountryService"));
-builder.Services.AddHttpClient<ICountryServiceClient, CountryServiceClient>()
-    .AddStandardResilienceHandler();
-
-builder.Services.Configure<EmailServiceOptions>(
-    builder.Configuration.GetSection("ExternalServices:EmailService"));
-builder.Services.AddHttpClient<IEmailServiceClient, EmailServiceClient>()
-    .AddStandardResilienceHandler();
+builder.Services.AddIAMRegistration<CareerIAMRegistrationService>();
 
 // Configure Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -132,6 +123,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 // Configure middleware pipeline
+app.UseStandardMiddleware();
 app.UseHttpsRedirection();
 app.UseResponseCaching(); // Response caching for read-heavy endpoints
 app.UseRateLimiter();
