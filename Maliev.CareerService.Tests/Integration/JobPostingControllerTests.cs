@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.JobPostings;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
@@ -168,7 +169,8 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task CreateJobPosting_WithValidRequest_ReturnsCreated()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         var request = new CreateJobPostingRequest
         {
@@ -203,7 +205,8 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task UpdateJobPosting_WithValidRequest_ReturnsOk()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var postingId = await SeedSinglePostingAsync();
 
         // Get current posting for RowVersion
@@ -238,7 +241,8 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task DeleteJobPosting_WithValidId_ReturnsNoContent()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var postingId = await SeedSinglePostingAsync();
 
         // Act

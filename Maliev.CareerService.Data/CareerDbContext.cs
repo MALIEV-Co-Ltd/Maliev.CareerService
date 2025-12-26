@@ -47,10 +47,10 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
                 if (!string.IsNullOrEmpty(columnName))
                 {
                     property.SetColumnName(ToSnakeCase(columnName));
-            
-        // Apply PostgreSQL snake_case naming convention globally
-        SnakeCaseNamingHelper.ApplySnakeCaseNaming(modelBuilder);
-    }
+
+                    // Apply PostgreSQL snake_case naming convention globally
+                    SnakeCaseNamingHelper.ApplySnakeCaseNaming(modelBuilder);
+                }
             }
 
             // Convert foreign key names to snake_case

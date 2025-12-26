@@ -1,6 +1,8 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +15,7 @@ namespace Maliev.CareerService.Api.Controllers;
 [ApiVersion("1.0")]
 [Route("career/v{version:apiVersion}/reports")]
 [Produces("application/json")]
-[Authorize(Roles = "HRStaff")]
+[RequirePermission(CareerPermissions.Reports.Read)]
 public class ReportsController(
     IReportService reportService,
     ILogger<ReportsController> logger) : ControllerBase

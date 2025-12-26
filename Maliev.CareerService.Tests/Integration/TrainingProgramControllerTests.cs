@@ -21,8 +21,8 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         _factory = factory;
         _client = factory.CreateClient();
 
-        // Add Employee authorization header
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        // Add Employee authorization header with Read permission
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", null, new[] { "career.trainings.read" }));
     }
 
     [Fact]
@@ -130,11 +130,12 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task CreateTrainingProgram_AsHRStaff_ReturnsCreated()
+    public async Task CreateTrainingProgram_WithCreatePermission_ReturnsCreated()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = new[] { "career.trainings.create" };
+        var token = _factory.CreateTestJwtToken("hr-staff-id", new[] { "career-hr" }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var request = new CreateTrainingProgramRequest
         {
@@ -164,9 +165,13 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task CreateTrainingProgram_AsEmployee_ReturnsForbidden()
+    public async Task CreateTrainingProgram_WithoutCreatePermission_ReturnsForbidden()
     {
-        // Arrange - Already set to Employee in constructor
+        // Arrange - Read-only token
+        var permissions = new[] { "career.trainings.read" };
+        var token = _factory.CreateTestJwtToken("employee-id", new[] { "career-employee" }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         var request = new CreateTrainingProgramRequest
         {
             ProgramCode = "TEST-2025-001",
@@ -188,16 +193,24 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task UpdateTrainingProgram_AsHRStaff_ReturnsOk()
+    public async Task UpdateTrainingProgram_WithUpdatePermission_ReturnsOk()
     {
         // Arrange
         var programId = await SeedSingleProgramAsync();
 
-        _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = new[] { "career.trainings.read", "career.trainings.update" };
+        var token = _factory.CreateTestJwtToken("hr-staff-id", new[] { "career-hr" }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Get current program to get RowVersion
         var getResponse = await _client.GetAsync($"/career/v1/training-programs/{programId}");
+
+        if (getResponse.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await getResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to get program. Status: {getResponse.StatusCode}, Content: {content}");
+        }
+
         var program = await getResponse.Content.ReadFromJsonAsync<TrainingProgramResponse>();
 
         var request = new UpdateTrainingProgramRequest

@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.Enrollments;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +23,8 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         _factory = factory;
         _client = factory.CreateClient();
 
-        // Default to Employee authorization with specific employee ID
-        var token = factory.CreateTestJwtToken(_testEmployeeId.ToString(), new[] { "Employee" });
+        // Default to Employee authorization with specific employee ID and Enroll permission
+        var token = factory.CreateTestJwtToken(_testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Enroll, CareerPermissions.Trainings.Read });
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
     }
 
@@ -123,7 +124,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         // Arrange - Use unique employee ID for test isolation
         var testEmployeeId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), new[] { "Employee" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Read }));
 
         var program1 = await SeedTrainingProgramAsync("PROG-001");
         var program2 = await SeedTrainingProgramAsync("PROG-002");
@@ -155,7 +156,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         // Arrange - Use unique employee ID for test isolation
         var testEmployeeId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), new[] { "Employee" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Read }));
 
         var program1 = await SeedTrainingProgramAsync("PROG-003");
         var program2 = await SeedTrainingProgramAsync("PROG-004");
@@ -181,7 +182,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task MarkTrainingComplete_AsHRStaff_ReturnsOk()
+    public async Task MarkTrainingComplete_AsAuthorizedUser_ReturnsOk()
     {
         // Arrange
         var programId = await SeedTrainingProgramAsync("PROG-005");
@@ -189,7 +190,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
 
         _client.DefaultRequestHeaders.Remove("Authorization");
         var hrStaffId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(hrStaffId.ToString(), new[] { "HRStaff" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(hrStaffId.ToString(), null, new[] { "career.*" }));
 
         // Get enrollment to get RowVersion
         using var scope = _factory.Services.CreateScope();
@@ -217,15 +218,15 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task MarkTrainingComplete_AsEmployee_ReturnsForbidden()
+    public async Task MarkTrainingComplete_WithoutPermission_ReturnsForbidden()
     {
         // Arrange
         var programId = await SeedTrainingProgramAsync("PROG-006");
         var enrollmentId = await EnrollEmployeeInProgramAsync(programId, _testEmployeeId);
 
-        // Reset to Employee authorization
+        // Reset to Employee authorization with Read but NOT Complete permission
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(_testEmployeeId.ToString(), new[] { "Employee" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(_testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Read }));
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();

@@ -18,14 +18,10 @@ public class CountryServiceClient : ICountryServiceClient
 
     public CountryServiceClient(
         HttpClient httpClient,
-        IOptions<CountryServiceOptions> options,
         ILogger<CountryServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-
-        // Configure base URL from options
-        _httpClient.BaseAddress = new Uri(options.Value.BaseUrl);
     }
 
     /// <inheritdoc />
@@ -87,17 +83,6 @@ public class CountryServiceClient : ICountryServiceClient
             throw;
         }
     }
-}
-
-/// <summary>
-/// Configuration options for Country Service
-/// </summary>
-public class CountryServiceOptions
-{
-    /// <summary>
-    /// Gets or sets the base URL for the Country Service.
-    /// </summary>
-    public string BaseUrl { get; set; } = string.Empty;
 }
 
 /// <summary>

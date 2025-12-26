@@ -38,16 +38,10 @@ The Career Service API is part of the Maliev Co. Ltd. microservices architecture
 
 ## Technologies
 
-- **.NET 9.0** - Framework
-- **ASP.NET Core 9.0** - Web API
-- **Entity Framework Core 9.0.9** - ORM
-- **PostgreSQL** - Database (Npgsql 9.0.2)
-- **FluentValidation 11.5.1** - Request validation
-- **AutoMapper 12.0.1** - Object mapping
-- **Serilog 8.0.2** - Structured logging
-- **prometheus-net 8.2.1** - Metrics collection
-- **xUnit** + **FluentAssertions** - Testing
-- **Scalar** - Interactive API documentation
+- **.NET 10.0** - Core framework
+- **Npgsql** - PostgreSQL provider
+- **MassTransit** - Message bus abstraction
+- **xUnit** - Testing framework
 
 ## Quick Start
 

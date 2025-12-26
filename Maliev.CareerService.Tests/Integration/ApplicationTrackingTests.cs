@@ -1,5 +1,6 @@
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
 using Maliev.CareerService.Tests.Mocks;
@@ -30,13 +31,19 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var token = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
         // Act
         var response = await _client.GetAsync("/career/v1/job-applications");
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Expected OK but got {response.StatusCode}. Content: {content}");
+        }
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationListResponse>();
@@ -63,7 +70,8 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var token2 = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token2 = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token2}");
 
         // Act
@@ -87,7 +95,8 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var token3 = _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }, additionalClaims);
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token3 = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token3}");
 
         // Act
@@ -112,7 +121,8 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", "other-applicant@example.com" } };
-        var token4 = _factory.CreateTestJwtToken("other-applicant-id", new[] { "Applicant" }, additionalClaims);
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token4 = _factory.CreateTestJwtToken("other-applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token4}");
 
         // Act
@@ -130,12 +140,18 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var applicationId = await SeedSingleApplicationAsync(applicantEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         // Act
         var response = await _client.GetAsync($"/career/v1/job-applications/{applicationId}");
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Expected OK but got {response.StatusCode}. Content: {content}");
+        }
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<JobApplicationResponse>();
@@ -149,7 +165,8 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         // Arrange
         var invalidId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Clear();
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { "Applicant" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
         var response = await _client.GetAsync($"/career/v1/job-applications/{invalidId}");
@@ -315,9 +332,6 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         return application.Id;
     }
 
-    /// <summary>
-    /// Custom WebApplicationFactory that registers mock external services
-    /// </summary>
     public class CustomWebApplicationFactory : TestWebApplicationFactory
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

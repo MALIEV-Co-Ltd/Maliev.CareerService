@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.Reports;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,9 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { "HRStaff" });
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 
     [Fact]
@@ -40,6 +42,11 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         var response = await _client.GetAsync($"/career/v1/reports/recruitment-metrics?start_date={startDate}&end_date={endDate}");
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Expected OK but got {response.StatusCode}. Content: {content}");
+        }
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
@@ -169,8 +176,9 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
     public async Task GetRecruitmentMetrics_AsEmployee_ReturnsForbidden()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var token = _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions);
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act
         var response = await _client.GetAsync("/career/v1/reports/recruitment-metrics");

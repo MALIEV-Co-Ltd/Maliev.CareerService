@@ -1,4 +1,5 @@
 using Maliev.CareerService.Api.Models.ELearningResources;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +22,8 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
         _factory = factory;
         _client = factory.CreateClient();
 
-        // Add Employee authorization header
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", new[] { "Employee" }));
+        // Add Employee authorization header with Read permission
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("employee-id", null, new[] { CareerPermissions.Trainings.Read }));
     }
 
     [Fact]
@@ -179,13 +180,13 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetELearningResources_AsHRStaff_ReturnsResources()
+    public async Task GetELearningResources_WithAdminPermission_ReturnsResources()
     {
         // Arrange
         await SeedTestDataAsync();
 
         _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { "HRStaff" }));
+        _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", null, new[] { "career.*" }));
 
         // Act
         var response = await _client.GetAsync("/career/v1/elearning-resources");

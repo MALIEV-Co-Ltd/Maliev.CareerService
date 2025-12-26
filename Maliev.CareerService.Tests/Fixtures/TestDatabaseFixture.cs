@@ -153,9 +153,9 @@ public class TestDatabaseFixture : IAsyncLifetime
             try
             {
                 // Table names are from hardcoded list above, not user input - safe from SQL injection
-                #pragma warning disable EF1002, EF1003
+#pragma warning disable EF1002, EF1003
                 await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {tableName} RESTART IDENTITY CASCADE");
-                #pragma warning restore EF1002, EF1003
+#pragma warning restore EF1002, EF1003
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
             {

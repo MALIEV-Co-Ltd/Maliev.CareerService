@@ -1,6 +1,9 @@
 using Asp.Versioning;
+using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Services;
+using Maliev.Aspire.ServiceDefaults.Authorization;
+using Maliev.Aspire.ServiceDefaults.IAM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +28,7 @@ public class DevelopmentPlansController(
     /// Gets all IDPs for the authenticated employee
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Development.ViewOwn)]
     [ProducesResponseType(typeof(IDPListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IDPListResponse>> GetIDPs(
@@ -52,7 +55,7 @@ public class DevelopmentPlansController(
     /// Creates a new IDP for the authenticated employee
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Employee")]
+    [RequirePermission(CareerPermissions.Development.ViewOwn)]
     [ProducesResponseType(typeof(IDPResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -90,7 +93,7 @@ public class DevelopmentPlansController(
     /// Gets a specific IDP by ID
     /// </summary>
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Employee,HRStaff")]
+    [RequirePermission(CareerPermissions.Development.ViewOwn)]
     [ProducesResponseType(typeof(IDPResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -106,8 +109,9 @@ public class DevelopmentPlansController(
             return NotFound(new { error = $"IDP {id} not found" });
         }
 
-        // Check access: Employees can only view their own IDPs unless HR
-        if (!User.IsInRole("HRStaff"))
+        // Check access: Employees can only view their own IDPs unless HR or Manager (view-team)
+        var permissions = User.FindAll("permissions").Select(c => c.Value).ToList();
+        if (!PermissionMatcher.Match("Permission:career.*", permissions) && !PermissionMatcher.Match($"Permission:{CareerPermissions.Development.ViewTeam}", permissions))
         {
             var employeeId = GetAuthenticatedUserId();
             if (employeeId == Guid.Empty || idp.EmployeeId != employeeId)
@@ -123,7 +127,7 @@ public class DevelopmentPlansController(
     /// Updates an IDP (only if Status = Draft)
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Employee")]
+    [RequirePermission(CareerPermissions.Development.ViewOwn)]
     [ProducesResponseType(typeof(IDPResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -177,7 +181,7 @@ public class DevelopmentPlansController(
     /// Submits an IDP for approval
     /// </summary>
     [HttpPatch("{id:guid}/submit")]
-    [Authorize(Roles = "Employee")]
+    [RequirePermission(CareerPermissions.Development.ViewOwn)]
     [ProducesResponseType(typeof(IDPResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -223,7 +227,7 @@ public class DevelopmentPlansController(
     /// Approves an IDP (HR Staff only)
     /// </summary>
     [HttpPatch("{id:guid}/approve")]
-    [Authorize(Roles = "HRStaff")]
+    [RequirePermission(CareerPermissions.Evaluations.Approve)]
     [ProducesResponseType(typeof(IDPResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

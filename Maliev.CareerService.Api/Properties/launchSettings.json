@@ -9,7 +9,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "career/scalar",
-      "applicationUrl": "http://localhost:5245"
+      "applicationUrl": "http://localhost:5200"
     },
     "https": {
       "commandName": "Project",
@@ -19,7 +19,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "career/scalar",
-      "applicationUrl": "https://localhost:7245;http://localhost:5245"
+      "applicationUrl": "https://localhost:7200;http://localhost:5200"
     }
   }
 }
