@@ -1,6 +1,6 @@
 using FluentAssertions;
-using Maliev.CareerService.Data.Events;
 using Maliev.CareerService.Data.Models;
+using Maliev.MessagingContracts.Generated;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +53,30 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
         var harness = Factory.Services.GetRequiredService<ITestHarness>();
 
         // Act
-        await harness.Bus.Publish(new EmployeeCreatedEvent(employeeId, "new@maliev.com", deptId, null, DateTime.UtcNow));
+        var payload = new EmployeeCreatedEventPayload(
+            EmployeeId: employeeId,
+            EmployeeNumber: "EMP001",
+            StartDate: DateTime.UtcNow,
+            DepartmentId: deptId,
+            PositionId: null,
+            ManagerId: null
+        );
+
+        var integrationEvent = new EmployeeCreatedEvent(
+            MessageId: Guid.NewGuid(),
+            MessageName: "EmployeeCreated",
+            MessageType: MessageType.Event,
+            MessageVersion: "1.0",
+            PublishedBy: "EmployeeService",
+            ConsumedBy: Array.Empty<string>(),
+            CorrelationId: Guid.NewGuid(),
+            CausationId: null,
+            OccurredAtUtc: DateTimeOffset.UtcNow,
+            IsPublic: false,
+            Payload: payload
+        );
+
+        await harness.Bus.Publish(integrationEvent);
 
         // Assert
         (await harness.Consumed.Any<EmployeeCreatedEvent>()).Should().BeTrue();

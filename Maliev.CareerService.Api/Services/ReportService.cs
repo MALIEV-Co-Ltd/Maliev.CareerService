@@ -24,8 +24,64 @@ public class ReportService(
         DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        // Pre-existing implementation (mocked for brevity in this task)
-        return await Task.FromResult(new RecruitmentMetricsResponse());
+        // Default to last 30 days if not specified
+        var start = startDate.HasValue
+            ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddDays(-30);
+        var end = endDate.HasValue
+            ? DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
+
+        // Get applications in date range
+        var applications = await _dbContext.JobApplications
+            .Include(a => a.JobPosting)
+            .Where(a => a.AppliedAt >= start && a.AppliedAt <= end)
+            .ToListAsync(cancellationToken);
+
+        var response = new RecruitmentMetricsResponse
+        {
+            TotalApplications = applications.Count
+        };
+
+        // Applications per posting
+        response.ApplicationsPerPosting = applications
+            .GroupBy(a => a.JobPosting.PositionTitle)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Conversion rates
+        var totalApps = applications.Count;
+        if (totalApps > 0)
+        {
+            var interviewingCount = applications.Count(a => a.Status == ApplicationStatus.Interviewing);
+            var offeredCount = applications.Count(a => a.Status == ApplicationStatus.Offered);
+            var acceptedCount = applications.Count(a => a.Status == ApplicationStatus.Accepted);
+
+            response.ConversionRates["submitted_to_interviewing"] = totalApps > 0 ? (decimal)interviewingCount / totalApps * 100 : 0;
+            response.ConversionRates["interviewing_to_offered"] = interviewingCount > 0 ? (decimal)offeredCount / interviewingCount * 100 : 0;
+            response.ConversionRates["offered_to_accepted"] = offeredCount > 0 ? (decimal)acceptedCount / offeredCount * 100 : 0;
+        }
+
+        // Average time to hire (for accepted applications)
+        var acceptedApps = applications.Where(a => a.Status == ApplicationStatus.Accepted).ToList();
+        if (acceptedApps.Count > 0)
+        {
+            var totalDays = acceptedApps.Sum(a => (a.UpdatedAt - a.AppliedAt).TotalDays);
+            response.AverageTimeToHire = (decimal)(totalDays / acceptedApps.Count);
+        }
+
+        // Positions filled
+        response.PositionsFilled = acceptedApps.Count;
+
+        // Positions open
+        response.PositionsOpen = await _dbContext.JobPostings
+            .CountAsync(p => p.IsActive, cancellationToken);
+
+        // Application volume trends (by date)
+        response.ApplicationVolumeTrends = applications
+            .GroupBy(a => a.AppliedAt.Date.ToString("yyyy-MM-dd"))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return response;
     }
 
     /// <inheritdoc />
@@ -34,8 +90,63 @@ public class ReportService(
         DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        // Pre-existing implementation
-        return await Task.FromResult(new LearningMetricsResponse());
+        // Default to last 30 days if not specified
+        var start = startDate.HasValue
+            ? DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow.AddDays(-30);
+        var end = endDate.HasValue
+            ? DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
+
+        // Get enrollments in date range
+        var enrollments = await _dbContext.EmployeeTrainingEnrollments
+            .Include(e => e.TrainingProgram)
+            .Where(e => e.EnrolledAt >= start && e.EnrolledAt <= end)
+            .ToListAsync(cancellationToken);
+
+        var response = new LearningMetricsResponse();
+
+        // Enrollment rates by category (using program name as category for now)
+        var totalEmployees = enrollments.Select(e => e.EmployeeId).Distinct().Count();
+        if (totalEmployees > 0)
+        {
+            response.EnrollmentRates = enrollments
+                .GroupBy(e => e.TrainingProgram.ProgramName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (decimal)g.Select(e => e.EmployeeId).Distinct().Count() / totalEmployees * 100
+                );
+        }
+
+        // Overall completion rate
+        var completedCount = enrollments.Count(e => e.Status == TrainingEnrollmentStatus.Completed);
+        response.CompletionRates = enrollments.Count > 0 ? (decimal)completedCount / enrollments.Count * 100 : 0;
+
+        // Average time to complete (for completed enrollments with completion date)
+        var completedEnrollments = enrollments
+            .Where(e => e.Status == TrainingEnrollmentStatus.Completed && e.CompletedAt.HasValue)
+            .ToList();
+
+        if (completedEnrollments.Count > 0)
+        {
+            var totalDays = completedEnrollments.Sum(e => (e.CompletedAt!.Value - e.EnrolledAt).TotalDays);
+            response.TimeToComplete = (decimal)(totalDays / completedEnrollments.Count);
+        }
+
+        // Popular programs (top programs by enrollment count)
+        response.PopularPrograms = enrollments
+            .GroupBy(e => e.TrainingProgram.ProgramName)
+            .OrderByDescending(g => g.Count())
+            .Take(10)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Certification success rate (for now, use completion rate as proxy)
+        response.CertificationRates = response.CompletionRates;
+
+        // IDP adoption (placeholder - would need IDP table to calculate properly)
+        response.IDPAdoption = 0;
+
+        return response;
     }
 
     /// <inheritdoc />

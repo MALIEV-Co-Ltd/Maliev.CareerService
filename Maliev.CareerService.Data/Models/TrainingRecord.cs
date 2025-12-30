@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Maliev.CareerService.Data.Enums;
 using Maliev.CareerService.Data.Models.Base;
+using Maliev.CareerService.Data.Validation;
 
 namespace Maliev.CareerService.Data.Models;
 
@@ -13,6 +14,7 @@ public class TrainingRecord : BaseEntity
     /// Employee who completed the training
     /// </summary>
     [Required]
+    [RequiredGuid]
     public Guid EmployeeId { get; set; }
 
     /// <summary>
