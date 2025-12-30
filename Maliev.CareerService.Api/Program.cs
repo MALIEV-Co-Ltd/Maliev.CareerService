@@ -121,14 +121,7 @@ var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 // --- Database Migrations ---
-try
-{
-    await app.MigrateDatabaseAsync<CareerDbContext>();
-}
-catch (Exception ex)
-{
-    logger.LogError(ex, "Database migration failed");
-}
+await app.MigrateDatabaseAsync<CareerDbContext>();
 
 // Configure middleware pipeline
 app.UseStandardMiddleware();
