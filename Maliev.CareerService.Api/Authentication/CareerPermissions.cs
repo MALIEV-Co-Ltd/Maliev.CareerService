@@ -84,4 +84,31 @@ public static class CareerPermissions
         /// <summary>Permission to read all job applications.</summary>
         public const string ReadAll = "career.applications.read-all";
     }
+
+    /// <summary>Permissions related to training records and skills (Feature 003).</summary>
+    public static class Training
+    {
+        /// <summary>Permission to view own training records and skills.</summary>
+        public const string ViewOwn = "career.training.view-own";
+        /// <summary>Permission to view team training records and skills (managers).</summary>
+        public const string ViewTeam = "career.training.view-team";
+        /// <summary>Permission to manage all training records and skills (HR admins).</summary>
+        public const string Manage = "career.training.manage";
+    }
+
+    /// <summary>Permissions related to mandatory training requirements (Feature 003).</summary>
+    public static class MandatoryTraining
+    {
+        /// <summary>Permission to view mandatory training requirements.</summary>
+        public const string View = "career.mandatory-training.view";
+        /// <summary>Permission to manage mandatory training requirements.</summary>
+        public const string Manage = "career.mandatory-training.manage";
+    }
+
+    /// <summary>Permissions related to compliance reporting (Feature 003).</summary>
+    public static class ComplianceReports
+    {
+        /// <summary>Permission to view training compliance reports.</summary>
+        public const string View = "career.compliance-reports.view";
+    }
 }

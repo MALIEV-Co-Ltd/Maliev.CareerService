@@ -18,7 +18,8 @@ public class MockEmployeeServiceClient : IEmployeeServiceClient
             "Doe",
             "john.doe@maliev.com",
             "Engineering",
-            "Software Engineer");
+            "Software Engineer",
+            Guid.Parse("22222222-2222-2222-2222-222222222222"));
 
         _employees[Guid.Parse("22222222-2222-2222-2222-222222222222")] = new EmployeeResponse(
             Guid.Parse("22222222-2222-2222-2222-222222222222"),
@@ -26,7 +27,8 @@ public class MockEmployeeServiceClient : IEmployeeServiceClient
             "Smith",
             "jane.smith@maliev.com",
             "HR",
-            "HR Manager");
+            "HR Manager",
+            null);
     }
 
     public Task<EmployeeResponse?> GetEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)

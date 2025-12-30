@@ -143,6 +143,9 @@ public class TestDatabaseFixture : IAsyncLifetime
             "individual_development_plans",
             "employee_training_enrollments",
             "e_learning_resources",
+            "training_records",  // Feature 003
+            "skills",  // Feature 003
+            "mandatory_training_requirements",  // Feature 003
             "training_programs"
         };
 

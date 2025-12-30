@@ -33,6 +33,9 @@ public class EmployeeTrainingEnrollmentConfiguration : IEntityTypeConfiguration<
             .IsRequired()
             .HasColumnName("enrolled_at");
 
+        builder.Property(e => e.DueDate)
+            .HasColumnName("due_date");
+
         builder.Property(e => e.EnrollmentType)
             .IsRequired()
             .HasMaxLength(50)

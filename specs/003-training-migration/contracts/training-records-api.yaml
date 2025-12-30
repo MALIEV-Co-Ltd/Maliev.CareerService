@@ -1,0 +1,465 @@
+openapi: 3.0.3
+info:
+  title: Training Records API
+  description: API for managing employee training completion records
+  version: 1.0.0
+  contact:
+    name: MALIEV Co., Ltd.
+    url: https://maliev.com
+
+servers:
+  - url: https://api.maliev.com/career/v1
+    description: Production
+  - url: https://api-staging.maliev.com/career/v1
+    description: Staging
+  - url: http://localhost:8080/career/v1
+    description: Local Development
+
+tags:
+  - name: Training Records
+    description: Employee training completion tracking
+
+paths:
+  /employees/{employeeId}/training-records:
+    get:
+      summary: Get training records for an employee
+      description: Retrieve all training completion records for a specific employee
+      operationId: getTrainingRecords
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdPath'
+        - name: status
+          in: query
+          description: Filter by training status
+          required: false
+          schema:
+            $ref: '#/components/schemas/TrainingStatus'
+        - name: expiringWithinDays
+          in: query
+          description: Filter certifications expiring within specified days
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+      responses:
+        '200':
+          description: Training records retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Record training completion
+      description: Create a new training completion record for an employee
+      operationId: recordTrainingCompletion
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordTrainingCompletionRequest'
+      responses:
+        '201':
+          description: Training record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingRecordResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /training-records/{id}:
+    get:
+      summary: Get training record by ID
+      description: Retrieve a specific training record
+      operationId: getTrainingRecord
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TrainingRecordIdPath'
+      responses:
+        '200':
+          description: Training record retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update training record
+      description: Update an existing training record
+      operationId: updateTrainingRecord
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TrainingRecordIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingRecordRequest'
+      responses:
+        '200':
+          description: Training record updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingRecordResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete training record
+      description: Soft-delete a training record
+      operationId: deleteTrainingRecord
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TrainingRecordIdPath'
+      responses:
+        '204':
+          description: Training record deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /training-records/expiring:
+    get:
+      summary: Get expiring certifications
+      description: Retrieve certifications expiring within a specified timeframe
+      operationId: getExpiringCertifications
+      tags:
+        - Training Records
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to look ahead (default 30)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Expiring certifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from IAM Service
+
+  parameters:
+    EmployeeIdPath:
+      name: employeeId
+      in: path
+      required: true
+      description: Employee unique identifier
+      schema:
+        type: string
+        format: uuid
+
+    TrainingRecordIdPath:
+      name: id
+      in: path
+      required: true
+      description: Training record unique identifier
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    RecordTrainingCompletionRequest:
+      type: object
+      required:
+        - courseName
+        - completionDate
+        - trainingType
+      properties:
+        trainingProgramId:
+          type: string
+          format: uuid
+          description: Link to internal training program (optional)
+          nullable: true
+        courseName:
+          type: string
+          maxLength: 200
+          description: Name of the training course
+          example: "Workplace Safety Training"
+        completionDate:
+          type: string
+          format: date-time
+          description: Date of training completion (cannot be in future)
+          example: "2025-01-15T00:00:00Z"
+        expirationDate:
+          type: string
+          format: date-time
+          description: Certification expiration date (optional)
+          nullable: true
+          example: "2026-01-15T00:00:00Z"
+        certificateDocumentId:
+          type: string
+          format: uuid
+          description: Reference to certificate document in Upload Service
+          nullable: true
+        trainingType:
+          $ref: '#/components/schemas/TrainingType'
+        provider:
+          type: string
+          maxLength: 200
+          description: Training provider name
+          nullable: true
+          example: "SafetyFirst Inc."
+        score:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+          description: Training score (0-100)
+          nullable: true
+          example: 95.5
+
+    UpdateTrainingRecordRequest:
+      type: object
+      properties:
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+        certificateDocumentId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/TrainingStatus'
+        score:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+          nullable: true
+
+    TrainingRecordResponse:
+      type: object
+      required:
+        - id
+        - employeeId
+        - courseName
+        - completionDate
+        - trainingType
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        employeeId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        trainingProgramId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "123e4567-e89b-12d3-a456-426614174002"
+        courseName:
+          type: string
+          example: "Workplace Safety Training"
+        completionDate:
+          type: string
+          format: date-time
+          example: "2025-01-15T00:00:00Z"
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-01-15T00:00:00Z"
+        certificateDocumentId:
+          type: string
+          format: uuid
+          nullable: true
+        trainingType:
+          $ref: '#/components/schemas/TrainingType'
+        provider:
+          type: string
+          nullable: true
+          example: "SafetyFirst Inc."
+        status:
+          $ref: '#/components/schemas/TrainingStatus'
+        score:
+          type: number
+          format: decimal
+          nullable: true
+          example: 95.5
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        createdBy:
+          type: string
+          format: uuid
+        updatedBy:
+          type: string
+          format: uuid
+
+    TrainingType:
+      type: string
+      enum:
+        - InPerson
+        - Online
+        - SelfPaced
+        - Workshop
+        - Certification
+        - External
+      description: Type of training delivery
+      example: "Online"
+
+    TrainingStatus:
+      type: string
+      enum:
+        - Completed
+        - InProgress
+        - NotStarted
+        - Expired
+        - Failed
+      description: Status of training completion
+      example: "Completed"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Completion date cannot be in the future"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_COMPLETION_DATE"
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidDate:
+              value:
+                error: "Completion date cannot be in the future"
+                code: "INVALID_COMPLETION_DATE"
+            invalidScore:
+              value:
+                error: "Score must be between 0 and 100"
+                code: "INVALID_SCORE"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "User ID not found in claims"
+            code: "UNAUTHORIZED"
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "User cannot perform action"
+            code: "NOT_AUTHORIZED"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Training record not found"
+            code: "TRAINING_RECORD_NOT_FOUND"
+
+    Conflict:
+      description: Conflict - duplicate record
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Training record already exists"
+            code: "TRAINING_ALREADY_COMPLETED"

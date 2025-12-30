@@ -26,6 +26,11 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
     public DbSet<IndividualDevelopmentPlan> IndividualDevelopmentPlans => Set<IndividualDevelopmentPlan>();
     public DbSet<EmployeeDevelopmentGoal> EmployeeDevelopmentGoals => Set<EmployeeDevelopmentGoal>();
 
+    // Feature 003: Training Records and Skills Migration
+    public DbSet<TrainingRecord> TrainingRecords => Set<TrainingRecord>();
+    public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<MandatoryTrainingRequirement> MandatoryTrainingRequirements => Set<MandatoryTrainingRequirement>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -98,6 +103,11 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
         modelBuilder.ApplyConfiguration(new ELearningResourceConfiguration());
         modelBuilder.ApplyConfiguration(new IndividualDevelopmentPlanConfiguration());
         modelBuilder.ApplyConfiguration(new EmployeeDevelopmentGoalConfiguration());
+
+        // Feature 003: Training Records and Skills Migration configurations
+        modelBuilder.ApplyConfiguration(new TrainingRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new SkillConfiguration());
+        modelBuilder.ApplyConfiguration(new MandatoryTrainingRequirementConfiguration());
     }
 
     /// <summary>

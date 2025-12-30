@@ -25,4 +25,7 @@ public record EmployeeResponse(
     string LastName,
     string Email,
     string? Department,
-    string? Position);
+    string? Position,
+    Guid? ManagerId = null,
+    Guid? DepartmentId = null,
+    Guid? PositionId = null);

@@ -157,4 +157,30 @@ public class ReportsController(
                 new { error = "An error occurred while generating HR operational metrics" });
         }
     }
+
+    /// <summary>
+    /// Generates organization-wide training compliance report (Feature 003)
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Training compliance report with department breakdown and overdue list</returns>
+    [HttpGet("training-compliance")]
+    [RequirePermission(CareerPermissions.ComplianceReports.View)]
+    [ProducesResponseType(typeof(TrainingComplianceReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<TrainingComplianceReportDto>> GetTrainingComplianceReport(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _reportService.GenerateTrainingComplianceReportAsync(cancellationToken);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating training compliance report");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "An error occurred while generating training compliance report" });
+        }
+    }
 }

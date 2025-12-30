@@ -20,7 +20,11 @@ builder.AddStandardMiddleware(options =>
 builder.AddServiceMeters("careers-meter"); // Register service meters for OpenTelemetry business metrics
 
 builder.AddRedisDistributedCache(instanceName: "career:"); // Redis with in-memory fallback
-builder.AddMassTransitWithRabbitMq(); // RabbitMQ message bus (non-blocking startup)
+builder.AddMassTransitWithRabbitMq(x =>
+{
+    x.AddConsumer<Maliev.CareerService.Api.Consumers.EmployeeCreatedEventConsumer>();
+    x.AddConsumer<Maliev.CareerService.Api.Consumers.EmployeeTerminatedEventConsumer>();
+});
 builder.AddPostgresDbContext<CareerDbContext>(connectionName: "CareerDbContext"); // PostgreSQL with retry logic
 
 // --- API Configuration ---
@@ -55,6 +59,13 @@ builder.Services.AddScoped<ITrainingProgramService, TrainingProgramService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IELearningResourceService, ELearningResourceService>();
 
+// Feature 003: Training Records and Skills Migration
+builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
+builder.Services.AddScoped<IEmployeeSkillService, EmployeeSkillService>();
+builder.Services.AddScoped<IMandatoryTrainingService, MandatoryTrainingService>();
+builder.Services.AddHostedService<Maliev.CareerService.Api.BackgroundServices.CertificationExpirationReminderBackgroundService>();
+builder.Services.AddHostedService<Maliev.CareerService.Api.BackgroundServices.OverdueTrainingEscalationBackgroundService>();
+
 // User Story 3: Report Service
 builder.Services.AddScoped<IReportService, ReportService>();
 
@@ -72,6 +83,7 @@ builder.AddServiceClient<IEmployeeServiceClient, EmployeeServiceClient>("Employe
 builder.AddServiceClient<IUploadServiceClient, UploadServiceClient>("UploadService");
 builder.AddServiceClient<ICountryServiceClient, CountryServiceClient>("CountryService");
 builder.AddServiceClient<IEmailServiceClient, EmailServiceClient>("NotificationService");
+builder.AddServiceClient<INotificationServiceClient, NotificationServiceClient>("NotificationService");
 
 builder.Services.AddIAMRegistration<CareerIAMRegistrationService>();
 
@@ -108,18 +120,15 @@ builder.Services.AddControllers();
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-// Run database migrations on startup (skip in Testing environment)
-if (!app.Environment.IsEnvironment("Testing"))
+// --- Database Migrations ---
+try
 {
-    try
-    {
-        await app.MigrateDatabaseAsync<CareerDbContext>();
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Database migration failed - application may not function correctly");
-        // Don't throw - allow app to start for debugging
-    }
+    await app.MigrateDatabaseAsync<CareerDbContext>();
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Database migration failed");
 }
 
 // Configure middleware pipeline

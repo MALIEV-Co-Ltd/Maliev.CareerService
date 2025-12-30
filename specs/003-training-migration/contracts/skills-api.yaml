@@ -1,0 +1,343 @@
+openapi: 3.0.3
+info:
+  title: Skills Matrix API
+  description: API for managing employee skills and proficiency levels
+  version: 1.0.0
+  contact:
+    name: MALIEV Co., Ltd.
+    url: https://maliev.com
+
+servers:
+  - url: https://api.maliev.com/career/v1
+    description: Production
+  - url: https://api-staging.maliev.com/career/v1
+    description: Staging
+  - url: http://localhost:8080/career/v1
+    description: Local Development
+
+tags:
+  - name: Skills
+    description: Employee skills matrix management
+
+paths:
+  /employees/{employeeId}/skills:
+    get:
+      summary: Get employee skills
+      description: Retrieve all skills for a specific employee
+      operationId: getEmployeeSkills
+      tags:
+        - Skills
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdPath'
+        - name: isDevelopmentArea
+          in: query
+          description: Filter by development area flag
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkillResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Add skill to employee
+      description: Add a new skill to an employee's profile
+      operationId: addEmployeeSkill
+      tags:
+        - Skills
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSkillRequest'
+      responses:
+        '201':
+          description: Skill added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /skills/{skillId}:
+    get:
+      summary: Get skill by ID
+      description: Retrieve a specific skill record
+      operationId: getSkill
+      tags:
+        - Skills
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SkillIdPath'
+      responses:
+        '200':
+          description: Skill retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update skill
+      description: Update an existing skill
+      operationId: updateSkill
+      tags:
+        - Skills
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SkillIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSkillRequest'
+      responses:
+        '200':
+          description: Skill updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete skill
+      description: Remove a skill from an employee's profile
+      operationId: deleteSkill
+      tags:
+        - Skills
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SkillIdPath'
+      responses:
+        '204':
+          description: Skill deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    EmployeeIdPath:
+      name: employeeId
+      in: path
+      required: true
+      description: Employee unique identifier
+      schema:
+        type: string
+        format: uuid
+
+    SkillIdPath:
+      name: skillId
+      in: path
+      required: true
+      description: Skill unique identifier
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    AddSkillRequest:
+      type: object
+      required:
+        - skillName
+        - proficiencyLevel
+      properties:
+        skillName:
+          type: string
+          maxLength: 100
+          description: Name of the skill
+          example: "Python"
+        proficiencyLevel:
+          $ref: '#/components/schemas/ProficiencyLevel'
+        isDevelopmentArea:
+          type: boolean
+          default: false
+          description: Flag skill as development area for IDP integration
+          example: false
+        notes:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Additional notes about the skill
+          example: "Used daily for data analysis"
+
+    UpdateSkillRequest:
+      type: object
+      properties:
+        proficiencyLevel:
+          $ref: '#/components/schemas/ProficiencyLevel'
+        isDevelopmentArea:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 1000
+          nullable: true
+
+    SkillResponse:
+      type: object
+      required:
+        - id
+        - employeeId
+        - skillName
+        - proficiencyLevel
+        - lastAssessedDate
+        - isDevelopmentArea
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        employeeId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        skillName:
+          type: string
+          example: "Python"
+        proficiencyLevel:
+          $ref: '#/components/schemas/ProficiencyLevel'
+        lastAssessedDate:
+          type: string
+          format: date-time
+          description: Auto-updated when proficiency changes
+          example: "2025-01-15T00:00:00Z"
+        isDevelopmentArea:
+          type: boolean
+          example: false
+        notes:
+          type: string
+          nullable: true
+          example: "Used daily for data analysis"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+        updatedBy:
+          type: string
+          format: uuid
+
+    ProficiencyLevel:
+      type: string
+      enum:
+        - Beginner
+        - Elementary
+        - Intermediate
+        - Advanced
+        - Expert
+      description: Skill proficiency level (1-5 scale)
+      example: "Advanced"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidProficiency:
+              value:
+                error: "Proficiency level out of range"
+                code: "INVALID_PROFICIENCY"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Skill not found"
+            code: "SKILL_NOT_FOUND"
+
+    Conflict:
+      description: Conflict - duplicate skill
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "Skill already exists for employee"
+            code: "DUPLICATE_SKILL"
