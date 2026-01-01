@@ -94,3 +94,5 @@ Thumbs.db
 *test-output.txt
 *_error.txt
 
+*.log
+*-test-list.txt

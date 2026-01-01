@@ -1,5 +1,6 @@
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Tests.Testing;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,11 @@ public class TestWebApplicationFactory : BaseIntegrationTestFactory<Program, Car
 
             services.RemoveAll<Api.Services.External.IEmployeeServiceClient>();
             services.AddSingleton<Api.Services.External.IEmployeeServiceClient, Mocks.MockEmployeeServiceClient>();
+
+            services.RemoveAll<Api.Services.External.INotificationServiceClient>();
+            services.AddSingleton<Api.Services.External.INotificationServiceClient, Mocks.MockNotificationServiceClient>();
+
+            services.AddMassTransitTestHarness();
         });
     }
 }

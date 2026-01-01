@@ -42,4 +42,12 @@ public interface IReportService
         DateTime? startDate = null,
         DateTime? endDate = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generates organization-wide training compliance report (Feature 003)
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Training compliance report with department breakdown and overdue list</returns>
+    Task<TrainingComplianceReportDto> GenerateTrainingComplianceReportAsync(
+        CancellationToken cancellationToken = default);
 }

@@ -28,6 +28,11 @@ public class EmployeeTrainingEnrollment : BaseEntity
     public string EnrollmentType { get; set; } = string.Empty;
 
     /// <summary>
+    /// When the training is due to be completed
+    /// </summary>
+    public DateTime? DueDate { get; set; }
+
+    /// <summary>
     /// Current enrollment status (Enrolled, InProgress, Completed, Cancelled)
     /// </summary>
     public string Status { get; set; } = TrainingEnrollmentStatus.Enrolled;
@@ -67,6 +72,7 @@ public static class TrainingEnrollmentStatus
     public const string InProgress = "in_progress";
     public const string Completed = "completed";
     public const string Cancelled = "cancelled";
+    public const string Withdrawn = "withdrawn";
 }
 
 /// <summary>

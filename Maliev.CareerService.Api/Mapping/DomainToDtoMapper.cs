@@ -5,7 +5,9 @@ using Maliev.CareerService.Api.Models.ELearningResources;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
+using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Data.Enums;
 
 namespace Maliev.CareerService.Api.Mapping;
 
@@ -349,5 +351,74 @@ public static class DomainToDtoMapper
         goal.TargetDate = request.TargetDate;
         goal.ActionItems = request.ActionItems;
         goal.ProgressNotes = request.ProgressNotes;
+    }
+
+    // Feature 003: Training Records and Skills Migration Mappings
+
+    /// <summary>
+    /// Maps TrainingRecord entity to TrainingRecordResponse
+    /// </summary>
+    public static TrainingRecordResponse ToTrainingRecordResponse(this TrainingRecord record)
+    {
+        return new TrainingRecordResponse
+        {
+            Id = record.Id,
+            EmployeeId = record.EmployeeId,
+            TrainingProgramId = record.TrainingProgramId,
+            CourseName = record.CourseName,
+            CompletionDate = record.CompletionDate,
+            ExpirationDate = record.ExpirationDate,
+            CertificateDocumentId = record.CertificateDocumentId,
+            TrainingType = record.TrainingType,
+            Provider = record.Provider,
+            Status = record.Status,
+            Score = record.Score,
+            CreatedAt = record.CreatedAt,
+            UpdatedAt = record.UpdatedAt
+        };
+    }
+
+    /// <summary>
+    /// Maps RecordTrainingCompletionRequest to TrainingRecord entity
+    /// </summary>
+    public static TrainingRecord ToTrainingRecord(this RecordTrainingCompletionRequest request, Guid employeeId)
+    {
+        return new TrainingRecord
+        {
+            EmployeeId = employeeId,
+            TrainingProgramId = request.TrainingProgramId,
+            CourseName = request.CourseName,
+            CompletionDate = request.CompletionDate,
+            ExpirationDate = request.ExpirationDate,
+            CertificateDocumentId = request.CertificateDocumentId,
+            TrainingType = request.TrainingType,
+            Provider = request.Provider,
+            Status = TrainingStatus.Completed,
+            Score = request.Score
+        };
+    }
+
+    /// <summary>
+    /// Updates TrainingRecord entity from UpdateTrainingRecordRequest
+    /// </summary>
+    public static void UpdateTrainingRecord(this TrainingRecord record, UpdateTrainingRecordRequest request)
+    {
+        if (!string.IsNullOrWhiteSpace(request.CourseName))
+            record.CourseName = request.CourseName;
+
+        if (request.ExpirationDate.HasValue)
+            record.ExpirationDate = request.ExpirationDate;
+
+        if (request.CertificateDocumentId.HasValue)
+            record.CertificateDocumentId = request.CertificateDocumentId;
+
+        if (!string.IsNullOrWhiteSpace(request.Provider))
+            record.Provider = request.Provider;
+
+        if (request.Status.HasValue)
+            record.Status = request.Status.Value;
+
+        if (request.Score.HasValue)
+            record.Score = request.Score;
     }
 }

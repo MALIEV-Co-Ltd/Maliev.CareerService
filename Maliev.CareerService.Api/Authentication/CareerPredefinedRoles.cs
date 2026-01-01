@@ -41,7 +41,13 @@ public static class CareerPredefinedRoles
             CareerPermissions.JobPostings.Manage,
             CareerPermissions.Reports.Read,
             CareerPermissions.Applications.Read,
-            CareerPermissions.Applications.ReadAll
+            CareerPermissions.Applications.ReadAll,
+            CareerPermissions.Training.ViewOwn,
+            CareerPermissions.Training.ViewTeam,
+            CareerPermissions.Training.Manage,
+            CareerPermissions.MandatoryTraining.View,
+            CareerPermissions.MandatoryTraining.Manage,
+            CareerPermissions.ComplianceReports.View
         },
         [Manager] = new[]
         {
@@ -55,7 +61,8 @@ public static class CareerPredefinedRoles
             CareerPermissions.Trainings.Enroll,
             CareerPermissions.JobPostings.Read,
             CareerPermissions.Applications.Read,
-            CareerPermissions.Applications.ReadAll
+            CareerPermissions.Applications.ReadAll,
+            CareerPermissions.Training.ViewTeam
         },
         [Employee] = new[]
         {
@@ -66,7 +73,8 @@ public static class CareerPredefinedRoles
             CareerPermissions.Development.ViewOwn,
             CareerPermissions.Paths.View,
             CareerPermissions.JobPostings.Read,
-            CareerPermissions.Applications.Read
+            CareerPermissions.Applications.Read,
+            CareerPermissions.Training.ViewOwn
         }
     };
 }

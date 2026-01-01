@@ -40,11 +40,11 @@ public class TestDatabaseFixture : IAsyncLifetime
             .Build();
 
         _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+            .WithImage("redis:8.4-alpine")
             .Build();
 
         _rabbitmqContainer = new RabbitMqBuilder()
-            .WithImage("rabbitmq:4.2.1-alpine")
+            .WithImage("rabbitmq:4.2-alpine")
             .Build();
 
         // Start all containers in parallel
@@ -143,6 +143,9 @@ public class TestDatabaseFixture : IAsyncLifetime
             "individual_development_plans",
             "employee_training_enrollments",
             "e_learning_resources",
+            "training_records",  // Feature 003
+            "skills",  // Feature 003
+            "mandatory_training_requirements",  // Feature 003
             "training_programs"
         };
 

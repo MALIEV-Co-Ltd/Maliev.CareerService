@@ -52,7 +52,17 @@ public class CareerIAMRegistrationService : IAMRegistrationService
 
             new() { PermissionId = CareerPermissions.Reports.Read, Description = "Read HR reports" },
             new() { PermissionId = CareerPermissions.Applications.Read, Description = "Read job applications" },
-            new() { PermissionId = CareerPermissions.Applications.ReadAll, Description = "Read all job applications" }
+            new() { PermissionId = CareerPermissions.Applications.ReadAll, Description = "Read all job applications" },
+
+            // Feature 003: Training Records and Skills Migration
+            new() { PermissionId = CareerPermissions.Training.ViewOwn, Description = "View own training records and skills" },
+            new() { PermissionId = CareerPermissions.Training.ViewTeam, Description = "View team training records and skills" },
+            new() { PermissionId = CareerPermissions.Training.Manage, Description = "Manage all training records and skills" },
+
+            new() { PermissionId = CareerPermissions.MandatoryTraining.View, Description = "View mandatory training requirements" },
+            new() { PermissionId = CareerPermissions.MandatoryTraining.Manage, Description = "Manage mandatory training requirements" },
+
+            new() { PermissionId = CareerPermissions.ComplianceReports.View, Description = "View training compliance reports" }
         };
     }
 

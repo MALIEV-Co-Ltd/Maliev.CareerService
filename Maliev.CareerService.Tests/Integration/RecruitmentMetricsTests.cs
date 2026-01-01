@@ -278,7 +278,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
                     ApplicantPhone = "+66812345678",
                     ApplicantCountryCode = "TH",
                     ResumeFileId = Guid.NewGuid(),
-                    Status = i % 3 == 0 ? "Interview" : (i % 3 == 1 ? "UnderReview" : "Submitted"),
+                    Status = i % 3 == 0 ? ApplicationStatus.Interviewing : (i % 3 == 1 ? ApplicationStatus.UnderReview : ApplicationStatus.Submitted),
                     AppliedAt = DateTime.UtcNow.AddDays(-15 + i),
                     CreatedBy = Guid.NewGuid(),
                     UpdatedBy = Guid.NewGuid()
