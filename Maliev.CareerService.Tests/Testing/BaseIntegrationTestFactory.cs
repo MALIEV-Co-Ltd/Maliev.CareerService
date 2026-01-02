@@ -93,12 +93,12 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
 
     public new async Task DisposeAsync()
     {
+        await base.DisposeAsync(); // Stop the Host (and MassTransit) before deleting containers
         await _postgresContainer.DisposeAsync();
         await _redisContainer.DisposeAsync();
         await _rabbitmqContainer.DisposeAsync();
         _testRsa.Dispose();
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null); // Cleanup
-        await base.DisposeAsync();
     }
 
 
@@ -153,6 +153,9 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
                 // Clear SignatureValidator to ensure proper JWT validation and claim mapping
                 options.TokenValidationParameters.SignatureValidator = null;
             });
+
+            // Add MassTransit test harness for testing message publishing/consuming
+            services.AddMassTransitTestHarness();
 
             // Allow derived classes to add additional test services
             ConfigureAdditionalServices(services);
