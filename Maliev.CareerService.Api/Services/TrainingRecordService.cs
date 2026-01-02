@@ -2,7 +2,9 @@ using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Enums;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Maliev.MessagingContracts.Generated;
 
 namespace Maliev.CareerService.Api.Services;
 
@@ -11,9 +13,11 @@ namespace Maliev.CareerService.Api.Services;
 /// </summary>
 public class TrainingRecordService(
     CareerDbContext dbContext,
+    IPublishEndpoint publishEndpoint,
     ILogger<TrainingRecordService> logger) : ITrainingRecordService
 {
     private readonly CareerDbContext _dbContext = dbContext;
+    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
     private readonly ILogger<TrainingRecordService> _logger = logger;
 
     /// <inheritdoc />
@@ -49,6 +53,27 @@ public class TrainingRecordService(
             employeeId,
             request.CourseName,
             record.Id);
+
+        // Publish integration event
+        await _publishEndpoint.Publish(new TrainingCompletedEvent(
+            MessageId: Guid.NewGuid(),
+            MessageName: nameof(TrainingCompletedEvent),
+            MessageType: MessageType.Event,
+            MessageVersion: "1.0",
+            PublishedBy: "Maliev.CareerService",
+            ConsumedBy: new[] { "Maliev.ComplianceService" },
+            CorrelationId: Guid.NewGuid(),
+            CausationId: null,
+            OccurredAtUtc: DateTimeOffset.UtcNow,
+            IsPublic: true,
+            Payload: new TrainingCompletedEventPayload(
+                TrainingRecordId: record.Id,
+                EmployeeId: record.EmployeeId,
+                CourseName: record.CourseName,
+                CompletionDate: record.CompletionDate,
+                CertificationExpiration: record.ExpirationDate
+            )
+        ), cancellationToken);
 
         return record.ToTrainingRecordResponse();
     }
