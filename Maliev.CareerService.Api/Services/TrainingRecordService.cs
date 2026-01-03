@@ -1,4 +1,4 @@
-using Maliev.MessagingContracts.Generated;
+
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data;
@@ -55,10 +55,10 @@ public class TrainingRecordService(
             record.Id);
 
         // Publish integration event
-        await _publishEndpoint.Publish(new TrainingCompletedEvent(
+        await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingCompletedEvent(
             MessageId: Guid.NewGuid(),
-            MessageName: nameof(TrainingCompletedEvent),
-            MessageType: MessageType.Event,
+            MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingCompletedEvent),
+            MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
             MessageVersion: "1.0",
             PublishedBy: "Maliev.CareerService",
             ConsumedBy: new[] { "Maliev.ComplianceService" },
@@ -66,7 +66,7 @@ public class TrainingRecordService(
             CausationId: null,
             OccurredAtUtc: DateTimeOffset.UtcNow,
             IsPublic: true,
-            Payload: new TrainingCompletedEventPayload(
+            Payload: new Maliev.MessagingContracts.Generated.TrainingCompletedEventPayload(
                 TrainingRecordId: record.Id,
                 EmployeeId: record.EmployeeId,
                 CourseName: record.CourseName,
