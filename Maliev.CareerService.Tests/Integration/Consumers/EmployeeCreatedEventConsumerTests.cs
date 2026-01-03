@@ -1,6 +1,6 @@
+using Maliev.MessagingContracts.Generated;
 using FluentAssertions;
 using Maliev.CareerService.Data.Models;
-using Maliev.MessagingContracts.Generated;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;

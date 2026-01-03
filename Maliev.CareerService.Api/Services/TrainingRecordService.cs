@@ -1,10 +1,10 @@
+using Maliev.MessagingContracts.Generated;
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Enums;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Maliev.MessagingContracts.Generated;
 
 namespace Maliev.CareerService.Api.Services;
 
