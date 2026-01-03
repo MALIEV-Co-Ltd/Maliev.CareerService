@@ -6,6 +6,7 @@ using Maliev.CareerService.Data.Enums;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Maliev.CareerService.Api.Services;
 
 /// <summary>
