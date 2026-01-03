@@ -2,7 +2,6 @@ using Maliev.CareerService.Data.Configurations;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Data.Models.Base;
 using Microsoft.EntityFrameworkCore;
-using Maliev.Aspire.ServiceDefaults.Database;
 
 namespace Maliev.CareerService.Data;
 
@@ -35,50 +34,6 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply snake_case naming convention to all tables and columns
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
-        {
-            // Convert table names to snake_case
-            var tableName = entity.GetTableName();
-            if (!string.IsNullOrEmpty(tableName))
-            {
-                entity.SetTableName(ToSnakeCase(tableName));
-            }
-
-            // Convert column names to snake_case
-            foreach (var property in entity.GetProperties())
-            {
-                var columnName = property.GetColumnName();
-                if (!string.IsNullOrEmpty(columnName))
-                {
-                    property.SetColumnName(ToSnakeCase(columnName));
-
-                    // Apply PostgreSQL snake_case naming convention globally
-                    SnakeCaseNamingHelper.ApplySnakeCaseNaming(modelBuilder);
-                }
-            }
-
-            // Convert foreign key names to snake_case
-            foreach (var key in entity.GetForeignKeys())
-            {
-                var constraintName = key.GetConstraintName();
-                if (!string.IsNullOrEmpty(constraintName))
-                {
-                    key.SetConstraintName(ToSnakeCase(constraintName));
-                }
-            }
-
-            // Convert index names to snake_case
-            foreach (var index in entity.GetIndexes())
-            {
-                var indexName = index.GetDatabaseName();
-                if (!string.IsNullOrEmpty(indexName))
-                {
-                    index.SetDatabaseName(ToSnakeCase(indexName));
-                }
-            }
-        }
-
         // Apply global query filter for soft deletes
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -93,6 +48,9 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
                 entityType.SetQueryFilter(filter);
             }
         }
+
+        // Apply snake_case naming convention to all tables, columns, keys, and indexes
+        SnakeCaseNamingHelper.ApplySnakeCaseNaming(modelBuilder);
 
         // Apply entity configurations
         modelBuilder.ApplyConfiguration(new JobPostingConfiguration());
@@ -203,32 +161,5 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
         // Increment and convert back to byte array
         versionNumber++;
         entity.RowVersion = BitConverter.GetBytes(versionNumber);
-    }
-
-    /// <summary>
-    /// Convert PascalCase to snake_case
-    /// </summary>
-    private static string ToSnakeCase(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        var result = new System.Text.StringBuilder();
-        result.Append(char.ToLowerInvariant(input[0]));
-
-        for (int i = 1; i < input.Length; i++)
-        {
-            if (char.IsUpper(input[i]))
-            {
-                result.Append('_');
-                result.Append(char.ToLowerInvariant(input[i]));
-            }
-            else
-            {
-                result.Append(input[i]);
-            }
-        }
-
-        return result.ToString();
     }
 }
