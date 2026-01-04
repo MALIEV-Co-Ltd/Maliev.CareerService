@@ -76,6 +76,30 @@ public class TrainingRecordService(
             )
         ), cancellationToken);
 
+        // If it has an expiration date, it's a certification
+        if (record.ExpirationDate.HasValue)
+        {
+            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.CertificationAwardedEvent(
+                MessageId: Guid.NewGuid(),
+                MessageName: nameof(Maliev.MessagingContracts.Generated.CertificationAwardedEvent),
+                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageVersion: "1.0",
+                PublishedBy: "Maliev.CareerService",
+                ConsumedBy: Array.Empty<string>(),
+                CorrelationId: Guid.NewGuid(),
+                CausationId: null,
+                OccurredAtUtc: DateTimeOffset.UtcNow,
+                IsPublic: false,
+                Payload: new Maliev.MessagingContracts.Generated.CertificationAwardedEventPayload(
+                    CertificationId: record.Id,
+                    EmployeeId: record.EmployeeId,
+                    CertificationName: record.CourseName,
+                    AwardedDate: record.CompletionDate,
+                    ExpirationDate: record.ExpirationDate
+                )
+            ), cancellationToken);
+        }
+
         return record.ToTrainingRecordResponse();
     }
 
