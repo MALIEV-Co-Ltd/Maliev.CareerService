@@ -4,6 +4,7 @@ using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 namespace Maliev.CareerService.Api.Services;
 
@@ -14,11 +15,13 @@ public class EnrollmentService(
     CareerDbContext dbContext,
     IEmployeeServiceClient employeeService,
     IMetricsService metricsService,
+    IPublishEndpoint publishEndpoint,
     ILogger<EnrollmentService> logger) : IEnrollmentService
 {
     private readonly CareerDbContext _dbContext = dbContext;
     private readonly IEmployeeServiceClient _employeeService = employeeService;
     private readonly IMetricsService _metricsService = metricsService;
+    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
     private readonly ILogger<EnrollmentService> _logger = logger;
 
     /// <inheritdoc />
@@ -70,6 +73,26 @@ public class EnrollmentService(
 
         _dbContext.EmployeeTrainingEnrollments.Add(enrollment);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Publish TrainingEnrolledEvent
+        await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingEnrolledEvent(
+            MessageId: Guid.NewGuid(),
+            MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingEnrolledEvent),
+            MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+            MessageVersion: "1.0",
+            PublishedBy: "CareerService",
+            ConsumedBy: Array.Empty<string>(),
+            CorrelationId: Guid.NewGuid(),
+            CausationId: null,
+            OccurredAtUtc: DateTimeOffset.UtcNow,
+            IsPublic: false,
+            Payload: new Maliev.MessagingContracts.Generated.TrainingEnrolledEventPayload(
+                TrainingRecordId: enrollment.Id,
+                EmployeeId: enrollment.EmployeeId,
+                CourseName: trainingProgram.ProgramName,
+                EnrollmentDate: enrollment.EnrolledAt
+            )
+        ), cancellationToken);
 
         // Track metrics
         _metricsService.IncrementTrainingEnrollments(enrollment.Status);
