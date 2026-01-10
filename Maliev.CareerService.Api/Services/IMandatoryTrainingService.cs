@@ -66,12 +66,16 @@ public interface IMandatoryTrainingService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Automatically assigns mandatory training to an employee based on their department and position
+    /// Evaluates and assigns mandatory training for an employee based on their department and position.
     /// </summary>
-    /// <param name="employeeId">Employee identifier</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="employeeId">The unique identifier of the employee.</param>
+    /// <param name="departmentId">Optional department ID if already known (e.g. from event).</param>
+    /// <param name="positionId">Optional position ID if already known (e.g. from event).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task AssignMandatoryTrainingAsync(
         Guid employeeId,
+        Guid? departmentId = null,
+        Guid? positionId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
