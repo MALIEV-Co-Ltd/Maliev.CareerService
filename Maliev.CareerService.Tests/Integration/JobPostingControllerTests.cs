@@ -169,7 +169,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task CreateJobPosting_WithValidRequest_ReturnsCreated()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         var request = new CreateJobPostingRequest
@@ -205,7 +205,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task UpdateJobPosting_WithValidRequest_ReturnsOk()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var postingId = await SeedSinglePostingAsync();
 
@@ -241,7 +241,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     public async Task DeleteJobPosting_WithValidId_ReturnsNoContent()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var postingId = await SeedSinglePostingAsync();
 

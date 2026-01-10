@@ -63,6 +63,11 @@ public class TrainingProgram : BaseEntity
     public bool IsActive { get; set; } = true;
 
     /// <summary>
+    /// Number of months until the certification expires after completion (null = never expires)
+    /// </summary>
+    public int? ValidityMonths { get; set; }
+
+    /// <summary>
     /// Navigation property: Enrollments for this training program
     /// </summary>
     public ICollection<EmployeeTrainingEnrollment> Enrollments { get; set; } = [];

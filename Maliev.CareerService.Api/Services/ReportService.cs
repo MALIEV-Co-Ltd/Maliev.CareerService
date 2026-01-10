@@ -33,10 +33,16 @@ public class ReportService(
             : DateTime.UtcNow;
 
         // Get applications in date range
-        var applications = await _dbContext.JobApplications
+        var applicationsQuery = _dbContext.JobApplications
             .Include(a => a.JobPosting)
             .Where(a => a.AppliedAt >= start && a.AppliedAt <= end)
-            .ToListAsync(cancellationToken);
+            .AsAsyncEnumerable();
+
+        var applications = new List<JobApplication>();
+        await foreach (var app in applicationsQuery.WithCancellation(cancellationToken))
+        {
+            applications.Add(app);
+        }
 
         var response = new RecruitmentMetricsResponse
         {
@@ -99,10 +105,16 @@ public class ReportService(
             : DateTime.UtcNow;
 
         // Get enrollments in date range
-        var enrollments = await _dbContext.EmployeeTrainingEnrollments
+        var enrollmentsQuery = _dbContext.EmployeeTrainingEnrollments
             .Include(e => e.TrainingProgram)
             .Where(e => e.EnrolledAt >= start && e.EnrolledAt <= end)
-            .ToListAsync(cancellationToken);
+            .AsAsyncEnumerable();
+
+        var enrollments = new List<EmployeeTrainingEnrollment>();
+        await foreach (var enrollment in enrollmentsQuery.WithCancellation(cancellationToken))
+        {
+            enrollments.Add(enrollment);
+        }
 
         var response = new LearningMetricsResponse();
 
@@ -166,16 +178,28 @@ public class ReportService(
         _logger.LogInformation("Generating training compliance report");
 
         // 1. Get all mandatory requirements
-        var requirements = await _dbContext.MandatoryTrainingRequirements
+        var requirementsQuery = _dbContext.MandatoryTrainingRequirements
             .Include(r => r.TrainingProgram)
             .Where(r => r.IsActive && !r.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .AsAsyncEnumerable();
+
+        var requirements = new List<MandatoryTrainingRequirement>();
+        await foreach (var req in requirementsQuery.WithCancellation(cancellationToken))
+        {
+            requirements.Add(req);
+        }
 
         // 2. Get all mandatory enrollments
-        var enrollments = await _dbContext.EmployeeTrainingEnrollments
+        var enrollmentsQuery = _dbContext.EmployeeTrainingEnrollments
             .Include(e => e.TrainingProgram)
             .Where(e => e.EnrollmentType == EnrollmentType.Mandatory && !e.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .AsAsyncEnumerable();
+
+        var enrollments = new List<EmployeeTrainingEnrollment>();
+        await foreach (var enrollment in enrollmentsQuery.WithCancellation(cancellationToken))
+        {
+            enrollments.Add(enrollment);
+        }
 
         // 3. Process data to identify compliance per employee
         var employeeIds = enrollments.Select(e => e.EmployeeId).Distinct().ToList();

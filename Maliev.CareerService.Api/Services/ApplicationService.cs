@@ -20,6 +20,7 @@ public class ApplicationService(
     IEmployeeServiceClient employeeService,
     IMetricsService metricsService,
     IServiceScopeFactory serviceScopeFactory,
+    MassTransit.IPublishEndpoint publishEndpoint,
     ILogger<ApplicationService> logger) : IApplicationService
 {
     private readonly CareerDbContext _dbContext = dbContext;
@@ -30,6 +31,7 @@ public class ApplicationService(
     private readonly IEmployeeServiceClient _employeeService = employeeService;
     private readonly IMetricsService _metricsService = metricsService;
     private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
+    private readonly MassTransit.IPublishEndpoint _publishEndpoint = publishEndpoint;
     private readonly ILogger<ApplicationService> _logger = logger;
 
     /// <inheritdoc />
@@ -88,33 +90,32 @@ public class ApplicationService(
             application.JobPostingId,
             application.ApplicantEmail);
 
-        // Send confirmation email asynchronously (fire-and-forget, don't block submission)
-        _ = Task.Run(async () =>
+        // Publish JobApplicationSubmittedEvent for reliable notification processing
+        var jobPosting = await _dbContext.JobPostings
+            .FirstOrDefaultAsync(jp => jp.Id == request.JobPostingId, cancellationToken);
+
+        if (jobPosting != null)
         {
-            try
-            {
-                using var scope = _serviceScopeFactory.CreateScope();
-                var scopedDbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
-                var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailServiceClient>();
-
-                var jobPosting = await scopedDbContext.JobPostings
-                    .FirstOrDefaultAsync(jp => jp.Id == request.JobPostingId, cancellationToken);
-
-                if (jobPosting != null)
-                {
-                    await scopedEmailService.SendApplicationConfirmationAsync(
-                        application.ApplicantEmail,
-                        $"{application.ApplicantFirstName} {application.ApplicantLastName}",
-                        jobPosting.PositionTitle,
-                        application.Id.ToString(),
-                        cancellationToken);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send confirmation email for application {ApplicationId}", application.Id);
-            }
-        }, cancellationToken);
+            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.JobApplicationSubmittedEvent(
+                MessageId: Guid.NewGuid(),
+                MessageName: nameof(Maliev.MessagingContracts.Generated.JobApplicationSubmittedEvent),
+                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageVersion: "1.0",
+                PublishedBy: "CareerService",
+                ConsumedBy: Array.Empty<string>(),
+                CorrelationId: Guid.NewGuid(),
+                CausationId: null,
+                OccurredAtUtc: DateTimeOffset.UtcNow,
+                IsPublic: false,
+                Payload: new Maliev.MessagingContracts.Generated.JobApplicationSubmittedEventPayload(
+                    ApplicationId: application.Id,
+                    JobPostingId: application.JobPostingId,
+                    ApplicantEmail: application.ApplicantEmail,
+                    ApplicantName: $"{application.ApplicantFirstName} {application.ApplicantLastName}",
+                    PositionTitle: jobPosting.PositionTitle
+                )
+            ), cancellationToken);
+        }
 
         // Return response with enriched data
         return await MapToResponseAsync(application, cancellationToken);
@@ -264,18 +265,12 @@ public class ApplicationService(
         Guid hrUserId,
         CancellationToken cancellationToken = default)
     {
-        // Load application to get current state
         var application = await _dbContext.JobApplications
             .Include(a => a.JobPosting)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken) ?? throw new InvalidOperationException($"Application {applicationId} not found.");
 
-        // Manually check concurrency - compare client's RowVersion with DB's RowVersion
-        var clientRowVersion = Convert.FromBase64String(request.RowVersion);
-        if (!clientRowVersion.SequenceEqual(application.RowVersion))
-        {
-            throw new DbUpdateConcurrencyException(
-                "The application has been modified by another user. Please refresh and try again.");
-        }
+        // Attach the provided RowVersion to the tracked entity for optimistic concurrency
+        _dbContext.Entry(application).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion);
 
         // Store current status before modifying
         var originalStatus = application.Status;

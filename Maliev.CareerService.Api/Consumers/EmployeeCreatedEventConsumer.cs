@@ -24,7 +24,11 @@ public class EmployeeCreatedEventConsumer(
 
         try
         {
-            await _mandatoryTrainingService.AssignMandatoryTrainingAsync(payload.EmployeeId, context.CancellationToken);
+            await _mandatoryTrainingService.AssignMandatoryTrainingAsync(
+                payload.EmployeeId,
+                payload.DepartmentId,
+                payload.PositionId,
+                context.CancellationToken);
             _logger.LogInformation("Successfully assigned mandatory training for Employee {EmployeeId}", payload.EmployeeId);
         }
         catch (Exception ex)

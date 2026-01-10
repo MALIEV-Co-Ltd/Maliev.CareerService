@@ -66,6 +66,11 @@ public class TrainingProgramResponse
     public bool IsActive { get; set; }
 
     /// <summary>
+    /// Number of months until the certification expires after completion (null = never expires)
+    /// </summary>
+    public int? ValidityMonths { get; set; }
+
+    /// <summary>
     /// When the record was created
     /// </summary>
     public DateTime CreatedAt { get; set; }

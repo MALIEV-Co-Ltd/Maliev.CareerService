@@ -68,6 +68,12 @@ public class UpdateTrainingProgramRequest
     public bool IsActive { get; set; }
 
     /// <summary>
+    /// Number of months until the certification expires after completion (null = never expires)
+    /// </summary>
+    [Range(1, 120, ErrorMessage = "Validity months must be between 1 and 120 (10 years)")]
+    public int? ValidityMonths { get; set; }
+
+    /// <summary>
     /// Optimistic concurrency token (Base64 encoded)
     /// </summary>
     [Required(ErrorMessage = "RowVersion is required for optimistic concurrency")]

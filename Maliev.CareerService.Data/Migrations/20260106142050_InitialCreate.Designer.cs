@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Maliev.CareerService.Data.Migrations
 {
     [DbContext(typeof(CareerDbContext))]
-    [Migration("20251228141327_AddTrainingMigrationEntities")]
-    partial class AddTrainingMigrationEntities
+    [Migration("20260106142050_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -296,6 +296,10 @@ namespace Maliev.CareerService.Data.Migrations
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("due_date");
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid")

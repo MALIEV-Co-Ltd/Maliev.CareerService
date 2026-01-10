@@ -1,20 +1,19 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Maliev.CareerService.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddDueDateToEnrollment : Migration
+    public partial class AddValidityMonthsToTrainingProgram : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "due_date",
-                table: "employee_training_enrollments",
-                type: "timestamp with time zone",
+            migrationBuilder.AddColumn<int>(
+                name: "validity_months",
+                table: "training_programs",
+                type: "integer",
                 nullable: true);
         }
 
@@ -22,8 +21,8 @@ namespace Maliev.CareerService.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "due_date",
-                table: "employee_training_enrollments");
+                name: "validity_months",
+                table: "training_programs");
         }
     }
 }

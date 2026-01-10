@@ -5,6 +5,7 @@ using Maliev.CareerService.Data;
 using Maliev.Aspire.ServiceDefaults;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.RateLimiting;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,12 @@ builder.AddServiceMeters("careers-meter"); // Register service meters for OpenTe
 builder.AddRedisDistributedCache(instanceName: "career:"); // Redis with in-memory fallback
 builder.AddMassTransitWithRabbitMq(x =>
 {
+    x.AddEntityFrameworkOutbox<CareerDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
     x.AddConsumer<Maliev.CareerService.Api.Consumers.EmployeeCreatedEventConsumer>();
     x.AddConsumer<Maliev.CareerService.Api.Consumers.EmployeeTerminatedEventConsumer>();
 });
@@ -76,8 +83,9 @@ builder.Services.AddScoped<IDevelopmentGoalService, DevelopmentGoalService>();
 // Prometheus Metrics
 builder.Services.AddSingleton<IMetricsService, MetricsService>();
 
-// Configure External Service Clients with HttpClient
-builder.Services.AddIAMClient(builder.Configuration, "CareerService");
+// IAM Registration
+builder.AddIAMServiceClient("career");
+builder.Services.AddIAMRegistration<CareerIAMRegistrationService>("career");
 
 builder.AddServiceClient<IEmployeeServiceClient, EmployeeServiceClient>("EmployeeService");
 builder.AddServiceClient<IUploadServiceClient, UploadServiceClient>("UploadService");
@@ -85,7 +93,6 @@ builder.AddServiceClient<ICountryServiceClient, CountryServiceClient>("CountrySe
 builder.AddServiceClient<IEmailServiceClient, EmailServiceClient>("NotificationService");
 builder.AddServiceClient<INotificationServiceClient, NotificationServiceClient>("NotificationService");
 
-builder.Services.AddIAMRegistration<CareerIAMRegistrationService>();
 
 // Configure Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -125,7 +132,10 @@ await app.MigrateDatabaseAsync<CareerDbContext>();
 
 // Configure middleware pipeline
 app.UseStandardMiddleware();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseResponseCaching(); // Response caching for read-heavy endpoints
 app.UseRateLimiter();
 app.UseCors();

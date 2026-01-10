@@ -78,19 +78,21 @@ public class CertificationExpirationReminderBackgroundService : BackgroundServic
             var now = DateTime.UtcNow;
 
             // 1. Update status to Expired for records that reached expiration date
-            var expiredRecords = await dbContext.TrainingRecords
+            var expiredRecordsQuery = dbContext.TrainingRecords
                 .Where(tr => tr.Status != TrainingStatus.Expired &&
                             tr.ExpirationDate.HasValue &&
                             tr.ExpirationDate.Value <= now)
-                .ToListAsync(cancellationToken);
+                .AsAsyncEnumerable();
 
-            foreach (var record in expiredRecords)
+            var expiredCount = 0;
+            await foreach (var record in expiredRecordsQuery.WithCancellation(cancellationToken))
             {
                 record.Status = TrainingStatus.Expired;
+                expiredCount++;
                 _logger.LogInformation("Marked training record {RecordId} as Expired.", record.Id);
             }
 
-            if (expiredRecords.Count > 0)
+            if (expiredCount > 0)
             {
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
@@ -104,14 +106,14 @@ public class CertificationExpirationReminderBackgroundService : BackgroundServic
                 var targetDateStart = now.AddDays(days).Date;
                 var targetDateEnd = targetDateStart.AddDays(1);
 
-                var expiringRecords = await dbContext.TrainingRecords
+                var expiringRecordsQuery = dbContext.TrainingRecords
                     .Where(tr => tr.Status == TrainingStatus.Completed &&
                                 tr.ExpirationDate.HasValue &&
                                 tr.ExpirationDate.Value >= targetDateStart &&
                                 tr.ExpirationDate.Value < targetDateEnd)
-                    .ToListAsync(cancellationToken);
+                    .AsAsyncEnumerable();
 
-                foreach (var record in expiringRecords)
+                await foreach (var record in expiringRecordsQuery.WithCancellation(cancellationToken))
                 {
                     try
                     {

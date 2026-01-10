@@ -24,7 +24,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
@@ -176,7 +176,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
     public async Task GetRecruitmentMetrics_AsEmployee_ReturnsForbidden()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         var token = _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 

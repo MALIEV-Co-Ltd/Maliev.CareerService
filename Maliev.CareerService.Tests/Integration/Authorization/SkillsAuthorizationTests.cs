@@ -58,7 +58,7 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         mockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
             employeeId, "Team", "Member", "team@maliev.com", "Engineering", "Developer", managerId));
 
-        var token = Factory.CreateTestJwtToken(managerId.ToString(), new[] { CareerPredefinedRoles.Manager }, new[] { CareerPermissions.Training.ViewTeam, CareerPermissions.Training.ViewOwn });
+        var token = Factory.CreateTestJwtToken(managerId.ToString(), new[] { CareerPredefinedRoles.Manager }, new[] { CareerPermissions.Trainings.ViewTeam, CareerPermissions.Trainings.ViewOwn });
         Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act

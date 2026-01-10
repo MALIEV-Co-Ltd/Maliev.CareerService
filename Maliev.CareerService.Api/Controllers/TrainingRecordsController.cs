@@ -29,7 +29,7 @@ public class TrainingRecordsController(
     /// Records a training completion for an employee
     /// </summary>
     [HttpPost]
-    [RequirePermission(CareerPermissions.Training.Manage)]
+    [RequirePermission(CareerPermissions.Trainings.Manage)]
     [ProducesResponseType(typeof(TrainingRecordResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -69,7 +69,7 @@ public class TrainingRecordsController(
     /// Gets all training records for an employee
     /// </summary>
     [HttpGet]
-    [RequirePermission(CareerPermissions.Training.ViewOwn)]
+    [RequirePermission(CareerPermissions.Trainings.ViewOwn)]
     [ProducesResponseType(typeof(TrainingRecordListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -105,7 +105,7 @@ public class TrainingRecordsController(
     /// Gets a specific training record by ID
     /// </summary>
     [HttpGet("{id:guid}", Name = nameof(GetTrainingRecord))]
-    [RequirePermission(CareerPermissions.Training.ViewOwn)]
+    [RequirePermission(CareerPermissions.Trainings.ViewOwn)]
     [ProducesResponseType(typeof(TrainingRecordResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -134,7 +134,7 @@ public class TrainingRecordsController(
     /// Updates an existing training record
     /// </summary>
     [HttpPut("{id:guid}")]
-    [RequirePermission(CareerPermissions.Training.Manage)]
+    [RequirePermission(CareerPermissions.Trainings.Manage)]
     [ProducesResponseType(typeof(TrainingRecordResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -174,7 +174,7 @@ public class TrainingRecordsController(
     /// Deletes a training record (soft delete)
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [RequirePermission(CareerPermissions.Training.Manage)]
+    [RequirePermission(CareerPermissions.Trainings.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -217,20 +217,20 @@ public class TrainingRecordsController(
 
         // HR Admins can see all
         if (PermissionMatcher.Match("Permission:career.*", permissions) ||
-            PermissionMatcher.Match($"Permission:{CareerPermissions.Training.Manage}", permissions))
+            PermissionMatcher.Match($"Permission:{CareerPermissions.Trainings.Manage}", permissions))
         {
             return true;
         }
 
         // Employees can see their own
         if (employeeId == currentUserId &&
-            PermissionMatcher.Match($"Permission:{CareerPermissions.Training.ViewOwn}", permissions))
+            PermissionMatcher.Match($"Permission:{CareerPermissions.Trainings.ViewOwn}", permissions))
         {
             return true;
         }
 
         // Managers can see their team
-        if (PermissionMatcher.Match($"Permission:{CareerPermissions.Training.ViewTeam}", permissions))
+        if (PermissionMatcher.Match($"Permission:{CareerPermissions.Trainings.ViewTeam}", permissions))
         {
             try
             {
@@ -251,7 +251,7 @@ public class TrainingRecordsController(
     /// Gets all expiring training records (for HR monitoring)
     /// </summary>
     [HttpGet("~/career/v{version:apiVersion}/training-records/expiring")]
-    [RequirePermission(CareerPermissions.Training.Manage)]
+    [RequirePermission(CareerPermissions.Trainings.Manage)]
     [ProducesResponseType(typeof(TrainingRecordListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

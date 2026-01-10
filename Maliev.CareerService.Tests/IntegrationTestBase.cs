@@ -23,7 +23,7 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.Employee }, permissions);
     }
 
@@ -32,7 +32,7 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
     }
 
@@ -83,7 +83,7 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateEmployeeToken(Guid userId)
     {
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.Employee }, permissions);
     }
 
@@ -92,7 +92,7 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     /// </summary>
     protected string GenerateHRStaffToken(Guid userId)
     {
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         return Factory.CreateTestJwtToken(userId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
     }
 

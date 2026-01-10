@@ -25,7 +25,7 @@ public class MandatoryTrainingController(
     /// Creates a new mandatory training requirement
     /// </summary>
     [HttpPost]
-    [RequirePermission(CareerPermissions.MandatoryTraining.Manage)]
+    [RequirePermission(CareerPermissions.MandatoryTrainings.Manage)]
     [ProducesResponseType(typeof(MandatoryTrainingRequirementDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -63,7 +63,7 @@ public class MandatoryTrainingController(
     /// Gets all mandatory training requirements
     /// </summary>
     [HttpGet]
-    [RequirePermission(CareerPermissions.MandatoryTraining.View)]
+    [RequirePermission(CareerPermissions.MandatoryTrainings.View)]
     [ProducesResponseType(typeof(List<MandatoryTrainingRequirementDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -79,7 +79,7 @@ public class MandatoryTrainingController(
     /// Gets a specific mandatory training requirement by ID
     /// </summary>
     [HttpGet("{id:guid}", Name = nameof(GetRequirement))]
-    [RequirePermission(CareerPermissions.MandatoryTraining.View)]
+    [RequirePermission(CareerPermissions.MandatoryTrainings.View)]
     [ProducesResponseType(typeof(MandatoryTrainingRequirementDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -102,7 +102,7 @@ public class MandatoryTrainingController(
     /// Updates an existing mandatory training requirement
     /// </summary>
     [HttpPut("{id:guid}")]
-    [RequirePermission(CareerPermissions.MandatoryTraining.Manage)]
+    [RequirePermission(CareerPermissions.MandatoryTrainings.Manage)]
     [ProducesResponseType(typeof(MandatoryTrainingRequirementDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -133,7 +133,7 @@ public class MandatoryTrainingController(
     /// Deactivates a mandatory training requirement
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [RequirePermission(CareerPermissions.MandatoryTraining.Manage)]
+    [RequirePermission(CareerPermissions.MandatoryTrainings.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
