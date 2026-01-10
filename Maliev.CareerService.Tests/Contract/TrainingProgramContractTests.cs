@@ -20,7 +20,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_ReturnsCorrectResponseStructure()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
@@ -46,7 +46,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingProgram_ReturnsCorrectResponseStructure()
     {
         // Arrange - Use a random ID that will return 404
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
         var testId = Guid.NewGuid();
 
@@ -80,7 +80,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         var request = new CreateTrainingProgramRequest
@@ -124,7 +124,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task UpdateTrainingProgram_AcceptsCorrectRequestStructure()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
         var testId = Guid.NewGuid();
 
@@ -167,7 +167,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task GetTrainingPrograms_SupportsQueryParameters()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
@@ -225,7 +225,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task TrainingProgramListResponse_SupportsPagination()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
@@ -248,7 +248,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgramRequest_ValidatesRequiredFields()
     {
         // Arrange
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         // Invalid request - missing required fields
@@ -289,7 +289,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
     public async Task CreateTrainingProgram_RequiresHRStaffRole()
     {
         // Arrange - Employee role (not HRStaff)
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("employee-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         var request = new CreateTrainingProgramRequest

@@ -24,7 +24,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
 
         // Default to HR Staff authorization
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         var token = _factory.CreateTestJwtToken(_hrStaffId.ToString(), new[] { CareerPredefinedRoles.HR }, permissions);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }

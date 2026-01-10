@@ -31,7 +31,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         var token = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
@@ -70,7 +70,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         var token2 = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token2}");
 
@@ -95,7 +95,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", applicantEmail } };
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         var token3 = _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token3}");
 
@@ -121,7 +121,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
 
         _client.DefaultRequestHeaders.Clear();
         var additionalClaims = new Dictionary<string, string> { { "email", "other-applicant@example.com" } };
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         var token4 = _factory.CreateTestJwtToken("other-applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions, additionalClaims);
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token4}");
 
@@ -140,7 +140,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         var applicationId = await SeedSingleApplicationAsync(applicantEmail);
 
         _client.DefaultRequestHeaders.Clear();
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.HR];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.HR);
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _factory.CreateTestJwtToken("hr-staff-id", new[] { CareerPredefinedRoles.HR }, permissions));
 
         // Act
@@ -165,7 +165,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
         // Arrange
         var invalidId = Guid.NewGuid();
         _client.DefaultRequestHeaders.Clear();
-        var permissions = CareerPredefinedRoles.RolePermissions[CareerPredefinedRoles.Employee];
+        var permissions = CareerPredefinedRoles.GetPermissions(CareerPredefinedRoles.Employee);
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken("applicant-id", new[] { CareerPredefinedRoles.Employee }, permissions));
 
         // Act
