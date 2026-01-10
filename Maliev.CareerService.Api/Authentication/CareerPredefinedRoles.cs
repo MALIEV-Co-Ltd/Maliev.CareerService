@@ -6,21 +6,22 @@ namespace Maliev.CareerService.Api.Authentication;
 public static class CareerPredefinedRoles
 {
     /// <summary>Admin role with full access.</summary>
-    public const string Admin = "career-admin";
+    public const string Admin = "roles.career.admin";
     /// <summary>HR role with extensive but not full management access.</summary>
-    public const string HR = "career-hr";
+    public const string HR = "roles.career.hr";
     /// <summary>Manager role for team management.</summary>
-    public const string Manager = "career-manager";
+    public const string Manager = "roles.career.manager";
     /// <summary>Employee role for self-service actions.</summary>
-    public const string Employee = "career-employee";
+    public const string Employee = "roles.career.employee";
 
     /// <summary>
-    /// Maps each predefined role to its associated set of permission strings.
+    /// Collection of all predefined roles for the Career Service.
     /// </summary>
-    public static readonly Dictionary<string, string[]> RolePermissions = new()
+    public static readonly IReadOnlyList<(string RoleId, string Description, string[] Permissions)> All = new List<(string, string, string[])>
     {
-        [Admin] = new[] { "career.*" },
-        [HR] = new[]
+        (Admin, "Full administrative access to all career operations", CareerPermissions.All),
+
+        (HR, "Extensive management access for human resources", new[]
         {
             CareerPermissions.Trainings.Create,
             CareerPermissions.Trainings.Read,
@@ -28,6 +29,9 @@ public static class CareerPredefinedRoles
             CareerPermissions.Trainings.Enroll,
             CareerPermissions.Trainings.Complete,
             CareerPermissions.Trainings.Certify,
+            CareerPermissions.Trainings.ViewOwn,
+            CareerPermissions.Trainings.ViewTeam,
+            CareerPermissions.Trainings.Manage,
             CareerPermissions.Evaluations.Create,
             CareerPermissions.Evaluations.Read,
             CareerPermissions.Evaluations.Submit,
@@ -42,14 +46,12 @@ public static class CareerPredefinedRoles
             CareerPermissions.Reports.Read,
             CareerPermissions.Applications.Read,
             CareerPermissions.Applications.ReadAll,
-            CareerPermissions.Training.ViewOwn,
-            CareerPermissions.Training.ViewTeam,
-            CareerPermissions.Training.Manage,
-            CareerPermissions.MandatoryTraining.View,
-            CareerPermissions.MandatoryTraining.Manage,
+            CareerPermissions.MandatoryTrainings.View,
+            CareerPermissions.MandatoryTrainings.Manage,
             CareerPermissions.ComplianceReports.View
-        },
-        [Manager] = new[]
+        }),
+
+        (Manager, "Team management access", new[]
         {
             CareerPermissions.Evaluations.Create,
             CareerPermissions.Evaluations.Read,
@@ -59,22 +61,33 @@ public static class CareerPredefinedRoles
             CareerPermissions.Development.Manage,
             CareerPermissions.Trainings.Read,
             CareerPermissions.Trainings.Enroll,
+            CareerPermissions.Trainings.ViewTeam,
             CareerPermissions.JobPostings.Read,
             CareerPermissions.Applications.Read,
-            CareerPermissions.Applications.ReadAll,
-            CareerPermissions.Training.ViewTeam
-        },
-        [Employee] = new[]
+            CareerPermissions.Applications.ReadAll
+        }),
+
+        (Employee, "Self-service actions for employees", new[]
         {
             CareerPermissions.Trainings.Read,
             CareerPermissions.Trainings.Enroll,
             CareerPermissions.Trainings.Complete,
-            CareerPermissions.Evaluations.Read, // Logic handles "own"
+            CareerPermissions.Trainings.ViewOwn,
+            CareerPermissions.Evaluations.Read,
             CareerPermissions.Development.ViewOwn,
             CareerPermissions.Paths.View,
             CareerPermissions.JobPostings.Read,
-            CareerPermissions.Applications.Read,
-            CareerPermissions.Training.ViewOwn
-        }
+            CareerPermissions.Applications.Read
+        })
     };
+
+    /// <summary>
+    /// Gets the permissions associated with a specific role.
+    /// </summary>
+    /// <param name="role">The role ID to get permissions for.</param>
+    /// <returns>An array of permission strings.</returns>
+    public static string[] GetPermissions(string role)
+    {
+        return All.FirstOrDefault(r => r.RoleId == role).Permissions ?? Array.Empty<string>();
+    }
 }

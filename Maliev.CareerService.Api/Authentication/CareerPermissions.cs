@@ -6,7 +6,7 @@ namespace Maliev.CareerService.Api.Authentication;
 /// </summary>
 public static class CareerPermissions
 {
-    /// <summary>Permissions related to training programs.</summary>
+    /// <summary>Permissions related to training programs and records (Feature 003).</summary>
     public static class Trainings
     {
         /// <summary>Permission to create training programs.</summary>
@@ -23,6 +23,12 @@ public static class CareerPermissions
         public const string Complete = "career.trainings.complete";
         /// <summary>Permission to issue training certifications.</summary>
         public const string Certify = "career.trainings.certify";
+        /// <summary>Permission to view own training records and skills.</summary>
+        public const string ViewOwn = "career.trainings.view-own";
+        /// <summary>Permission to view team training records and skills (managers).</summary>
+        public const string ViewTeam = "career.trainings.view-team";
+        /// <summary>Permission to manage all training records and skills (HR admins).</summary>
+        public const string Manage = "career.trainings.manage";
     }
 
     /// <summary>Permissions related to performance evaluations.</summary>
@@ -85,24 +91,13 @@ public static class CareerPermissions
         public const string ReadAll = "career.applications.read-all";
     }
 
-    /// <summary>Permissions related to training records and skills (Feature 003).</summary>
-    public static class Training
-    {
-        /// <summary>Permission to view own training records and skills.</summary>
-        public const string ViewOwn = "career.training.view-own";
-        /// <summary>Permission to view team training records and skills (managers).</summary>
-        public const string ViewTeam = "career.training.view-team";
-        /// <summary>Permission to manage all training records and skills (HR admins).</summary>
-        public const string Manage = "career.training.manage";
-    }
-
     /// <summary>Permissions related to mandatory training requirements (Feature 003).</summary>
-    public static class MandatoryTraining
+    public static class MandatoryTrainings
     {
         /// <summary>Permission to view mandatory training requirements.</summary>
-        public const string View = "career.mandatory-training.view";
+        public const string View = "career.mandatory-trainings.view";
         /// <summary>Permission to manage mandatory training requirements.</summary>
-        public const string Manage = "career.mandatory-training.manage";
+        public const string Manage = "career.mandatory-trainings.manage";
     }
 
     /// <summary>Permissions related to compliance reporting (Feature 003).</summary>
@@ -111,4 +106,52 @@ public static class CareerPermissions
         /// <summary>Permission to view training compliance reports.</summary>
         public const string View = "career.compliance-reports.view";
     }
+
+    /// <summary>
+    /// Collection of all defined career permissions with descriptions.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> AllWithDescriptions = new Dictionary<string, string>
+    {
+        { Trainings.Create, "Create training programs" },
+        { Trainings.Read, "Read training program details" },
+        { Trainings.Update, "Update training programs" },
+        { Trainings.Delete, "Delete training programs" },
+        { Trainings.Enroll, "Enroll in training programs" },
+        { Trainings.Complete, "Mark training as completed" },
+        { Trainings.Certify, "Issue training certifications" },
+        { Trainings.ViewOwn, "View own training records and skills" },
+        { Trainings.ViewTeam, "View team training records and skills" },
+        { Trainings.Manage, "Manage all training records and skills" },
+
+        { Evaluations.Create, "Create performance evaluations" },
+        { Evaluations.Read, "Read performance evaluations" },
+        { Evaluations.Submit, "Submit performance evaluations" },
+        { Evaluations.Approve, "Approve performance evaluations" },
+
+        { Paths.View, "View career paths" },
+        { Paths.Create, "Create career paths" },
+        { Paths.Assign, "Assign employees to career paths" },
+
+        { Development.ViewOwn, "View own development plan" },
+        { Development.ViewTeam, "View team development plans" },
+        { Development.Manage, "Manage development plans" },
+
+        { JobPostings.Read, "Read job postings" },
+        { JobPostings.Manage, "Manage job postings" },
+
+        { Reports.Read, "Read HR and recruitment reports" },
+
+        { Applications.Read, "Read job applications" },
+        { Applications.ReadAll, "Read all job applications" },
+
+        { MandatoryTrainings.View, "View mandatory training requirements" },
+        { MandatoryTrainings.Manage, "Manage mandatory training requirements" },
+
+        { ComplianceReports.View, "View training compliance reports" }
+    };
+
+    /// <summary>
+    /// Collection of all defined career permissions.
+    /// </summary>
+    public static string[] All => AllWithDescriptions.Keys.ToArray();
 }
