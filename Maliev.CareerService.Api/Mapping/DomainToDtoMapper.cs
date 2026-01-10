@@ -162,6 +162,7 @@ public static class DomainToDtoMapper
             MaxParticipants = program.MaxParticipants,
             IsMandatory = program.IsMandatory,
             IsActive = program.IsActive,
+            ValidityMonths = program.ValidityMonths,
             CreatedAt = program.CreatedAt,
             UpdatedAt = program.UpdatedAt,
             RowVersion = Convert.ToBase64String(program.RowVersion)
@@ -185,7 +186,8 @@ public static class DomainToDtoMapper
             TargetRoles = request.TargetRoles,
             MaxParticipants = request.MaxParticipants,
             IsMandatory = request.IsMandatory,
-            IsActive = request.IsActive
+            IsActive = request.IsActive,
+            ValidityMonths = request.ValidityMonths
         };
     }
 
@@ -204,6 +206,7 @@ public static class DomainToDtoMapper
         program.MaxParticipants = request.MaxParticipants;
         program.IsMandatory = request.IsMandatory;
         program.IsActive = request.IsActive;
+        program.ValidityMonths = request.ValidityMonths;
     }
 
     // Enrollment Mappings

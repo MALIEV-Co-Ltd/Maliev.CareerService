@@ -182,6 +182,13 @@ public class EnrollmentService(
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            // Calculate certification expiration if program has ValidityMonths
+            DateTime? certificationExpiration = null;
+            if (enrollment.TrainingProgram.ValidityMonths.HasValue && enrollment.CompletedAt.HasValue)
+            {
+                certificationExpiration = enrollment.CompletedAt.Value.AddMonths(enrollment.TrainingProgram.ValidityMonths.Value);
+            }
+
             // Publish TrainingCompletedEvent
             await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingCompletedEvent(
                 MessageId: Guid.NewGuid(),
@@ -199,7 +206,7 @@ public class EnrollmentService(
                     EmployeeId: enrollment.EmployeeId,
                     CourseName: enrollment.TrainingProgram.ProgramName,
                     CompletionDate: enrollment.CompletedAt.Value,
-                    CertificationExpiration: null // TBD logic for expiration based on program
+                    CertificationExpiration: certificationExpiration
                 )
             ), cancellationToken);
 
