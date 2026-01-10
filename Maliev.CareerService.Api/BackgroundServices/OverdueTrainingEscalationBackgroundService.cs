@@ -65,16 +65,16 @@ public class OverdueTrainingEscalationBackgroundService : BackgroundService
         var now = DateTime.UtcNow;
 
         // Find mandatory enrollments that are overdue and not completed
-        var overdueEnrollments = await dbContext.EmployeeTrainingEnrollments
+        var overdueEnrollmentsQuery = dbContext.EmployeeTrainingEnrollments
             .Include(e => e.TrainingProgram)
             .Where(e => e.EnrollmentType == EnrollmentType.Mandatory &&
                         e.Status != TrainingEnrollmentStatus.Completed &&
                         e.Status != TrainingEnrollmentStatus.Cancelled &&
                         e.DueDate.HasValue &&
                         e.DueDate.Value < now)
-            .ToListAsync(cancellationToken);
+            .AsAsyncEnumerable();
 
-        foreach (var enrollment in overdueEnrollments)
+        await foreach (var enrollment in overdueEnrollmentsQuery.WithCancellation(cancellationToken))
         {
             try
             {

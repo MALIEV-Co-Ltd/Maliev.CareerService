@@ -162,12 +162,8 @@ public class EnrollmentService(
             return null;
         }
 
-        // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion);
-        if (!enrollment.RowVersion.SequenceEqual(requestRowVersion))
-        {
-            throw new DbUpdateConcurrencyException("The enrollment has been modified by another user. Please refresh and try again.");
-        }
+        // Attach the provided RowVersion to the tracked entity for optimistic concurrency
+        _dbContext.Entry(enrollment).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion);
 
         // Update enrollment status
         enrollment.Status = TrainingEnrollmentStatus.Completed;
@@ -185,6 +181,27 @@ public class EnrollmentService(
         try
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Publish TrainingCompletedEvent
+            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingCompletedEvent(
+                MessageId: Guid.NewGuid(),
+                MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingCompletedEvent),
+                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageVersion: "1.0",
+                PublishedBy: "CareerService",
+                ConsumedBy: Array.Empty<string>(),
+                CorrelationId: Guid.NewGuid(),
+                CausationId: null,
+                OccurredAtUtc: DateTimeOffset.UtcNow,
+                IsPublic: false,
+                Payload: new Maliev.MessagingContracts.Generated.TrainingCompletedEventPayload(
+                    TrainingRecordId: enrollment.Id,
+                    EmployeeId: enrollment.EmployeeId,
+                    CourseName: enrollment.TrainingProgram.ProgramName,
+                    CompletionDate: enrollment.CompletedAt.Value,
+                    CertificationExpiration: null // TBD logic for expiration based on program
+                )
+            ), cancellationToken);
 
             // Track metrics
             _metricsService.IncrementTrainingEnrollments(enrollment.Status);

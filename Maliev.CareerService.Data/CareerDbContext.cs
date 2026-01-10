@@ -2,6 +2,7 @@ using Maliev.CareerService.Data.Configurations;
 using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Data.Models.Base;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 namespace Maliev.CareerService.Data;
 
@@ -66,6 +67,11 @@ public class CareerDbContext(DbContextOptions<CareerDbContext> options) : DbCont
         modelBuilder.ApplyConfiguration(new TrainingRecordConfiguration());
         modelBuilder.ApplyConfiguration(new SkillConfiguration());
         modelBuilder.ApplyConfiguration(new MandatoryTrainingRequirementConfiguration());
+
+        // MassTransit Outbox configurations
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 
     /// <summary>

@@ -153,38 +153,38 @@ public class MandatoryTrainingService(
     /// <inheritdoc />
     public async Task AssignMandatoryTrainingAsync(
         Guid employeeId,
+        Guid? departmentId = null,
+        Guid? positionId = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Assigning mandatory training for Employee {EmployeeId}", employeeId);
 
         try
         {
-            var employee = await _employeeServiceClient.GetEmployeeAsync(employeeId, cancellationToken);
-            if (employee == null)
+            Guid? effectiveDepartmentId = departmentId;
+            Guid? effectivePositionId = positionId;
+
+            // If IDs are missing, fetch them from Employee Service
+            if (effectiveDepartmentId == null || effectivePositionId == null)
             {
-                _logger.LogWarning("Cannot assign mandatory training - employee {EmployeeId} not found in Employee Service", employeeId);
-                return;
+                var employee = await _employeeServiceClient.GetEmployeeAsync(employeeId, cancellationToken);
+                if (employee == null)
+                {
+                    _logger.LogWarning("Cannot assign mandatory training - employee {EmployeeId} not found in Employee Service", employeeId);
+                    return;
+                }
+                effectiveDepartmentId ??= employee.DepartmentId;
+                effectivePositionId ??= employee.PositionId;
             }
 
-            // TODO: Ensure EmployeeResponse has DepartmentId and PositionId. 
-            // In the mean time, we'll assume they might be null or we use names if available.
-            // Based on research.md, we planned to add them.
-
-            // For now, let's find matching requirements
-            // A requirement matches if its DeptId/PosId matches OR if they are null (all)
+            // Find matching requirements
             var requirements = await _dbContext.MandatoryTrainingRequirements
                 .Where(r => r.IsActive && !r.IsDeleted)
                 .ToListAsync(cancellationToken);
 
-            // Filter in memory for now if we don't have IDs in EmployeeResponse yet, 
-            // but research said we'd add them.
-            // Let's assume they are there as per my previous change to IEmployeeServiceClient.
-            // Wait, did I add DepartmentId and PositionId to EmployeeResponse?
-            // I only added ManagerId. I should add DepartmentId and PositionId too.
-
             var applicableRequirements = requirements.Where(r =>
-                (r.DepartmentId == null || r.DepartmentId == employee.DepartmentId) &&
-                (r.PositionId == null || r.PositionId == employee.PositionId)).ToList();
+                (r.DepartmentId == null || r.DepartmentId == effectiveDepartmentId) &&
+                (r.PositionId == null || r.PositionId == effectivePositionId)).ToList();
 
             foreach (var req in applicableRequirements)
             {

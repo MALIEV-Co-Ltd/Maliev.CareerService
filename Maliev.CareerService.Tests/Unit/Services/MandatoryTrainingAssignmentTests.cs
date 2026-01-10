@@ -54,7 +54,7 @@ public class MandatoryTrainingAssignmentTests
         var service = new MandatoryTrainingService(dbContext, _mockEmployeeClient.Object, _mockLogger.Object);
 
         // Act
-        await service.AssignMandatoryTrainingAsync(employeeId, CancellationToken.None);
+        await service.AssignMandatoryTrainingAsync(employeeId, cancellationToken: CancellationToken.None);
 
         // Assert
         var enrollments = await dbContext.EmployeeTrainingEnrollments.Where(e => e.EmployeeId == employeeId).ToListAsync();
