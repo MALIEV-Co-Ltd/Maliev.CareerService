@@ -1,4 +1,3 @@
-#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
@@ -15,7 +14,7 @@ var bootstrapLogger = loggerFactory.CreateLogger("Program");
 
 try
 {
-    bootstrapLogger.LogInformation("Starting Career Service host");
+    Log.StartingHost(bootstrapLogger, "Career Service");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -115,7 +114,6 @@ try
                 {
                     AutoReplenishment = true,
                     PermitLimit = 100,
-                    QueueLimit = 0,
                     Window = TimeSpan.FromMinutes(1)
                 }));
 
@@ -163,12 +161,12 @@ try
     // Map OpenAPI and Scalar documentation (dev/staging only)
     app.MapApiDocumentation(servicePrefix: "career");
 
-    logger.LogInformation("CareerService started successfully");
+    Log.ServiceStarted(logger, "Career Service");
     await app.RunAsync();
 }
 catch (Exception ex)
 {
-    bootstrapLogger.LogCritical(ex, "Career Service host terminated unexpectedly during startup");
+    Log.HostTerminated(bootstrapLogger, ex, "Career Service");
     throw;
 }
 finally
@@ -179,4 +177,17 @@ finally
 /// <summary>
 /// Main program class for the application
 /// </summary>
-public partial class Program { }
+public partial class Program
+{
+    internal static partial class Log
+    {
+        [LoggerMessage(Level = LogLevel.Information, Message = "Starting {ServiceName} host")]
+        public static partial void StartingHost(ILogger logger, string serviceName);
+
+        [LoggerMessage(Level = LogLevel.Critical, Message = "{ServiceName} host terminated unexpectedly during startup")]
+        public static partial void HostTerminated(ILogger logger, Exception ex, string serviceName);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "{ServiceName} started successfully")]
+        public static partial void ServiceStarted(ILogger logger, string serviceName);
+    }
+}
