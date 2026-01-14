@@ -14,7 +14,7 @@ var bootstrapLogger = loggerFactory.CreateLogger("Program");
 
 try
 {
-    Log.StartingHost(bootstrapLogger, "Career Service");
+    Program.Log.StartingHost(bootstrapLogger, "Career Service");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -114,6 +114,7 @@ try
                 {
                     AutoReplenishment = true,
                     PermitLimit = 100,
+                    QueueLimit = 0,
                     Window = TimeSpan.FromMinutes(1)
                 }));
 
@@ -161,12 +162,12 @@ try
     // Map OpenAPI and Scalar documentation (dev/staging only)
     app.MapApiDocumentation(servicePrefix: "career");
 
-    Log.ServiceStarted(logger, "Career Service");
+    Program.Log.ServiceStarted(logger, "Career Service");
     await app.RunAsync();
 }
 catch (Exception ex)
 {
-    Log.HostTerminated(bootstrapLogger, ex, "Career Service");
+    Program.Log.HostTerminated(bootstrapLogger, ex, "Career Service");
     throw;
 }
 finally
