@@ -1,3 +1,4 @@
+#pragma warning disable CA1848 // For improved performance, use the LoggerMessage delegates
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
