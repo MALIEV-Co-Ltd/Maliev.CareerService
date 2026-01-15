@@ -39,15 +39,15 @@ public class EnrollmentServiceTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        
+
         var employeeId = Guid.NewGuid();
         var programId = Guid.NewGuid();
         var validityMonths = 12;
 
-        var program = new TrainingProgram 
-        { 
-            Id = programId, 
-            ProgramName = "Certified Kubernetes Administrator", 
+        var program = new TrainingProgram
+        {
+            Id = programId,
+            ProgramName = "Certified Kubernetes Administrator",
             ValidityMonths = validityMonths,
             DurationHours = 40
         };
@@ -67,10 +67,10 @@ public class EnrollmentServiceTests
         await dbContext.SaveChangesAsync();
 
         var service = new EnrollmentService(
-            dbContext, 
-            _mockEmployeeClient.Object, 
-            _mockMetricsService.Object, 
-            _mockPublishEndpoint.Object, 
+            dbContext,
+            _mockEmployeeClient.Object,
+            _mockMetricsService.Object,
+            _mockPublishEndpoint.Object,
             _mockLogger.Object);
 
         var request = new MarkTrainingCompleteRequest
@@ -92,10 +92,10 @@ public class EnrollmentServiceTests
         Assert.NotNull(result);
         Assert.Equal(TrainingEnrollmentStatus.Completed, result.Status);
         Assert.NotNull(result.CompletedAt);
-        
+
         Assert.NotNull(capturedEvent);
         Assert.NotNull(capturedEvent.Payload.CertificationExpiration);
-        
+
         // Expiration should be roughly CompletionDate + ValidityMonths
         var expectedExpiration = result.CompletedAt.Value.AddMonths(validityMonths);
         Assert.Equal(expectedExpiration, capturedEvent.Payload.CertificationExpiration.Value);
@@ -106,14 +106,14 @@ public class EnrollmentServiceTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        
+
         var employeeId = Guid.NewGuid();
         var programId = Guid.NewGuid();
 
-        var program = new TrainingProgram 
-        { 
-            Id = programId, 
-            ProgramName = "General Knowledge Training", 
+        var program = new TrainingProgram
+        {
+            Id = programId,
+            ProgramName = "General Knowledge Training",
             ValidityMonths = null, // Never expires
             DurationHours = 2
         };
@@ -133,10 +133,10 @@ public class EnrollmentServiceTests
         await dbContext.SaveChangesAsync();
 
         var service = new EnrollmentService(
-            dbContext, 
-            _mockEmployeeClient.Object, 
-            _mockMetricsService.Object, 
-            _mockPublishEndpoint.Object, 
+            dbContext,
+            _mockEmployeeClient.Object,
+            _mockMetricsService.Object,
+            _mockPublishEndpoint.Object,
             _mockLogger.Object);
 
         var request = new MarkTrainingCompleteRequest
