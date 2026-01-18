@@ -244,9 +244,14 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 
-        // Clear existing data
+        // Clear existing data - using Truncate if possible or clearing in correct order
+        // In integration tests with real DB, CleanDatabaseAsync is called between tests if using the factory correctly,
+        // but here we are manually seeding.
+
+        dbContext.MandatoryTrainingRequirements.RemoveRange(dbContext.MandatoryTrainingRequirements);
         dbContext.TrainingPrograms.RemoveRange(dbContext.TrainingPrograms);
         await dbContext.SaveChangesAsync();
+
 
         // Add test data
         var programs = new List<TrainingProgram>
