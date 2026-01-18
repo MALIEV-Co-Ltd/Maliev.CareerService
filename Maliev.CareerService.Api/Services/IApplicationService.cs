@@ -1,5 +1,4 @@
 using Maliev.CareerService.Api.Models.Applications;
-using Maliev.CareerService.Api.Models.Common;
 
 namespace Maliev.CareerService.Api.Services;
 

@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using Maliev.CareerService.Data.Enums;
 using Maliev.CareerService.Data.Models.Base;
+using System.ComponentModel.DataAnnotations;
 
 namespace Maliev.CareerService.Data.Models;
 

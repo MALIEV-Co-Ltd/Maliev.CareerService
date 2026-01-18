@@ -6,8 +6,8 @@ using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Api.Models.TrainingRecords;
-using Maliev.CareerService.Data.Models;
 using Maliev.CareerService.Data.Enums;
+using Maliev.CareerService.Data.Models;
 
 namespace Maliev.CareerService.Api.Mapping;
 

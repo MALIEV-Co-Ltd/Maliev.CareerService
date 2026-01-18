@@ -1,7 +1,6 @@
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;

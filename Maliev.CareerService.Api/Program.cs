@@ -1,12 +1,9 @@
-using Maliev.CareerService.Api.Authentication;
+using Maliev.Aspire.ServiceDefaults;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
-using Maliev.Aspire.ServiceDefaults;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using System.Threading.RateLimiting;
 using MassTransit;
+using System.Threading.RateLimiting;
 
 // Initialize bootstrap logging
 using var loggerFactory = LoggerFactory.Create(logBuilder => logBuilder.AddConsole());

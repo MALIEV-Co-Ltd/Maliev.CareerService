@@ -2,8 +2,6 @@ using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Enums;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Maliev.CareerService.Api.BackgroundServices;
 

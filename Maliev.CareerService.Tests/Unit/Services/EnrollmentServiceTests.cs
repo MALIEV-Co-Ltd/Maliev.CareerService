@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Maliev.CareerService.Tests.Unit.Services;
 
-public class EnrollmentServiceTests
+public class EnrollmentServiceTests : BaseUnitTests
 {
     private readonly Mock<IEmployeeServiceClient> _mockEmployeeClient;
     private readonly Mock<IMetricsService> _mockMetricsService;
@@ -24,14 +24,6 @@ public class EnrollmentServiceTests
         _mockMetricsService = new Mock<IMetricsService>();
         _mockPublishEndpoint = new Mock<IPublishEndpoint>();
         _mockLogger = new Mock<ILogger<EnrollmentService>>();
-    }
-
-    private CareerDbContext CreateDbContext()
-    {
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        return new CareerDbContext(options);
     }
 
     [Fact]

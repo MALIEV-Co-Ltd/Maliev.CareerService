@@ -1,6 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Reports;
 using Xunit;
 
@@ -17,14 +17,62 @@ public class ReportsControllerTests : IntegrationTestBase
     {
         // Arrange
         var hrToken = GenerateHRStaffToken(Guid.NewGuid());
-        Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", hrToken);
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
 
         // Act
         var response = await Client.GetAsync("/career/v1/reports/training-compliance");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var report = await response.Content.ReadFromJsonAsync<TrainingComplianceReportDto>();
-        report.Should().NotBeNull();
+        Assert.NotNull(report);
+    }
+
+    [Fact]
+    public async Task GetRecruitmentMetrics_ShouldReturnOk()
+    {
+        // Arrange
+        var hrToken = GenerateHRStaffToken(Guid.NewGuid());
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
+
+        // Act
+        var response = await Client.GetAsync("/career/v1/reports/recruitment-metrics");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<RecruitmentMetricsResponse>();
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task GetLearningMetrics_ShouldReturnOk()
+    {
+        // Arrange
+        var hrToken = GenerateHRStaffToken(Guid.NewGuid());
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
+
+        // Act
+        var response = await Client.GetAsync("/career/v1/reports/learning-metrics");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<LearningMetricsResponse>();
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task GetHROperationalMetrics_ShouldReturnOk()
+    {
+        // Arrange
+        var hrToken = GenerateHRStaffToken(Guid.NewGuid());
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", hrToken);
+
+        // Act
+        var response = await Client.GetAsync("/career/v1/reports/hr-operational-metrics");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<HROperationalMetricsResponse>();
+        Assert.NotNull(result);
     }
 }

@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using Maliev.CareerService.Data.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Maliev.CareerService.Api.Models.TrainingRecords;
 

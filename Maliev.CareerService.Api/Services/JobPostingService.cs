@@ -1,5 +1,4 @@
 using Maliev.CareerService.Api.Mapping;
-using Maliev.CareerService.Api.Models.Common;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;

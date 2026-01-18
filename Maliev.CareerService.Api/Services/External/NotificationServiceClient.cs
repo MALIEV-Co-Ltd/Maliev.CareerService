@@ -1,5 +1,3 @@
-using System.Net.Http.Json;
-
 namespace Maliev.CareerService.Api.Services.External;
 
 /// <summary>

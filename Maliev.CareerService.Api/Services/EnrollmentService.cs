@@ -3,8 +3,8 @@ using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
-using Microsoft.EntityFrameworkCore;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;
 

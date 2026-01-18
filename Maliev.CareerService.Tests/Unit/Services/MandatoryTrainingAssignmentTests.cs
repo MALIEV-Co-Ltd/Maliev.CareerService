@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace Maliev.CareerService.Tests.Unit.Services;
 
-public class MandatoryTrainingAssignmentTests
+public class MandatoryTrainingAssignmentTests : BaseUnitTests
 {
     private readonly Mock<IEmployeeServiceClient> _mockEmployeeClient;
     private readonly Mock<ILogger<MandatoryTrainingService>> _mockLogger;
@@ -25,11 +24,7 @@ public class MandatoryTrainingAssignmentTests
     public async Task AssignMandatoryTrainingAsync_ShouldCreateEnrollments()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
 
         var employeeId = Guid.NewGuid();
         var deptId = Guid.NewGuid();
@@ -58,9 +53,9 @@ public class MandatoryTrainingAssignmentTests
 
         // Assert
         var enrollments = await dbContext.EmployeeTrainingEnrollments.Where(e => e.EmployeeId == employeeId).ToListAsync();
-        enrollments.Should().HaveCount(1);
-        enrollments[0].TrainingProgramId.Should().Be(programId);
-        enrollments[0].EnrollmentType.Should().Be(EnrollmentType.Mandatory);
-        enrollments[0].DueDate.Should().NotBeNull();
+        Assert.Single(enrollments);
+        Assert.Equal(programId, enrollments[0].TrainingProgramId);
+        Assert.Equal(EnrollmentType.Mandatory, enrollments[0].EnrollmentType);
+        Assert.NotNull(enrollments[0].DueDate);
     }
 }
