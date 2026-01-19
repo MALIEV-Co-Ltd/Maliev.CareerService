@@ -14,7 +14,7 @@ namespace Maliev.CareerService.Tests.Unit.BackgroundServices;
 /// <summary>
 /// Unit tests for CertificationExpirationReminderBackgroundService
 /// </summary>
-public class CertificationExpirationReminderTests
+public class CertificationExpirationReminderTests : BaseUnitTests
 {
     private readonly Mock<INotificationServiceClient> _mockNotificationClient;
     private readonly Mock<ILogger<CertificationExpirationReminderBackgroundService>> _mockLogger;
@@ -45,11 +45,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_FindsRecordsExpiring30DaysOut()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var employeeId = Guid.NewGuid();
@@ -93,11 +89,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_FindsRecordsExpiring60DaysOut()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var employeeId = Guid.NewGuid();
@@ -141,11 +133,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_FindsRecordsExpiring90DaysOut()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var employeeId = Guid.NewGuid();
@@ -189,11 +177,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_IgnoresRecordsWithNoExpirationDate()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var record = new TrainingRecord
@@ -234,11 +218,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_UpdatesStatusToExpiredWhenExpired()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var recordId = Guid.NewGuid();
@@ -275,11 +255,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_IgnoresAlreadyExpiredRecords()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var record = new TrainingRecord
@@ -320,11 +296,7 @@ public class CertificationExpirationReminderTests
     public async Task ProcessExpirationsAsync_HandlesNotificationFailureGracefully()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CareerDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        await using var dbContext = new CareerDbContext(options);
+        await using var dbContext = CreateDbContext();
         SetupServiceProvider(dbContext);
 
         var employeeId = Guid.NewGuid();

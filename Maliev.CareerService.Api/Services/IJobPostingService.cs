@@ -1,4 +1,3 @@
-using Maliev.CareerService.Api.Models.Common;
 using Maliev.CareerService.Api.Models.JobPostings;
 
 namespace Maliev.CareerService.Api.Services;

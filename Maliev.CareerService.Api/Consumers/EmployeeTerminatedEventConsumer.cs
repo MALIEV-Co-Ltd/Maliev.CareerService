@@ -1,5 +1,5 @@
-using Maliev.MessagingContracts.Generated;
 using Maliev.CareerService.Api.Services;
+using Maliev.MessagingContracts.Generated;
 using MassTransit;
 
 namespace Maliev.CareerService.Api.Consumers;
