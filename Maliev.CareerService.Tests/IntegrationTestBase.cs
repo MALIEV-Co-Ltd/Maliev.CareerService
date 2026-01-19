@@ -7,7 +7,7 @@ namespace Maliev.CareerService.Tests;
 /// <summary>
 /// Base class for integration tests using CareerServiceWebApplicationFactory
 /// </summary>
-public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplicationFactory>
+public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplicationFactory>, IAsyncLifetime
 {
     protected HttpClient Client { get; }
     protected CareerServiceWebApplicationFactory Factory { get; }
@@ -17,6 +17,16 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
         Factory = factory;
         Client = factory.CreateClient();
     }
+
+    public virtual async Task InitializeAsync()
+    {
+        // Ensure database and caches are clean before each test method run to prevent cross-test interference
+        await Factory.CleanDatabaseAsync();
+    }
+
+    public virtual Task DisposeAsync() => Task.CompletedTask;
+
+
 
     /// <summary>
     /// Generate JWT token for Employee role
@@ -67,7 +77,7 @@ public class CareerServiceFactory : TestWebApplicationFactory
 /// <summary>
 /// Base integration test class using CareerServiceFactory
 /// </summary>
-public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
+public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>, IAsyncLifetime
 {
     protected HttpClient Client { get; }
     protected CareerServiceFactory Factory { get; }
@@ -77,6 +87,16 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
         Factory = factory;
         Client = factory.CreateClient();
     }
+
+    public virtual async Task InitializeAsync()
+    {
+        // Ensure database and caches are clean before each test method run to prevent cross-test interference
+        await Factory.CleanDatabaseAsync();
+    }
+
+    public virtual Task DisposeAsync() => Task.CompletedTask;
+
+
 
     /// <summary>
     /// Generate JWT token for Employee role

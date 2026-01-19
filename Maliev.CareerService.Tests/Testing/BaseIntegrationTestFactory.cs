@@ -257,6 +257,10 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
     /// </summary>
     public async Task CleanDatabaseAsync()
     {
+        // Also clear caches to ensure full isolation
+        ClearCache();
+        await ClearRedisCacheAsync();
+
         await using var context = CreateDbContext();
 
         // Get all table names from information_schema
@@ -308,6 +312,32 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
             cache.Compact(1.0); // Compact 100% removes all entries
         }
     }
+
+    /// <summary>
+    /// Clears the Redis cache.
+    /// </summary>
+    public async Task ClearRedisCacheAsync()
+    {
+        if (_redisContainer != null)
+        {
+            try
+            {
+                using var connection = await StackExchange.Redis.ConnectionMultiplexer.ConnectAsync(_redisContainer.GetConnectionString());
+                var endpoints = connection.GetEndPoints();
+                foreach (var endpoint in endpoints)
+                {
+                    var server = connection.GetServer(endpoint);
+                    await server.FlushAllDatabasesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or ignore if Redis is unavailable during cleanup
+                Console.WriteLine($"Error flushing Redis: {ex.Message}");
+            }
+        }
+    }
+
 
     /// <summary>
     /// Exposes the RSA signing credentials for JWT token creation in tests.
