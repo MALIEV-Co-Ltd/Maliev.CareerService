@@ -27,7 +27,7 @@ public class EmployeeTerminatedEventConsumerTests : IntegrationTestBase
         {
             Id = programId,
             ProgramName = "Security Training",
-            ProgramCode = "SEC-001",
+            ProgramCode = $"SEC-{Guid.NewGuid().ToString()[..8]}",
             DurationHours = 1.0m,
             CreatedBy = Guid.NewGuid(),
             UpdatedBy = Guid.NewGuid()

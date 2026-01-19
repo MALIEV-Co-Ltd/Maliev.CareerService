@@ -16,7 +16,11 @@ public abstract class IntegrationTestBase : IClassFixture<CareerServiceWebApplic
     {
         Factory = factory;
         Client = factory.CreateClient();
+        
+        // Ensure database is clean before each test class run to prevent cross-test interference
+        factory.CleanDatabaseAsync().GetAwaiter().GetResult();
     }
+
 
     /// <summary>
     /// Generate JWT token for Employee role
@@ -76,7 +80,11 @@ public abstract class BaseIntegrationTest : IClassFixture<CareerServiceFactory>
     {
         Factory = factory;
         Client = factory.CreateClient();
+
+        // Ensure database is clean before each test class run to prevent cross-test interference
+        factory.CleanDatabaseAsync().GetAwaiter().GetResult();
     }
+
 
     /// <summary>
     /// Generate JWT token for Employee role
