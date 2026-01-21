@@ -1,5 +1,4 @@
 using Maliev.MessagingContracts.Generated;
-using FluentAssertions;
 using Maliev.CareerService.Data.Models;
 using MassTransit;
 using MassTransit.Testing;
@@ -80,7 +79,7 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
         await harness.Bus.Publish(integrationEvent);
 
         // Assert
-        (await harness.Consumed.Any<EmployeeCreatedEvent>()).Should().BeTrue();
+        Assert.True(await harness.Consumed.Any<EmployeeCreatedEvent>());
 
         // Wait a bit for processing
         await Task.Delay(1000);
@@ -91,7 +90,7 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
         var enrollment = await dbContext.EmployeeTrainingEnrollments
             .FirstOrDefaultAsync(e => e.EmployeeId == employeeId && e.TrainingProgramId == programId);
 
-        enrollment.Should().NotBeNull();
-        enrollment!.EnrollmentType.Should().Be(EnrollmentType.Mandatory);
+        Assert.NotNull(enrollment);
+        Assert.Equal(EnrollmentType.Mandatory, enrollment!.EnrollmentType);
     }
 }

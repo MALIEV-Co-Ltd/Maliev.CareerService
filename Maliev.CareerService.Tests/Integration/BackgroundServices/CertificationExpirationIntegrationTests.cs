@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.BackgroundServices;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data.Enums;
@@ -42,7 +41,7 @@ public class CertificationExpirationIntegrationTests : IntegrationTestBase
         // Resolve background service
         var hostedServices = Factory.Services.GetServices<IHostedService>();
         var backgroundService = hostedServices.OfType<CertificationExpirationReminderBackgroundService>().FirstOrDefault();
-        backgroundService.Should().NotBeNull();
+        Assert.NotNull(backgroundService);
 
         // Act - Trigger processing
         // We use the public method I added for testing
@@ -54,6 +53,6 @@ public class CertificationExpirationIntegrationTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/training-records/{recordId}");
         response.EnsureSuccessStatusCode();
         var record = await response.Content.ReadFromJsonAsync<TrainingRecordResponse>();
-        record!.Status.Should().Be(TrainingStatus.Expired);
+        Assert.Equal(TrainingStatus.Expired, record!.Status);
     }
 }

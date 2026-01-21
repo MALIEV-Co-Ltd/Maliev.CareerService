@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data.Enums;
 using Xunit;
@@ -39,11 +38,11 @@ public class TrainingRecordsControllerTests : IntegrationTestBase
             var error = await response.Content.ReadAsStringAsync();
             throw new Exception($"Post failed with {response.StatusCode}: {error}");
         }
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var createdRecord = await response.Content.ReadFromJsonAsync<TrainingRecordResponse>();
-        createdRecord.Should().NotBeNull();
-        createdRecord!.CourseName.Should().Be(request.CourseName);
-        createdRecord.EmployeeId.Should().Be(employeeId);
+        Assert.NotNull(createdRecord);
+        Assert.Equal(request.CourseName, createdRecord!.CourseName);
+        Assert.Equal(employeeId, createdRecord.EmployeeId);
     }
 
     [Fact]
@@ -73,10 +72,10 @@ public class TrainingRecordsControllerTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/training-records");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var records = await response.Content.ReadFromJsonAsync<TrainingRecordListResponse>();
-        records.Should().NotBeNull();
-        records!.Items.Should().Contain(r => r.CourseName == "Integration Test Course");
+        Assert.NotNull(records);
+        Assert.Contains(records!.Items, r => r.CourseName == "Integration Test Course");
     }
 
     [Fact]
@@ -108,11 +107,11 @@ public class TrainingRecordsControllerTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/training-records/{recordId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var record = await response.Content.ReadFromJsonAsync<TrainingRecordResponse>();
-        record.Should().NotBeNull();
-        record!.Id.Should().Be(recordId);
-        record.CourseName.Should().Be("Specific Record Test");
+        Assert.NotNull(record);
+        Assert.Equal(recordId, record!.Id);
+        Assert.Equal("Specific Record Test", record.CourseName);
     }
 
     [Fact]
@@ -154,11 +153,11 @@ public class TrainingRecordsControllerTests : IntegrationTestBase
         var response = await Client.SendAsync(updateMsg);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var updatedRecord = await response.Content.ReadFromJsonAsync<TrainingRecordResponse>();
-        updatedRecord.Should().NotBeNull();
-        updatedRecord!.CourseName.Should().Be("Updated Course Name");
-        updatedRecord.Score.Should().Be(100);
+        Assert.NotNull(updatedRecord);
+        Assert.Equal("Updated Course Name", updatedRecord!.CourseName);
+        Assert.Equal(100, updatedRecord.Score);
     }
 
     [Fact]
@@ -187,9 +186,9 @@ public class TrainingRecordsControllerTests : IntegrationTestBase
         var response = await Client.SendAsync(request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var records = await response.Content.ReadFromJsonAsync<TrainingRecordListResponse>();
-        records.Should().NotBeNull();
-        records!.Items.Should().Contain(r => r.CourseName == "Expiring Course");
+        Assert.NotNull(records);
+        Assert.Contains(records!.Items, r => r.CourseName == "Expiring Course");
     }
 }

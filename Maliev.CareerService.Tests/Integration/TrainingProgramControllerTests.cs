@@ -241,17 +241,11 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
 
     private async Task SeedTestDataAsync()
     {
+        // Use factory's dynamic cleanup
+        await _factory.CleanDatabaseAsync();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
-
-        // Clear existing data - using Truncate if possible or clearing in correct order
-        // In integration tests with real DB, CleanDatabaseAsync is called between tests if using the factory correctly,
-        // but here we are manually seeding.
-
-        dbContext.MandatoryTrainingRequirements.RemoveRange(dbContext.MandatoryTrainingRequirements);
-        dbContext.TrainingPrograms.RemoveRange(dbContext.TrainingPrograms);
-        await dbContext.SaveChangesAsync();
-
 
         // Add test data
         var programs = new List<TrainingProgram>
@@ -309,6 +303,8 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
 
     private async Task<Guid> SeedSingleProgramAsync()
     {
+        await _factory.CleanDatabaseAsync();
+
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
 

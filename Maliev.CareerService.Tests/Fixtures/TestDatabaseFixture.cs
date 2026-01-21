@@ -133,37 +133,26 @@ public class TestDatabaseFixture : IAsyncLifetime
     {
         await using var context = CreateDbContext();
 
-        // Get all table names from the database
-        var tableNames = new[]
-        {
-            "application_status_changes",
-            "job_applications",
-            "job_postings",
-            "employee_development_goals",
-            "individual_development_plans",
-            "employee_training_enrollments",
-            "e_learning_resources",
-            "training_records",  // Feature 003
-            "skills",  // Feature 003
-            "mandatory_training_requirements",  // Feature 003
-            "training_programs"
-        };
+        // Dynamically get all table names from the model
+        var tableNames = context.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(t => t != null)
+            .Cast<string>()
+            .ToList();
 
-        // Truncate all tables in reverse order (to respect foreign keys)
-        // Skip tables that don't exist (may not be created yet in some test scenarios)
-        foreach (var tableName in tableNames.Reverse())
+        // Truncate all tables in reverse order (to respect foreign keys if needed, though CASCADE is used)
+        foreach (var tableName in tableNames)
         {
             try
             {
-                // Table names are from hardcoded list above, not user input - safe from SQL injection
+                // Table names are from the model, not user input - safe from SQL injection
 #pragma warning disable EF1002, EF1003
-                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {tableName} RESTART IDENTITY CASCADE");
+                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE \"{tableName}\" RESTART IDENTITY CASCADE");
 #pragma warning restore EF1002, EF1003
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
             {
                 // Table doesn't exist - ignore this error
-                // 42P01 is the PostgreSQL error code for "undefined_table"
             }
         }
     }

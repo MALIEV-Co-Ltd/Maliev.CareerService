@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using FluentAssertions;
 using Maliev.CareerService.Data.Enums;
 using Maliev.CareerService.Data.Models;
 using Xunit;
@@ -26,7 +25,7 @@ public class SkillTests
         bool isValid = Validator.TryValidateObject(skill, validationContext, validationResults, true);
 
         // Assert
-        isValid.Should().BeTrue();
+        Assert.True(isValid);
     }
 
     [Theory]
@@ -49,8 +48,8 @@ public class SkillTests
         bool isValid = Validator.TryValidateObject(skill, validationContext, validationResults, true);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().Contain(r => r.MemberNames.Contains("SkillName"));
+        Assert.False(isValid);
+        Assert.Contains(validationResults, r => r.MemberNames.Contains("SkillName"));
     }
 
     [Fact]
@@ -71,7 +70,7 @@ public class SkillTests
         bool isValid = Validator.TryValidateObject(skill, validationContext, validationResults, true);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().Contain(r => r.MemberNames.Contains("SkillName"));
+        Assert.False(isValid);
+        Assert.Contains(validationResults, r => r.MemberNames.Contains("SkillName"));
     }
 }

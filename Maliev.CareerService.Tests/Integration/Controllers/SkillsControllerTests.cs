@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.Skills;
 using Maliev.CareerService.Data.Enums;
 using Xunit;
@@ -32,11 +31,11 @@ public class SkillsControllerTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync($"/career/v1/employees/{employeeId}/skills", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var createdSkill = await response.Content.ReadFromJsonAsync<EmployeeSkillDto>();
-        createdSkill.Should().NotBeNull();
-        createdSkill!.SkillName.Should().Be("Unit Testing");
-        createdSkill.EmployeeId.Should().Be(employeeId);
+        Assert.NotNull(createdSkill);
+        Assert.Equal("Unit Testing", createdSkill!.SkillName);
+        Assert.Equal(employeeId, createdSkill.EmployeeId);
     }
 
     [Fact]
@@ -64,10 +63,10 @@ public class SkillsControllerTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/skills");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var skills = await response.Content.ReadFromJsonAsync<List<EmployeeSkillDto>>();
-        skills.Should().NotBeNull();
-        skills.Should().Contain(s => s.SkillName == "C# Programming");
+        Assert.NotNull(skills);
+        Assert.Contains(skills, s => s.SkillName == "C# Programming");
     }
 
     [Fact]
@@ -101,10 +100,10 @@ public class SkillsControllerTests : IntegrationTestBase
         var response = await Client.SendAsync(updateMsg);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var updatedSkill = await response.Content.ReadFromJsonAsync<EmployeeSkillDto>();
-        updatedSkill!.ProficiencyLevel.Should().Be(ProficiencyLevel.Expert);
-        updatedSkill.Notes.Should().Be("Massive improvement");
+        Assert.Equal(ProficiencyLevel.Expert, updatedSkill!.ProficiencyLevel);
+        Assert.Equal("Massive improvement", updatedSkill.Notes);
     }
 
     [Fact]
@@ -129,13 +128,13 @@ public class SkillsControllerTests : IntegrationTestBase
         var response = await Client.SendAsync(deleteMsg);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         // Verify it's gone
         var getMsg = new HttpRequestMessage(HttpMethod.Get, $"/career/v1/employees/{employeeId}/skills");
         getMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", hrToken);
         var getResponse = await Client.SendAsync(getMsg);
         var skills = await getResponse.Content.ReadFromJsonAsync<List<EmployeeSkillDto>>();
-        skills.Should().NotContain(s => s.Id == skillId);
+        Assert.DoesNotContain(skills!, s => s.Id == skillId);
     }
 }

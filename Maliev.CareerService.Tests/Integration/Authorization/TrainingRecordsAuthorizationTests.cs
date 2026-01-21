@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data.Enums;
 using Xunit;
@@ -25,7 +24,7 @@ public class TrainingRecordsAuthorizationTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/training-records");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -43,7 +42,7 @@ public class TrainingRecordsAuthorizationTests : IntegrationTestBase
         // Assert
         // NOTE: ViewOwn permission usually requires the ID in the route to match the authenticated user ID.
         // We need to check if the controller enforces this.
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -65,7 +64,7 @@ public class TrainingRecordsAuthorizationTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync($"/career/v1/employees/{employeeId}/training-records", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
@@ -87,6 +86,6 @@ public class TrainingRecordsAuthorizationTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync($"/career/v1/employees/{employeeId}/training-records", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

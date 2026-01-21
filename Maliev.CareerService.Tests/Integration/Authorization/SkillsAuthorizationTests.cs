@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.Skills;
 using Maliev.CareerService.Data.Enums;
@@ -27,7 +26,7 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/skills");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -43,7 +42,7 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{otherEmployeeId}/skills");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -65,7 +64,7 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         var response = await Client.GetAsync($"/career/v1/employees/{employeeId}/skills");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -82,6 +81,6 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync($"/career/v1/employees/{employeeId}/skills", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

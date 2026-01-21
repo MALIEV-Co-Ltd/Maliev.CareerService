@@ -170,7 +170,7 @@ public class MetricsContractTests(CareerServiceFactory factory) : BaseIntegratio
         // At least some metric definitions should be present
         Assert.NotEmpty(lines1);
         Assert.NotEmpty(lines2);
-        
+
         // Idempotency: the set of metrics should be consistent
         // We allow some jitter if metrics are dynamically registered, but core ones should remain
         Assert.True(Math.Abs(lines1.Count - lines2.Count) <= 5, $"Metrics count changed significantly: {lines1.Count} -> {lines2.Count}");

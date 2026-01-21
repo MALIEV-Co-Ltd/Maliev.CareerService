@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using FluentAssertions;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data.Models;
 using Xunit;
@@ -43,11 +42,11 @@ public class MandatoryTrainingControllerTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync("/career/v1/mandatory-training", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<MandatoryTrainingRequirementDto>();
-        created.Should().NotBeNull();
-        created!.TrainingProgramId.Should().Be(programId);
-        created.CompletionDeadlineDays.Should().Be(45);
+        Assert.NotNull(created);
+        Assert.Equal(programId, created!.TrainingProgramId);
+        Assert.Equal(45, created.CompletionDeadlineDays);
     }
 
     [Fact]
@@ -61,8 +60,8 @@ public class MandatoryTrainingControllerTests : IntegrationTestBase
         var response = await Client.GetAsync("/career/v1/mandatory-training");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var list = await response.Content.ReadFromJsonAsync<List<MandatoryTrainingRequirementDto>>();
-        list.Should().NotBeNull();
+        Assert.NotNull(list);
     }
 }
