@@ -7,7 +7,7 @@ namespace Maliev.CareerService.Tests.Unit;
 
 public abstract class BaseUnitTests : IAsyncLifetime
 {
-    protected readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder().WithName("postgres:18")
+    protected readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder().WithImage("postgres:18")
         .Build();
 
     public async Task InitializeAsync()
