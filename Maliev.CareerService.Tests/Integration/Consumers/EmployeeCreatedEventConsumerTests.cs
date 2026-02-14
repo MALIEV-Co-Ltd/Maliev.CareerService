@@ -55,7 +55,9 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
         var payload = new EmployeeCreatedEventPayload(
             EmployeeId: employeeId,
             EmployeeNumber: "EMP001",
-            PrincipalId: Guid.NewGuid(), // Added missing PrincipalId
+            PrincipalId: Guid.NewGuid(),
+            Email: "new@maliev.com",
+            FullName: "New Employee",
             StartDate: DateTime.UtcNow,
             DepartmentId: deptId,
             PositionId: null,
