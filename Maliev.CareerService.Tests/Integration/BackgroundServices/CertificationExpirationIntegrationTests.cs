@@ -39,8 +39,7 @@ public class CertificationExpirationIntegrationTests : IntegrationTestBase
         await SeedDatabaseAsync(expiredRecord);
 
         // Resolve background service
-        var hostedServices = Factory.Services.GetServices<IHostedService>();
-        var backgroundService = hostedServices.OfType<CertificationExpirationReminderBackgroundService>().FirstOrDefault();
+        var backgroundService = Factory.Services.GetService<CertificationExpirationReminderBackgroundService>();
         Assert.NotNull(backgroundService);
 
         // Act - Trigger processing

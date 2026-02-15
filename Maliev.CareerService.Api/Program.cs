@@ -3,8 +3,6 @@ using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using MassTransit;
-using System.Threading.RateLimiting;
-
 // Initialize bootstrap logging
 using var loggerFactory = LoggerFactory.Create(logBuilder => logBuilder.AddConsole());
 var bootstrapLogger = loggerFactory.CreateLogger("Program");
@@ -26,7 +24,7 @@ try
     });
     builder.AddServiceMeters("careers-meter"); // Register service meters for OpenTelemetry business metrics
 
-    builder.AddRedisDistributedCache(instanceName: "career:"); // Redis with in-memory fallback
+    builder.AddStandardCache("career:"); // Redis + in-memory fallback, memory-optimized // Redis with in-memory fallback
     builder.AddMassTransitWithRabbitMq(x =>
     {
         x.AddEntityFrameworkOutbox<CareerDbContext>(o =>
@@ -41,7 +39,7 @@ try
     builder.AddPostgresDbContext<CareerDbContext>(connectionName: "CareerDbContext"); // PostgreSQL with retry logic
 
     // --- API Configuration ---
-    builder.AddDefaultCors(); // CORS from CORS:AllowedOrigins config
+    builder.AddStandardCors(); // CORS with fail-fast validation
     builder.AddDefaultApiVersioning(); // API versioning with URL segment reader
 
     // JWT Authentication (tests override via PostConfigureAll with dynamic RSA keys)
@@ -101,33 +99,7 @@ try
 
 
     // Configure Rate Limiting
-    builder.Services.AddRateLimiter(options =>
-    {
-        // Global rate limiter for authenticated users
-        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-            RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
-                factory: partition => new FixedWindowRateLimiterOptions
-                {
-                    AutoReplenishment = true,
-                    PermitLimit = 100,
-                    QueueLimit = 0,
-                    Window = TimeSpan.FromMinutes(1)
-                }));
-
-        // Named policy for anonymous/public endpoints
-        options.AddPolicy("anonymous", httpContext =>
-            RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                factory: partition => new FixedWindowRateLimiterOptions
-                {
-                    AutoReplenishment = true,
-                    PermitLimit = 50,
-                    QueueLimit = 0,
-                    Window = TimeSpan.FromMinutes(1)
-                }));
-    });
-
+    builder.AddStandardRateLimiting(); // Memory-optimized for low-spec nodes
     builder.Services.AddControllers();
 
     var app = builder.Build();

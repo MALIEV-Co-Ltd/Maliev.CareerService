@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Maliev.Aspire.ServiceDefaults;
 using Maliev.Aspire.ServiceDefaults.Authorization;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.JobPostings;
@@ -37,7 +38,7 @@ public class JobPostingsController(
     /// <returns>Paginated list of job postings</returns>
     [HttpGet]
     [AllowAnonymous]
-    [EnableRateLimiting("anonymous")]
+    [EnableRateLimiting(RateLimitPolicies.Public)]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "department", "location", "employmentType", "search", "offset", "limit" })]
     [ProducesResponseType(typeof(JobPostingListResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<JobPostingListResponse>> GetJobPostings(
@@ -96,7 +97,7 @@ public class JobPostingsController(
     /// <returns>Job posting details</returns>
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    [EnableRateLimiting("anonymous")]
+    [EnableRateLimiting(RateLimitPolicies.Public)]
     [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "id" })]
     [ProducesResponseType(typeof(JobPostingResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
