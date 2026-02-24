@@ -3,6 +3,8 @@ using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Enums;
+using Maliev.MessagingContracts.Contracts.Career;
+using Maliev.MessagingContracts.Generated;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,10 +58,10 @@ public class TrainingRecordService(
             record.Id);
 
         // Publish integration event
-        await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingCompletedEvent(
+        await _publishEndpoint.Publish(new TrainingCompletedEvent(
             MessageId: Guid.NewGuid(),
-            MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingCompletedEvent),
-            MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+            MessageName: nameof(TrainingCompletedEvent),
+            MessageType: MessageType.Event,
             MessageVersion: "1.0",
             PublishedBy: "Maliev.CareerService",
             ConsumedBy: new[] { "Maliev.ComplianceService" },
@@ -67,7 +69,7 @@ public class TrainingRecordService(
             CausationId: null,
             OccurredAtUtc: DateTimeOffset.UtcNow,
             IsPublic: true,
-            Payload: new Maliev.MessagingContracts.Generated.TrainingCompletedEventPayload(
+            Payload: new TrainingCompletedEventPayload(
                 TrainingRecordId: record.Id,
                 EmployeeId: record.EmployeeId,
                 CourseName: record.CourseName,
@@ -79,10 +81,10 @@ public class TrainingRecordService(
         // If it has an expiration date, it's a certification
         if (record.ExpirationDate.HasValue)
         {
-            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.CertificationAwardedEvent(
+            await _publishEndpoint.Publish(new CertificationAwardedEvent(
                 MessageId: Guid.NewGuid(),
-                MessageName: nameof(Maliev.MessagingContracts.Generated.CertificationAwardedEvent),
-                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageName: nameof(CertificationAwardedEvent),
+                MessageType: MessageType.Event,
                 MessageVersion: "1.0",
                 PublishedBy: "Maliev.CareerService",
                 ConsumedBy: Array.Empty<string>(),
@@ -90,7 +92,7 @@ public class TrainingRecordService(
                 CausationId: null,
                 OccurredAtUtc: DateTimeOffset.UtcNow,
                 IsPublic: false,
-                Payload: new Maliev.MessagingContracts.Generated.CertificationAwardedEventPayload(
+                Payload: new CertificationAwardedEventPayload(
                     CertificationId: record.Id,
                     EmployeeId: record.EmployeeId,
                     CertificationName: record.CourseName,

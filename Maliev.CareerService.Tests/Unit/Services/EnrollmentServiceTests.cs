@@ -3,6 +3,8 @@ using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
+using Maliev.MessagingContracts.Contracts.Career;
+using Maliev.MessagingContracts.Generated;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -71,10 +73,10 @@ public class EnrollmentServiceTests : BaseUnitTests
             RowVersion = Convert.ToBase64String(enrollment.RowVersion)
         };
 
-        Maliev.MessagingContracts.Generated.TrainingCompletedEvent? capturedEvent = null;
+        TrainingCompletedEvent? capturedEvent = null;
         _mockPublishEndpoint
-            .Setup(x => x.Publish(It.IsAny<Maliev.MessagingContracts.Generated.TrainingCompletedEvent>(), It.IsAny<CancellationToken>()))
-            .Callback<Maliev.MessagingContracts.Generated.TrainingCompletedEvent, CancellationToken>((e, c) => capturedEvent = e)
+            .Setup(x => x.Publish(It.IsAny<TrainingCompletedEvent>(), It.IsAny<CancellationToken>()))
+            .Callback<TrainingCompletedEvent, CancellationToken>((e, c) => capturedEvent = e)
             .Returns(Task.CompletedTask);
 
         // Act
@@ -137,10 +139,10 @@ public class EnrollmentServiceTests : BaseUnitTests
             RowVersion = Convert.ToBase64String(enrollment.RowVersion)
         };
 
-        Maliev.MessagingContracts.Generated.TrainingCompletedEvent? capturedEvent = null;
+        TrainingCompletedEvent? capturedEvent = null;
         _mockPublishEndpoint
-            .Setup(x => x.Publish(It.IsAny<Maliev.MessagingContracts.Generated.TrainingCompletedEvent>(), It.IsAny<CancellationToken>()))
-            .Callback<Maliev.MessagingContracts.Generated.TrainingCompletedEvent, CancellationToken>((e, c) => capturedEvent = e)
+            .Setup(x => x.Publish(It.IsAny<TrainingCompletedEvent>(), It.IsAny<CancellationToken>()))
+            .Callback<TrainingCompletedEvent, CancellationToken>((e, c) => capturedEvent = e)
             .Returns(Task.CompletedTask);
 
         // Act

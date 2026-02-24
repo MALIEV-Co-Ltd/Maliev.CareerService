@@ -3,6 +3,8 @@ using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
+using Maliev.MessagingContracts.Contracts.Career;
+using Maliev.MessagingContracts.Generated;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -75,10 +77,10 @@ public class EnrollmentService(
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Publish TrainingEnrolledEvent
-        await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingEnrolledEvent(
+        await _publishEndpoint.Publish(new TrainingEnrolledEvent(
             MessageId: Guid.NewGuid(),
-            MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingEnrolledEvent),
-            MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+            MessageName: nameof(TrainingEnrolledEvent),
+            MessageType: MessageType.Event,
             MessageVersion: "1.0",
             PublishedBy: "CareerService",
             ConsumedBy: Array.Empty<string>(),
@@ -86,7 +88,7 @@ public class EnrollmentService(
             CausationId: null,
             OccurredAtUtc: DateTimeOffset.UtcNow,
             IsPublic: false,
-            Payload: new Maliev.MessagingContracts.Generated.TrainingEnrolledEventPayload(
+            Payload: new TrainingEnrolledEventPayload(
                 TrainingRecordId: enrollment.Id,
                 EmployeeId: enrollment.EmployeeId,
                 CourseName: trainingProgram.ProgramName,
@@ -190,10 +192,10 @@ public class EnrollmentService(
             }
 
             // Publish TrainingCompletedEvent
-            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.TrainingCompletedEvent(
+            await _publishEndpoint.Publish(new TrainingCompletedEvent(
                 MessageId: Guid.NewGuid(),
-                MessageName: nameof(Maliev.MessagingContracts.Generated.TrainingCompletedEvent),
-                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageName: nameof(TrainingCompletedEvent),
+                MessageType: MessageType.Event,
                 MessageVersion: "1.0",
                 PublishedBy: "CareerService",
                 ConsumedBy: Array.Empty<string>(),
@@ -201,7 +203,7 @@ public class EnrollmentService(
                 CausationId: null,
                 OccurredAtUtc: DateTimeOffset.UtcNow,
                 IsPublic: false,
-                Payload: new Maliev.MessagingContracts.Generated.TrainingCompletedEventPayload(
+                Payload: new TrainingCompletedEventPayload(
                     TrainingRecordId: enrollment.Id,
                     EmployeeId: enrollment.EmployeeId,
                     CourseName: enrollment.TrainingProgram.ProgramName,

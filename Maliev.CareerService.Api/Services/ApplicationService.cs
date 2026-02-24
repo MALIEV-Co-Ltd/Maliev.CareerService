@@ -3,6 +3,8 @@ using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
+using Maliev.MessagingContracts.Contracts.Career;
+using Maliev.MessagingContracts.Generated;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;
@@ -95,10 +97,10 @@ public class ApplicationService(
 
         if (jobPosting != null)
         {
-            await _publishEndpoint.Publish(new Maliev.MessagingContracts.Generated.JobApplicationSubmittedEvent(
+            await _publishEndpoint.Publish(new JobApplicationSubmittedEvent(
                 MessageId: Guid.NewGuid(),
-                MessageName: nameof(Maliev.MessagingContracts.Generated.JobApplicationSubmittedEvent),
-                MessageType: Maliev.MessagingContracts.Generated.MessageType.Event,
+                MessageName: nameof(JobApplicationSubmittedEvent),
+                MessageType: MessageType.Event,
                 MessageVersion: "1.0",
                 PublishedBy: "CareerService",
                 ConsumedBy: Array.Empty<string>(),
@@ -106,7 +108,7 @@ public class ApplicationService(
                 CausationId: null,
                 OccurredAtUtc: DateTimeOffset.UtcNow,
                 IsPublic: false,
-                Payload: new Maliev.MessagingContracts.Generated.JobApplicationSubmittedEventPayload(
+                Payload: new JobApplicationSubmittedEventPayload(
                     ApplicationId: application.Id,
                     JobPostingId: application.JobPostingId,
                     ApplicantEmail: application.ApplicantEmail,

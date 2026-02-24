@@ -1,3 +1,4 @@
+using Maliev.MessagingContracts.Contracts.Employee;
 using Maliev.MessagingContracts.Generated;
 using Maliev.CareerService.Data.Models;
 using MassTransit;
