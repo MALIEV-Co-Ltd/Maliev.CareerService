@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="0.44.0" />
+    <PackageReference Include="Markdig" Version="1.0.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
   </ItemGroup>
 
