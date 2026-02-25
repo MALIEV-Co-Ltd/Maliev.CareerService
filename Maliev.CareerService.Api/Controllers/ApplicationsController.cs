@@ -120,10 +120,14 @@ public class ApplicationsController(
         else
         {
             // HR Staff can see all applications
-            // TODO: Implement GetAllApplicationsAsync in ApplicationService with filters
-            // For now, return not implemented
-            return StatusCode(StatusCodes.Status501NotImplemented,
-                new { error = "Filtering all applications by HR staff not yet implemented" });
+            var result = await _applicationService.GetAllApplicationsAsync(
+                jobPostingId,
+                status,
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(result);
         }
     }
 

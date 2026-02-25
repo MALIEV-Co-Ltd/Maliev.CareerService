@@ -174,6 +174,52 @@ public class ApplicationService(
     }
 
     /// <inheritdoc />
+    public async Task<JobApplicationListResponse> GetAllApplicationsAsync(
+        Guid? jobPostingId,
+        string? status,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.JobApplications
+            .Include(ja => ja.JobPosting)
+            .AsQueryable();
+
+        if (jobPostingId.HasValue)
+        {
+            query = query.Where(ja => ja.JobPostingId == jobPostingId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            var lowerStatus = status.ToLower();
+            query = query.Where(ja => ja.Status.ToLower() == lowerStatus);
+        }
+
+        query = query.OrderByDescending(ja => ja.AppliedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var applications = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        // Map all applications to responses with enriched data
+        var responseTasks = applications.Select(app => MapToResponseAsync(app, cancellationToken));
+        var responses = await Task.WhenAll(responseTasks);
+
+        return new JobApplicationListResponse
+        {
+            Items = [.. responses],
+            Page = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+    }
+
+    /// <inheritdoc />
     public async Task<bool> ValidateDuplicateAsync(
         Guid jobPostingId,
         string applicantEmail,

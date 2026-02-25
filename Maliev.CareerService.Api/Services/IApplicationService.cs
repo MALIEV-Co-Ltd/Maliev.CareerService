@@ -44,6 +44,22 @@ public interface IApplicationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all applications with optional filtering
+    /// </summary>
+    /// <param name="jobPostingId">Optional job posting ID filter</param>
+    /// <param name="status">Optional status filter</param>
+    /// <param name="pageNumber">Page number (1-based)</param>
+    /// <param name="pageSize">Number of items per page</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated list of applications</returns>
+    Task<JobApplicationListResponse> GetAllApplicationsAsync(
+        Guid? jobPostingId,
+        string? status,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Validates if a duplicate application exists for the same email and job posting
     /// </summary>
     /// <param name="jobPostingId">Job posting ID</param>
