@@ -1,5 +1,5 @@
 using Maliev.MessagingContracts.Contracts.Employee;
-using Maliev.MessagingContracts.Generated;
+using Maliev.MessagingContracts;
 using Maliev.CareerService.Data.Models;
 using MassTransit;
 using MassTransit.Testing;

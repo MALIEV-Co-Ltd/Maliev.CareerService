@@ -4,7 +4,7 @@ using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Models;
 using Maliev.MessagingContracts.Contracts.Career;
-using Maliev.MessagingContracts.Generated;
+using Maliev.MessagingContracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;

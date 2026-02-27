@@ -4,7 +4,7 @@ using Maliev.CareerService.Api.Models.TrainingRecords;
 using Maliev.CareerService.Data;
 using Maliev.CareerService.Data.Enums;
 using Maliev.MessagingContracts.Contracts.Career;
-using Maliev.MessagingContracts.Generated;
+using Maliev.MessagingContracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
