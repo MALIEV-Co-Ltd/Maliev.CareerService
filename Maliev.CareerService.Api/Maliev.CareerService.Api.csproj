@@ -10,21 +10,27 @@
     <SharedLibraryVersion Condition="'$(SharedLibraryVersion)' == ''">1.0.*-*</SharedLibraryVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Markdig" Version="1.0.0" />
-    <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(GITHUB_ACTIONS)' != 'true'">
     <ProjectReference Include="..\..\Maliev.MessagingContracts\generated\csharp\Maliev.MessagingContracts.csproj" />
-    <ProjectReference Include="..\Maliev.CareerService.Data\Maliev.CareerService.Data.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Application\Maliev.CareerService.Application.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Infrastructure\Maliev.CareerService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Maliev.Aspire\Maliev.Aspire.ServiceDefaults\Maliev.Aspire.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-    <ProjectReference Include="..\Maliev.CareerService.Data\Maliev.CareerService.Data.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Application\Maliev.CareerService.Application.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Infrastructure\Maliev.CareerService.Infrastructure.csproj" />
     <PackageReference Include="Maliev.MessagingContracts" Version="$(SharedLibraryVersion)" />
     <PackageReference Include="Maliev.Aspire.ServiceDefaults" Version="$(SharedLibraryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\**\*.cs" />
+    <Compile Remove="Models\**\*.cs" />
+    <Compile Remove="Mapping\**\*.cs" />
+    <Compile Remove="Authentication\**\*.cs" />
+    <Compile Remove="BackgroundServices\**\*.cs" />
+    <Compile Remove="Consumers\**\*.cs" />
   </ItemGroup>
 
 

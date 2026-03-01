@@ -33,7 +33,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Maliev.CareerService.Api\Maliev.CareerService.Api.csproj" />
-    <ProjectReference Include="..\Maliev.CareerService.Data\Maliev.CareerService.Data.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Application\Maliev.CareerService.Application.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Infrastructure\Maliev.CareerService.Infrastructure.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Domain\Maliev.CareerService.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,5 +46,3 @@
   </ItemGroup>
 
 </Project>
-
-
