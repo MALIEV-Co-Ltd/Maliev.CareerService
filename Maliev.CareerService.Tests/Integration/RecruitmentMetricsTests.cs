@@ -1,6 +1,7 @@
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using ApplicationStatus = Maliev.CareerService.Domain.Entities.ApplicationStatusConstants;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;

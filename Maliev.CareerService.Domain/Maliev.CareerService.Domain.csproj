@@ -9,10 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Maliev.CareerService.Data\Models\**\*.cs" />
-    <Compile Include="..\Maliev.CareerService.Data\Entities\**\*.cs" />
-    <Compile Include="..\Maliev.CareerService.Data\Enums\**\*.cs" />
-    <Compile Include="..\Maliev.CareerService.Data\Validation\**\*.cs" />
+    <Compile Include="Entities\*.cs" />
+    <Compile Include="Validation\*.cs" />
   </ItemGroup>
 
 </Project>

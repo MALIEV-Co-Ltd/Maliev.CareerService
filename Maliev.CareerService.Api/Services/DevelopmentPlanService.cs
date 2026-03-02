@@ -2,7 +2,8 @@ using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using IDPStatus = Maliev.CareerService.Domain.Entities.IDPStatusConstants;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;

@@ -1,7 +1,8 @@
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;

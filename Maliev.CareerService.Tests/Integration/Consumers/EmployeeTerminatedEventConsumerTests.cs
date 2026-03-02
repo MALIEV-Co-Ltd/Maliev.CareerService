@@ -1,6 +1,8 @@
 using Maliev.MessagingContracts.Contracts.Employee;
 using Maliev.MessagingContracts;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
+using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;

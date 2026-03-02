@@ -2,7 +2,9 @@ using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
 using Maliev.MessagingContracts.Contracts.Career;
 using Maliev.MessagingContracts;
 using MassTransit;
@@ -67,8 +69,8 @@ public class EnrollmentService(
 
         // Determine enrollment type based on training program
         enrollment.EnrollmentType = trainingProgram.IsMandatory
-            ? Data.Models.EnrollmentType.Mandatory
-            : Data.Models.EnrollmentType.Voluntary;
+            ? EnrollmentType.Mandatory
+            : EnrollmentType.Voluntary;
 
         enrollment.CreatedBy = employeeId;
         enrollment.UpdatedBy = employeeId;

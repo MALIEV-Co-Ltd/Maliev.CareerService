@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data.Enums;
+using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Data.Models.Base;
 using Maliev.CareerService.Data.Validation;
 using System.ComponentModel.DataAnnotations;

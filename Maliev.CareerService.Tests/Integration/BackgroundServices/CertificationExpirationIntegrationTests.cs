@@ -1,8 +1,7 @@
 using System.Net.Http.Json;
 using Maliev.CareerService.Api.BackgroundServices;
 using Maliev.CareerService.Api.Models.TrainingRecords;
-using Maliev.CareerService.Data.Enums;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;

@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

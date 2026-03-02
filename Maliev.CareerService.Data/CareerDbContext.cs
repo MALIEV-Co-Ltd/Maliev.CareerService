@@ -1,6 +1,5 @@
 using Maliev.CareerService.Data.Configurations;
-using Maliev.CareerService.Data.Models;
-using Maliev.CareerService.Data.Models.Base;
+using Maliev.CareerService.Domain.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

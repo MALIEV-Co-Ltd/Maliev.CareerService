@@ -6,8 +6,11 @@ using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Api.Models.TrainingRecords;
-using Maliev.CareerService.Data.Enums;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using ApplicationStatus = Maliev.CareerService.Domain.Entities.ApplicationStatusConstants;
+using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;
+using IDPStatus = Maliev.CareerService.Domain.Entities.IDPStatusConstants;
+using DevelopmentGoalStatus = Maliev.CareerService.Domain.Entities.DevelopmentGoalStatusConstants;
 
 namespace Maliev.CareerService.Api.Mapping;
 

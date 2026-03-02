@@ -1,7 +1,7 @@
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;

@@ -1,6 +1,6 @@
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;

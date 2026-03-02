@@ -1,6 +1,6 @@
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Maliev.CareerService.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
