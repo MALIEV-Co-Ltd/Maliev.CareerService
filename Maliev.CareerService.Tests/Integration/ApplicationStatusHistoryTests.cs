@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services.External;
@@ -188,7 +189,7 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
     private async Task<Guid> SeedApplicationWithStatusHistoryAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting
@@ -273,7 +274,7 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
     private async Task<Guid> SeedApplicationWithReversalHistoryAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting
@@ -351,7 +352,7 @@ public class ApplicationStatusHistoryTests : IClassFixture<ApplicationStatusHist
     private async Task<Guid> SeedApplicationWithoutStatusHistoryAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting

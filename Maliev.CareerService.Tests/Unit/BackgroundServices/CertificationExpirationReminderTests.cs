@@ -1,6 +1,6 @@
 using Maliev.CareerService.Api.BackgroundServices;
 using Maliev.CareerService.Api.Services.External;
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

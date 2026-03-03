@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
@@ -221,7 +222,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         _factory.ClearCache();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job postings
         var postings = new List<JobPosting>
@@ -298,7 +299,7 @@ public class RecruitmentMetricsTests : IClassFixture<TestWebApplicationFactory>
         _factory.ClearCache();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting

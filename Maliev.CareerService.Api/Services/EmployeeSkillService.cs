@@ -1,5 +1,6 @@
+
 using Maliev.CareerService.Api.Models.Skills;
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

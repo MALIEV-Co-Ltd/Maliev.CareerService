@@ -1,7 +1,7 @@
 using Maliev.Aspire.ServiceDefaults;
 using Maliev.CareerService.Api.Services;
 using Maliev.CareerService.Api.Services.External;
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using MassTransit;
 // Initialize bootstrap logging
 using var loggerFactory = LoggerFactory.Create(logBuilder => logBuilder.AddConsole());

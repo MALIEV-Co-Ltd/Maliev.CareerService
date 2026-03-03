@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 using Xunit;

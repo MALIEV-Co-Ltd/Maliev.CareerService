@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.ELearningResources;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
@@ -216,7 +217,7 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
     private async Task SeedTestDataAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Clear existing data
         dbContext.ELearningResources.RemoveRange(dbContext.ELearningResources);
@@ -296,7 +297,7 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedSingleResourceAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var resource = new ELearningResource
         {
@@ -321,7 +322,7 @@ public class ELearningResourceTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedResourceWithExternalLmsAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var resource = new ELearningResource
         {

@@ -5,7 +5,7 @@ namespace Maliev.CareerService.Domain.Entities;
 public class JobPositionSkill
 {
     public int JobPositionId { get; set; }
-    public int SkillId { get; set; }
+    public Guid SkillId { get; set; }
 
     [Required]
     [MaxLength(50)]

@@ -1,11 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+using Maliev.CareerService.Domain.Validation;
+
 namespace Maliev.CareerService.Domain.Entities;
 
 public class TrainingRecord : BaseEntity
 {
+    [RequiredGuid]
     public Guid EmployeeId { get; set; }
 
     public Guid? TrainingProgramId { get; set; }
 
+    [Required]
+    [StringLength(200)]
     public string CourseName { get; set; } = string.Empty;
 
     public DateTime CompletionDate { get; set; }
@@ -20,6 +26,7 @@ public class TrainingRecord : BaseEntity
 
     public TrainingStatus Status { get; set; } = TrainingStatus.Completed;
 
+    [Range(0, 100)]
     public decimal? Score { get; set; }
 
     public TrainingProgram? TrainingProgram { get; set; }

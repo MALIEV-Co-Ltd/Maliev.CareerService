@@ -1,7 +1,9 @@
+
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
-using Maliev.CareerService.Data;
+
+using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using ApplicationStatus = Maliev.CareerService.Domain.Entities.ApplicationStatusConstants;
 using Maliev.MessagingContracts.Contracts.Career;

@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Domain.Entities;
@@ -207,7 +208,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
     private async Task<Guid> SeedTestJobPostingAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var posting = new JobPosting
         {
@@ -236,7 +237,7 @@ public class JobApplicationSubmissionTests(JobApplicationSubmissionTests.CustomW
     private async Task<Guid> SeedExpiredJobPostingAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create a job posting with expired deadline
         // To satisfy constraint (application_deadline > created_at), we set:

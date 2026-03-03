@@ -1,6 +1,7 @@
+
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.ELearningResources;
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;

@@ -12,17 +12,4 @@
     <ProjectReference Include="..\Maliev.CareerService.Domain\Maliev.CareerService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Maliev.CareerService.Api\Services\I*.cs" />
-    <Compile Include="..\Maliev.CareerService.Api\Services\External\I*.cs" />
-    <Compile Remove="..\Maliev.CareerService.Api\Services\External\IamServiceClient.cs" />
-    <Compile Include="..\Maliev.CareerService.Api\Models\**\*.cs" />
-    <Compile Include="..\Maliev.CareerService.Api\Mapping\**\*.cs" />
-    <Compile Include="..\Maliev.CareerService.Api\Authentication\**\*.cs" />
-  </ItemGroup>
-
 </Project>

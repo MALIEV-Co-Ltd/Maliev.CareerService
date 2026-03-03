@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.MessagingContracts.Contracts.Employee;
 using Maliev.MessagingContracts;
 using Maliev.CareerService.Domain.Entities;
@@ -82,7 +83,7 @@ public class EmployeeTerminatedEventConsumerTests : IntegrationTestBase
 
         // Verify enrollment deactivated in DB
         using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var updatedEnrollment = await dbContext.EmployeeTrainingEnrollments
             .FirstOrDefaultAsync(e => e.Id == enrollment.Id);
 

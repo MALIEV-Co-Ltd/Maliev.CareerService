@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services.External;
@@ -42,7 +43,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         // Get RowVersion
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -75,7 +76,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("under_review");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -105,7 +106,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("interviewing");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         // Add a status change to reverse
@@ -154,7 +155,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -180,7 +181,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
         var oldRowVersion = Convert.ToBase64String(application!.RowVersion);
 
@@ -214,7 +215,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -258,7 +259,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -281,7 +282,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         await _factory.CleanDatabaseAsync();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting

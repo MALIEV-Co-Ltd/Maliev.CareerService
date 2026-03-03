@@ -25,13 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\**\*.cs" />
-    <Compile Remove="Models\**\*.cs" />
-    <Compile Remove="Mapping\**\*.cs" />
-    <Compile Remove="Authentication\**\*.cs" />
-    <Compile Remove="BackgroundServices\**\*.cs" />
-    <Compile Remove="Consumers\**\*.cs" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
-
 
 </Project>

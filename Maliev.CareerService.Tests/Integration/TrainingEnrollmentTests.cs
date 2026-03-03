@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
@@ -196,7 +197,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
 
         // Get enrollment to get RowVersion
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
 
         var request = new MarkTrainingCompleteRequest
@@ -231,7 +232,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(_testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Read }));
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
 
         var request = new MarkTrainingCompleteRequest
@@ -250,7 +251,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedTrainingProgramAsync(string? programCode = null)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -277,7 +278,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedTrainingProgramWithCapacityAsync(int maxParticipants)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -305,7 +306,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedInactiveTrainingProgramAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -332,7 +333,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> EnrollEmployeeInProgramAsync(Guid programId, Guid employeeId)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var enrollment = new EmployeeTrainingEnrollment
         {
@@ -355,7 +356,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task MarkEnrollmentCompletedAsync(Guid enrollmentId)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
         if (enrollment != null)

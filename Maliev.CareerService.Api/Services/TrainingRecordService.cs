@@ -1,7 +1,8 @@
 
+
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.TrainingRecords;
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using Maliev.MessagingContracts.Contracts.Career;
 using Maliev.MessagingContracts;

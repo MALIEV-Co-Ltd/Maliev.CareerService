@@ -1,3 +1,4 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
@@ -192,7 +193,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
 
         // Reload entity to get database-generated RowVersion
         using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var savedIdp = await dbContext.IndividualDevelopmentPlans.FindAsync(idp.Id);
 
         var request = new UpdateIDPRequest
@@ -272,7 +273,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
 
         // Reload entity to get database-generated RowVersion
         using var scope2 = Factory.Services.CreateScope();
-        var dbContext2 = scope2.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext2 = scope2.ServiceProvider.GetRequiredService<CareerDbContext>();
         var savedIdp2 = await dbContext2.IndividualDevelopmentPlans.FindAsync(idp.Id);
 
         var request = new ApproveIDPRequest
