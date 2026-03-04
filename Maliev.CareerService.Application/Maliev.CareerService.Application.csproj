@@ -9,7 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Maliev.CareerService.Domain\Maliev.CareerService.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Models\**\*.cs" />
+    <Compile Include="Services\**\*.cs" />
+    <Compile Include="Mapping\*.cs" />
+    <Compile Include="Authentication\*.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,9 @@
 
-using Maliev.Aspire.ServiceDefaults.IAM;
+using Maliev.CareerService.Application.Services.External;
 using Maliev.CareerService.Application.Authentication;
+using Maliev.Aspire.ServiceDefaults.IAM;
 
-namespace Maliev.CareerService.Api.Services.External;
+namespace Maliev.CareerService.Infrastructure.Services.External;
 
 /// <summary>
 /// Background service that registers the Career Service's permissions and roles with the central IAM on startup.

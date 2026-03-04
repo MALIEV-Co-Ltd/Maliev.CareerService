@@ -35,6 +35,7 @@
     <Compile Include="Data\SnakeCaseNamingHelper.cs" />
     <Compile Include="Data\Configurations\*.cs" />
     <Compile Include="Data\Migrations\*.cs" />
+    <Compile Include="Services\**\*.cs" />
   </ItemGroup>
 
 </Project>
