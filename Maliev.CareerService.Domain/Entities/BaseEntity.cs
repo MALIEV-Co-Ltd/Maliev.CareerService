@@ -17,5 +17,5 @@ public abstract class BaseEntity
     public bool IsDeleted { get; set; }
 
     [ConcurrencyCheck]
-    public byte[] RowVersion { get; set; } = [];
+    public byte[] RowVersion { get; set; } = new byte[8];
 }

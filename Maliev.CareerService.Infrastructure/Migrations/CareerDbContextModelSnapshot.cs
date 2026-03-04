@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
+namespace Maliev.CareerService.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerDbContext))]
     partial class CareerDbContextModelSnapshot : ModelSnapshot
@@ -196,6 +196,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -273,6 +274,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -353,6 +355,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -426,6 +429,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -529,6 +533,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -765,6 +770,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -835,6 +841,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -900,6 +907,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -995,6 +1003,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 
@@ -1072,6 +1081,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea")
                         .HasColumnName("row_version");
 

@@ -1,4 +1,5 @@
 using Maliev.CareerService.Domain.Entities;
+using Maliev.CareerService.Infrastructure.ValueGenerators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -32,7 +33,7 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion).HasColumnName("row_version");
+        builder.Property(x => x.RowVersion).HasColumnName("row_version").IsRequired();
 
         builder.HasIndex(x => x.PositionCode);
         builder.HasIndex(x => x.IsActive);
@@ -64,7 +65,9 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion).HasColumnName("row_version");
+        builder.Property(x => x.RowVersion)
+            .HasColumnName("row_version")
+            .IsRequired();
 
         builder.HasOne(x => x.JobPosting)
             .WithMany(x => x.Applications)

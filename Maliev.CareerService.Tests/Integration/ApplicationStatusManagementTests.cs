@@ -182,13 +182,19 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
+        
+        // First, get the application and capture its RowVersion
         var application = await dbContext.JobApplications.FindAsync(applicationId);
         var oldRowVersion = Convert.ToBase64String(application!.RowVersion);
-
-        // Simulate concurrent update by changing the status
+        
+        // Simulate concurrent update by changing the status (this updates RowVersion in DB)
         application.Status = "under_review";
+        application.RowVersion = Guid.NewGuid().ToByteArray(); // Generate new RowVersion
         await dbContext.SaveChangesAsync();
-
+        
+        // Now the database has a new RowVersion, but we still have the old one
+        // Try to update with the stale RowVersion - this should cause a conflict
+        
         var request = new UpdateApplicationStatusRequest
         {
             NewStatus = "interviewing",
@@ -300,7 +306,8 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             PublishedAt = DateTime.UtcNow,
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobPostings.Add(posting);
@@ -320,7 +327,8 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             Status = initialStatus,
             AppliedAt = DateTime.UtcNow,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobApplications.Add(application);

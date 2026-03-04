@@ -139,6 +139,11 @@ public class TrainingProgramService(
         Guid updatedBy,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(request.RowVersion))
+        {
+            throw new ArgumentException("RowVersion is required for concurrency control.", nameof(request));
+        }
+
         var program = await _dbContext.TrainingPrograms
             .FirstOrDefaultAsync(tp => tp.Id == id, cancellationToken);
 
@@ -148,7 +153,7 @@ public class TrainingProgramService(
         }
 
         // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion);
+        var requestRowVersion = Convert.FromBase64String(request.RowVersion!);
         if (!program.RowVersion.SequenceEqual(requestRowVersion))
         {
             throw new DbUpdateConcurrencyException("The training program has been modified by another user. Please refresh and try again.");

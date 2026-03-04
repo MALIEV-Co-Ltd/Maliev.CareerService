@@ -38,6 +38,9 @@ try
     });
     builder.AddPostgresDbContext<CareerDbContext>(connectionName: "CareerDbContext"); // PostgreSQL with retry logic
 
+    // Add RowVersion interceptor for automatic concurrency token updates
+    builder.Services.AddScoped<Maliev.CareerService.Infrastructure.Interceptors.RowVersionUpdateInterceptor>();
+
     // --- API Configuration ---
     builder.AddStandardCors(); // CORS with fail-fast validation
     builder.AddDefaultApiVersioning(); // API versioning with URL segment reader

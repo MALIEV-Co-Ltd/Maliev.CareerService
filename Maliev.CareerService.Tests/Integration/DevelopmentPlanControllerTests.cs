@@ -279,7 +279,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var request = new ApproveIDPRequest
         {
             ApprovalNotes = "Approved - looks good!",
-            RowVersion = Convert.ToBase64String(savedIdp2!.RowVersion)
+            RowVersion = Convert.ToBase64String(savedIdp2!.RowVersion!)
         };
 
         // Act

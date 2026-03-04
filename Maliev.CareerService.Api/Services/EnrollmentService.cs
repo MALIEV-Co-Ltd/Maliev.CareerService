@@ -158,6 +158,11 @@ public class EnrollmentService(
         Guid markedCompleteBy,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(request.RowVersion))
+        {
+            throw new ArgumentException("RowVersion is required for concurrency control.", nameof(request));
+        }
+
         var enrollment = await _dbContext.EmployeeTrainingEnrollments
             .Include(e => e.TrainingProgram)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -167,8 +172,8 @@ public class EnrollmentService(
             return null;
         }
 
-        // Attach the provided RowVersion to the tracked entity for optimistic concurrency
-        _dbContext.Entry(enrollment).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion);
+        // Attach RowVersion to the tracked entity for optimistic concurrency
+        _dbContext.Entry(enrollment).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion!);
 
         // Update enrollment status
         enrollment.Status = TrainingEnrollmentStatus.Completed;

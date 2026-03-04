@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
+namespace Maliev.CareerService.Infrastructure.Migrations
 {
     [DbContext(typeof(CareerDbContext))]
-    [Migration("20260303091125_InitialCareerSchema")]
-    partial class InitialCareerSchema
+    [Migration("20260304094557_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

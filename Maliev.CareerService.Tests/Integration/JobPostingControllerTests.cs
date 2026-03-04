@@ -326,7 +326,8 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
             PublishedAt = DateTime.UtcNow,
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobPostings.Add(posting);

@@ -344,7 +344,8 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
             EnrollmentType = EnrollmentType.Voluntary,
             Status = TrainingEnrollmentStatus.Enrolled,
             CreatedBy = employeeId,
-            UpdatedBy = employeeId
+            UpdatedBy = employeeId,
+            RowVersion = new byte[8]
         };
 
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);

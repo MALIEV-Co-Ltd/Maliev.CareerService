@@ -315,12 +315,17 @@ public class ApplicationService(
         Guid hrUserId,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(request.RowVersion))
+        {
+            throw new ArgumentException("RowVersion is required for concurrency control.", nameof(request));
+        }
+
         var application = await _dbContext.JobApplications
             .Include(a => a.JobPosting)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken) ?? throw new InvalidOperationException($"Application {applicationId} not found.");
 
-        // Attach the provided RowVersion to the tracked entity for optimistic concurrency
-        _dbContext.Entry(application).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion);
+        // Attach RowVersion to the tracked entity for optimistic concurrency
+        _dbContext.Entry(application).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion!);
 
         // Store current status before modifying
         var originalStatus = application.Status;
@@ -367,6 +372,7 @@ public class ApplicationService(
         application.Status = request.NewStatus;
         application.UpdatedBy = hrUserId;
         application.UpdatedAt = DateTime.UtcNow;
+        application.RowVersion = Guid.NewGuid().ToByteArray();
 
         try
         {

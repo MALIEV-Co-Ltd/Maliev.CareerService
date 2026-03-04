@@ -32,7 +32,6 @@ public class JobPostingService(
             .OrderByDescending(jp => jp.PublishedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
-
         var postings = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -174,6 +173,11 @@ public class JobPostingService(
         Guid updatedBy,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(request.RowVersion))
+        {
+            throw new ArgumentException("RowVersion is required for concurrency control.", nameof(request));
+        }
+
         var posting = await _dbContext.JobPostings
             .FirstOrDefaultAsync(jp => jp.Id == id, cancellationToken);
 
@@ -183,7 +187,7 @@ public class JobPostingService(
         }
 
         // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion);
+        var requestRowVersion = Convert.FromBase64String(request.RowVersion!);
         if (!posting.RowVersion.SequenceEqual(requestRowVersion))
         {
             throw new DbUpdateConcurrencyException("The job posting has been modified by another user. Please refresh and try again.");
@@ -192,6 +196,7 @@ public class JobPostingService(
         // Map updated fields
         posting.UpdateJobPosting(request);
         posting.UpdatedBy = updatedBy;
+        posting.RowVersion = Guid.NewGuid().ToByteArray();
 
         try
         {

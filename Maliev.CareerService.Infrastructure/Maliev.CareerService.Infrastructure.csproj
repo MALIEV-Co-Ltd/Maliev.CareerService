@@ -10,9 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="[8.5.7, 9.0.0)" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="[8.5.8, 9.0.0)" />
     <PackageReference Include="Markdig" Version="1.0.0" />
     <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +30,8 @@
 
   <ItemGroup>
     <Compile Include="GlobalUsings.cs" />
+    <Compile Include="ValueGenerators\*.cs" />
+    <Compile Include="Interceptors\*.cs" />
     <Compile Include="Data\CareerDbContext.cs" />
     <Compile Include="Data\CareerDbContextFactory.cs" />
     <Compile Include="Data\SnakeCaseNamingHelper.cs" />

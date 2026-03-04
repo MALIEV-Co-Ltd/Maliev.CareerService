@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
+namespace Maliev.CareerService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCareerSchema : Migration
+    public partial class ConfigureRowVersionConcurrencyToken : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,7 +53,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -110,7 +110,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -133,7 +133,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -162,7 +162,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,7 +209,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -244,7 +244,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -308,7 +308,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -337,7 +337,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -370,7 +370,7 @@ namespace Maliev.CareerService.Infrastructure.Infrastructure.Data.Migrations
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", nullable: false)
+                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
