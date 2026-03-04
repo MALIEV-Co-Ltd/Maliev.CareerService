@@ -186,17 +186,11 @@ public class JobPostingService(
             return null;
         }
 
-        // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion!);
-        if (!posting.RowVersion.SequenceEqual(requestRowVersion))
-        {
-            throw new DbUpdateConcurrencyException("The job posting has been modified by another user. Please refresh and try again.");
-        }
-
         // Map updated fields
+        // Note: RowVersion (xmin) is automatically managed by PostgreSQL
+        // EF Core will detect concurrency conflicts automatically via the Version shadow property
         posting.UpdateJobPosting(request);
         posting.UpdatedBy = updatedBy;
-        posting.RowVersion = Guid.NewGuid().ToByteArray();
 
         try
         {
@@ -206,7 +200,7 @@ public class JobPostingService(
         catch (DbUpdateConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Concurrency conflict when updating job posting {PostingId}", id);
-            throw;
+            throw new DbUpdateConcurrencyException("The job posting has been modified by another user. Please refresh and try again.");
         }
 
         return MapToResponse(posting);

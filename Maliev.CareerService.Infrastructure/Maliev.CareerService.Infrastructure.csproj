@@ -30,8 +30,6 @@
 
   <ItemGroup>
     <Compile Include="GlobalUsings.cs" />
-    <Compile Include="ValueGenerators\*.cs" />
-    <Compile Include="Interceptors\*.cs" />
     <Compile Include="Data\CareerDbContext.cs" />
     <Compile Include="Data\CareerDbContextFactory.cs" />
     <Compile Include="Data\SnakeCaseNamingHelper.cs" />

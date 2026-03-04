@@ -18,4 +18,6 @@ public abstract class BaseEntity
 
     [ConcurrencyCheck]
     public byte[] RowVersion { get; set; } = new byte[8];
+
+    public uint Version { get; set; }
 }

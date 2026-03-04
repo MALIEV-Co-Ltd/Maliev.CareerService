@@ -372,7 +372,7 @@ public class ApplicationService(
         application.Status = request.NewStatus;
         application.UpdatedBy = hrUserId;
         application.UpdatedAt = DateTime.UtcNow;
-        application.RowVersion = Guid.NewGuid().ToByteArray();
+        // RowVersion is automatically managed by PostgreSQL's xmin system column
 
         try
         {

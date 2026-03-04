@@ -1,5 +1,4 @@
 using Maliev.CareerService.Domain.Entities;
-using Maliev.CareerService.Infrastructure.ValueGenerators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -53,6 +52,7 @@ public class MandatoryTrainingRequirementConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
         builder.Property(x => x.RowVersion).HasColumnName("row_version").IsRequired();
+        builder.Property<uint>("Version").HasColumnName("xmin").HasColumnType("xmin").IsRowVersion().ValueGeneratedOnAddOrUpdate();
 
         builder.HasOne(x => x.TrainingProgram)
             .WithMany()
