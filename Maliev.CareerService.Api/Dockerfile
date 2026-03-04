@@ -20,11 +20,11 @@ RUN --mount=type=secret,id=nuget_username \
 # Copy everything and build
 COPY . .
 WORKDIR "/src/Maliev.CareerService.Api"
-RUN dotnet build "Maliev.CareerService.Api.csproj" -c Release -o /app/build
+RUN GITHUB_ACTIONS=false dotnet build "Maliev.CareerService.Api.csproj" -c Release -o /app/build
 
 # Publish stage
 FROM build AS publish
-RUN dotnet publish "Maliev.CareerService.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN GITHUB_ACTIONS=false dotnet publish "Maliev.CareerService.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final

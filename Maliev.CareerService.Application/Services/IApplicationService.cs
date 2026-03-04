@@ -91,7 +91,6 @@ public interface IApplicationService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated job application details</returns>
     /// <exception cref="InvalidOperationException">If status transition is invalid</exception>
-    /// <exception cref="Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException">If optimistic concurrency conflict occurs</exception>
     Task<JobApplicationResponse> UpdateApplicationStatusAsync(
         Guid applicationId,
         UpdateApplicationStatusRequest request,
