@@ -1,5 +1,6 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.TrainingPrograms;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -245,7 +246,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         await _factory.CleanDatabaseAsync();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Add test data
         var programs = new List<TrainingProgram>
@@ -306,7 +307,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
         await _factory.CleanDatabaseAsync();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -321,7 +322,8 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
             TargetRoles = [],
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.TrainingPrograms.Add(program);

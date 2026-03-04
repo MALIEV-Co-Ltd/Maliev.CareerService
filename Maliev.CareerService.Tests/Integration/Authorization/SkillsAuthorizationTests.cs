@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Models.Skills;
-using Maliev.CareerService.Data.Enums;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

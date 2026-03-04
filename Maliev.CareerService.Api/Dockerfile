@@ -6,7 +6,9 @@ WORKDIR /src
 # Copy project files and nuget.config (exclude Tests - filtered by .dockerignore)
 COPY nuget.config ./
 COPY ["Maliev.CareerService.Api/Maliev.CareerService.Api.csproj", "Maliev.CareerService.Api/"]
-COPY ["Maliev.CareerService.Data/Maliev.CareerService.Data.csproj", "Maliev.CareerService.Data/"]
+COPY ["Maliev.CareerService.Application/Maliev.CareerService.Application.csproj", "Maliev.CareerService.Application/"]
+COPY ["Maliev.CareerService.Domain/Maliev.CareerService.Domain.csproj", "Maliev.CareerService.Domain/"]
+COPY ["Maliev.CareerService.Infrastructure/Maliev.CareerService.Infrastructure.csproj", "Maliev.CareerService.Infrastructure/"]
 
 # Restore dependencies with private NuGet feed credentials
 RUN --mount=type=secret,id=nuget_username \

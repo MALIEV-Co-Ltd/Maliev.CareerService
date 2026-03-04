@@ -1,7 +1,9 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Services.External;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using ApplicationStatus = Maliev.CareerService.Domain.Entities.ApplicationStatusConstants;
 using Maliev.CareerService.Tests.Factories;
 using Maliev.CareerService.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
@@ -178,7 +180,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
     private async Task SeedTestApplicationsAsync(string applicantEmail)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create a job posting first
         var jobPosting = new JobPosting
@@ -238,7 +240,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
     private async Task SeedMultipleApplicationsAsync(string applicantEmail, int count)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job postings
         var jobPostings = new List<JobPosting>();
@@ -288,7 +290,7 @@ public class ApplicationTrackingTests(ApplicationTrackingTests.CustomWebApplicat
     private async Task<Guid> SeedSingleApplicationAsync(string applicantEmail)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create a job posting first
         var jobPosting = new JobPosting

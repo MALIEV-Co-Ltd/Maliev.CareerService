@@ -16,6 +16,6 @@ public class MarkTrainingCompleteRequest
     /// <summary>
     /// Optimistic concurrency token (Base64 encoded)
     /// </summary>
-    [Required(ErrorMessage = "RowVersion is required for optimistic concurrency")]
-    public string RowVersion { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Row version is required for concurrency control")]
+    public string? RowVersion { get; set; }
 }

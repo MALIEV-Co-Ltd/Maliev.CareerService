@@ -28,6 +28,6 @@ public class UpdateApplicationStatusRequest
     /// <summary>
     /// Row version for optimistic concurrency control
     /// </summary>
-    [Required(ErrorMessage = "Row version is required")]
-    public string RowVersion { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Row version is required for concurrency control")]
+    public string? RowVersion { get; set; }
 }

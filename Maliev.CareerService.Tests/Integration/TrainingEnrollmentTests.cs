@@ -1,6 +1,9 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Enrollments;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
+using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -194,7 +197,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
 
         // Get enrollment to get RowVersion
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
 
         var request = new MarkTrainingCompleteRequest
@@ -229,7 +232,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + _factory.CreateTestJwtToken(_testEmployeeId.ToString(), null, new[] { CareerPermissions.Trainings.Read }));
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
 
         var request = new MarkTrainingCompleteRequest
@@ -248,7 +251,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedTrainingProgramAsync(string? programCode = null)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -275,7 +278,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedTrainingProgramWithCapacityAsync(int maxParticipants)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -303,7 +306,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> SeedInactiveTrainingProgramAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var program = new TrainingProgram
         {
@@ -330,7 +333,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task<Guid> EnrollEmployeeInProgramAsync(Guid programId, Guid employeeId)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var enrollment = new EmployeeTrainingEnrollment
         {
@@ -338,10 +341,11 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
             TrainingProgramId = programId,
             EmployeeId = employeeId,
             EnrolledAt = DateTime.UtcNow,
-            EnrollmentType = Data.Models.EnrollmentType.Voluntary,
+            EnrollmentType = EnrollmentType.Voluntary,
             Status = TrainingEnrollmentStatus.Enrolled,
             CreatedBy = employeeId,
-            UpdatedBy = employeeId
+            UpdatedBy = employeeId,
+            RowVersion = new byte[8]
         };
 
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);
@@ -353,7 +357,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
     private async Task MarkEnrollmentCompletedAsync(Guid enrollmentId)
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var enrollment = await dbContext.EmployeeTrainingEnrollments.FindAsync(enrollmentId);
         if (enrollment != null)

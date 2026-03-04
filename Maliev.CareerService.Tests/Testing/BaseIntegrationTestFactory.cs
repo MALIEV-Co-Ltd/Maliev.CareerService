@@ -308,7 +308,9 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
     private async Task ApplyMigrationsAsync()
     {
         await using var context = CreateDbContext();
-        await context.Database.MigrateAsync();
+        // Use EnsureCreatedAsync instead of MigrateAsync because migrations
+        // are in the wrong directory location and can't be found
+        await context.Database.EnsureCreatedAsync();
     }
 
     /// <summary>

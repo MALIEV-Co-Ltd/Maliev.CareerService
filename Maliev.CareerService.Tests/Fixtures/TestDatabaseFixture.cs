@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -69,7 +69,7 @@ public class TestDatabaseFixture : IAsyncLifetime
         await using var context = new CareerDbContext(optionsBuilder.Options);
 
         // Run migrations only (EnsureCreated + Migrate together causes pending model changes warning)
-        await context.Database.MigrateAsync();
+        await context.Database.EnsureCreatedAsync();
 
         _initialized = true;
     }

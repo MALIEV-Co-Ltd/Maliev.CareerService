@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data;
+using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Tests.Testing;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;

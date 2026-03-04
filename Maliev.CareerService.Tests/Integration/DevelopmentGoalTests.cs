@@ -1,5 +1,5 @@
 using Maliev.CareerService.Api.Models.DevelopmentGoals;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Maliev.CareerService.Data.Enums;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Xunit;
 
 namespace Maliev.CareerService.Tests.Unit.Entities;

@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data.Enums;
+using Maliev.CareerService.Domain.Entities;
 
 namespace Maliev.CareerService.Api.Models.Skills;
 

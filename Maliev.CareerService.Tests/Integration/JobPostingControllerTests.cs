@@ -1,6 +1,7 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.JobPostings;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -255,7 +256,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
     private async Task SeedTestDataAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Clear existing data
         dbContext.JobPostings.RemoveRange(dbContext.JobPostings);
@@ -308,7 +309,7 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
         await _factory.CleanDatabaseAsync();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         var posting = new JobPosting
         {
@@ -325,7 +326,8 @@ public class JobPostingControllerTests(TestWebApplicationFactory factory) : ICla
             PublishedAt = DateTime.UtcNow,
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobPostings.Add(posting);

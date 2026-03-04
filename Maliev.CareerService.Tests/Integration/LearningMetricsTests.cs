@@ -1,6 +1,9 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Reports;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
+using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -234,7 +237,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         _factory.ClearCache();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create training programs
         var programs = new List<TrainingProgram>
@@ -318,7 +321,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         _factory.ClearCache();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create training program
         var program = new TrainingProgram
@@ -391,7 +394,7 @@ public class LearningMetricsTests : IClassFixture<TestWebApplicationFactory>
         _factory.ClearCache();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create certification program
         var program = new TrainingProgram

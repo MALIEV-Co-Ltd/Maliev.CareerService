@@ -1,6 +1,6 @@
 using Maliev.CareerService.Api.Models.TrainingPrograms;
 using Maliev.CareerService.Api.Services;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

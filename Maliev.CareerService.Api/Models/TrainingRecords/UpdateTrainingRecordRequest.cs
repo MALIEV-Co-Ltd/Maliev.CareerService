@@ -1,4 +1,4 @@
-using Maliev.CareerService.Data.Enums;
+using Maliev.CareerService.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Maliev.CareerService.Api.Models.TrainingRecords;

@@ -1,3 +1,4 @@
+
 namespace Maliev.CareerService.Api.Services.External;
 
 /// <summary>

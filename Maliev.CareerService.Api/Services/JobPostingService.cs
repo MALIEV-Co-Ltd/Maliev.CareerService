@@ -1,7 +1,8 @@
+
 using Maliev.CareerService.Api.Mapping;
 using Maliev.CareerService.Api.Models.JobPostings;
-using Maliev.CareerService.Data;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Infrastructure.Data;
+using Maliev.CareerService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Api.Services;
@@ -31,7 +32,6 @@ public class JobPostingService(
             .OrderByDescending(jp => jp.PublishedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
-
         var postings = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -173,6 +173,11 @@ public class JobPostingService(
         Guid updatedBy,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(request.RowVersion))
+        {
+            throw new ArgumentException("RowVersion is required for concurrency control.", nameof(request));
+        }
+
         var posting = await _dbContext.JobPostings
             .FirstOrDefaultAsync(jp => jp.Id == id, cancellationToken);
 
@@ -181,14 +186,9 @@ public class JobPostingService(
             return null;
         }
 
-        // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion);
-        if (!posting.RowVersion.SequenceEqual(requestRowVersion))
-        {
-            throw new DbUpdateConcurrencyException("The job posting has been modified by another user. Please refresh and try again.");
-        }
-
         // Map updated fields
+        // Note: RowVersion (xmin) is automatically managed by PostgreSQL
+        // EF Core will detect concurrency conflicts automatically via the Version shadow property
         posting.UpdateJobPosting(request);
         posting.UpdatedBy = updatedBy;
 
@@ -200,7 +200,7 @@ public class JobPostingService(
         catch (DbUpdateConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Concurrency conflict when updating job posting {PostingId}", id);
-            throw;
+            throw new DbUpdateConcurrencyException("The job posting has been modified by another user. Please refresh and try again.");
         }
 
         return MapToResponse(posting);

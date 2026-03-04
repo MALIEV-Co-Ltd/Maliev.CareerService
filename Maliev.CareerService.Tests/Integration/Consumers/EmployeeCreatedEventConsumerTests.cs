@@ -1,6 +1,8 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.MessagingContracts.Contracts.Employee;
 using Maliev.MessagingContracts;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
+using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
 using MassTransit;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -89,7 +91,7 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
 
         // Verify enrollment created in DB
         using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var enrollment = await dbContext.EmployeeTrainingEnrollments
             .FirstOrDefaultAsync(e => e.EmployeeId == employeeId && e.TrainingProgramId == programId);
 

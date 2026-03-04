@@ -1,7 +1,8 @@
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using Maliev.CareerService.Api.Models.Applications;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Api.Services.External;
-using Maliev.CareerService.Data.Models;
+using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -42,7 +43,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
 
         // Get RowVersion
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -75,7 +76,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("under_review");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -105,7 +106,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("interviewing");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         // Add a status change to reverse
@@ -154,7 +155,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -180,14 +181,20 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
+        
+        // First, get the application and capture its RowVersion
         var application = await dbContext.JobApplications.FindAsync(applicationId);
         var oldRowVersion = Convert.ToBase64String(application!.RowVersion);
-
-        // Simulate concurrent update by changing the status
+        
+        // Simulate concurrent update by changing the status (this updates RowVersion in DB)
         application.Status = "under_review";
+        application.RowVersion = Guid.NewGuid().ToByteArray(); // Generate new RowVersion
         await dbContext.SaveChangesAsync();
-
+        
+        // Now the database has a new RowVersion, but we still have the old one
+        // Try to update with the stale RowVersion - this should cause a conflict
+        
         var request = new UpdateApplicationStatusRequest
         {
             NewStatus = "interviewing",
@@ -214,7 +221,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -258,7 +265,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         var applicationId = await SeedTestApplicationAsync("submitted");
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         var application = await dbContext.JobApplications.FindAsync(applicationId);
 
         var request = new UpdateApplicationStatusRequest
@@ -281,7 +288,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         await _factory.CleanDatabaseAsync();
 
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Data.CareerDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
 
         // Create job posting
         var posting = new JobPosting
@@ -299,7 +306,8 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             PublishedAt = DateTime.UtcNow,
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobPostings.Add(posting);
@@ -319,7 +327,8 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             Status = initialStatus,
             AppliedAt = DateTime.UtcNow,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid()
+            UpdatedBy = Guid.NewGuid(),
+            RowVersion = new byte[8]
         };
 
         dbContext.JobApplications.Add(application);
