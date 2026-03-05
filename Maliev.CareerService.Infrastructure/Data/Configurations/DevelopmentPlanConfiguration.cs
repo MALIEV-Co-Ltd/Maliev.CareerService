@@ -24,8 +24,7 @@ public class IndividualDevelopmentPlanConfiguration : IEntityTypeConfiguration<I
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion).HasColumnName("row_version").IsRequired();
-        builder.Property<uint>("Version").HasColumnName("xmin").HasColumnType("xmin").IsRowVersion().ValueGeneratedOnAddOrUpdate();
+        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasIndex(x => new { x.EmployeeId, x.PlanYear }).IsUnique();
     }
@@ -54,8 +53,7 @@ public class EmployeeDevelopmentGoalConfiguration : IEntityTypeConfiguration<Emp
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion).HasColumnName("row_version").IsRequired();
-        builder.Property<uint>("Version").HasColumnName("xmin").HasColumnType("xmin").IsRowVersion().ValueGeneratedOnAddOrUpdate();
+        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasOne(x => x.Idp)
             .WithMany(x => x.Goals)

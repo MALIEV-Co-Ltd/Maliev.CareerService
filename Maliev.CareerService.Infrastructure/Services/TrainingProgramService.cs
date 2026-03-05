@@ -34,7 +34,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
+        var responses = programs.Select(p => p.ToTrainingProgramResponse(_dbContext.Entry(p).Property<uint>("xmin").CurrentValue)).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -59,7 +59,7 @@ public class TrainingProgramService(
             return null;
         }
 
-        return program.ToTrainingProgramResponse();
+        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
     }
 
     /// <inheritdoc />
@@ -94,7 +94,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
+        var responses = programs.Select(p => p.ToTrainingProgramResponse(_dbContext.Entry(p).Property<uint>("xmin").CurrentValue)).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -130,7 +130,7 @@ public class TrainingProgramService(
 
         _logger.LogInformation("Training program {ProgramId} created with code {ProgramCode}", program.Id, program.ProgramCode);
 
-        return program.ToTrainingProgramResponse();
+        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
     }
 
     /// <inheritdoc />
@@ -153,12 +153,8 @@ public class TrainingProgramService(
             return null;
         }
 
-        // Verify RowVersion for optimistic concurrency
-        var requestRowVersion = Convert.FromBase64String(request.RowVersion!);
-        if (!program.RowVersion.SequenceEqual(requestRowVersion))
-        {
-            throw new DbUpdateConcurrencyException("The training program has been modified by another user. Please refresh and try again.");
-        }
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(program).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
 
         // Map updated fields
         program.UpdateTrainingProgram(request);
@@ -175,6 +171,6 @@ public class TrainingProgramService(
             throw;
         }
 
-        return program.ToTrainingProgramResponse();
+        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
     }
 }

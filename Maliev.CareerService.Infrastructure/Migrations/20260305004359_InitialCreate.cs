@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Maliev.CareerService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ConfigureRowVersionConcurrencyToken : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,12 +25,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     external_lms_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     estimated_minutes = table.Column<int>(type: "integer", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,12 +48,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     submitted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     approved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     approved_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -105,16 +105,61 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     application_deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     published_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_job_postings", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OutboxMessages",
+                columns: table => new
+                {
+                    EnqueueTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    SentTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Headers = table.Column<string>(type: "text", nullable: true),
+                    Properties = table.Column<string>(type: "text", nullable: true),
+                    InboxMessageId = table.Column<Guid>(type: "uuid", nullable: true),
+                    InboxConsumerId = table.Column<Guid>(type: "uuid", nullable: true),
+                    OutboxId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SequenceNumber = table.Column<long>(type: "bigint", nullable: false),
+                    MessageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ContentType = table.Column<string>(type: "text", nullable: false),
+                    MessageType = table.Column<string>(type: "text", nullable: false),
+                    Body = table.Column<string>(type: "text", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: true),
+                    InitiatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    RequestId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SourceAddress = table.Column<string>(type: "text", nullable: true),
+                    DestinationAddress = table.Column<string>(type: "text", nullable: true),
+                    ResponseAddress = table.Column<string>(type: "text", nullable: true),
+                    FaultAddress = table.Column<string>(type: "text", nullable: true),
+                    ExpirationTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OutboxStates",
+                columns: table => new
+                {
+                    OutboxId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LockId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: true),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Delivered = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastSequenceNumber = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
                 });
 
             migrationBuilder.CreateTable(
@@ -128,12 +173,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     last_assessed_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     is_development_area = table.Column<bool>(type: "boolean", nullable: false),
                     notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -157,12 +202,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     max_participants = table.Column<int>(type: "integer", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     validity_months = table.Column<int>(type: "integer", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -204,12 +249,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     completed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     action_items = table.Column<string>(type: "text", nullable: true),
                     progress_notes = table.Column<string>(type: "text", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -239,12 +284,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     applied_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     JobPositionId = table.Column<int>(type: "integer", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -303,12 +348,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     completed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     completion_notes = table.Column<string>(type: "text", nullable: true),
                     marked_complete_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -332,12 +377,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     completion_deadline_days = table.Column<int>(type: "integer", nullable: false),
                     recertification_months = table.Column<int>(type: "integer", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -365,12 +410,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     provider = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     status = table.Column<int>(type: "integer", nullable: false),
                     score = table.Column<decimal>(type: "numeric", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     updated_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    row_version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -584,6 +629,12 @@ namespace Maliev.CareerService.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "mandatory_training_requirements");
+
+            migrationBuilder.DropTable(
+                name: "OutboxMessages");
+
+            migrationBuilder.DropTable(
+                name: "OutboxStates");
 
             migrationBuilder.DropTable(
                 name: "training_records");

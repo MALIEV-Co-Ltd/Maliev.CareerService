@@ -105,7 +105,7 @@ public class EnrollmentService(
 
         _logger.LogInformation("Employee {EmployeeId} enrolled in training program {ProgramId}", employeeId, request.TrainingProgramId);
 
-        return enrollment.ToTrainingEnrollmentResponse();
+        return enrollment.ToTrainingEnrollmentResponse(_dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue);
     }
 
     /// <inheritdoc />
@@ -137,8 +137,8 @@ public class EnrollmentService(
 
         var responses = enrollments.Select(e =>
         {
-            var response = e.ToTrainingEnrollmentResponse();
-            response.TrainingProgram = e.TrainingProgram.ToTrainingProgramResponse();
+            var response = e.ToTrainingEnrollmentResponse(_dbContext.Entry(e).Property<uint>("xmin").CurrentValue);
+            response.TrainingProgram = e.TrainingProgram.ToTrainingProgramResponse(_dbContext.Entry(e.TrainingProgram).Property<uint>("xmin").CurrentValue);
             return response;
         }).ToList();
 
@@ -173,8 +173,8 @@ public class EnrollmentService(
             return null;
         }
 
-        // Attach RowVersion to the tracked entity for optimistic concurrency
-        _dbContext.Entry(enrollment).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion!);
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(enrollment).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
 
         // Update enrollment status
         enrollment.Status = TrainingEnrollmentStatus.Completed;
@@ -232,8 +232,8 @@ public class EnrollmentService(
             throw;
         }
 
-        var response = enrollment.ToTrainingEnrollmentResponse();
-        response.TrainingProgram = enrollment.TrainingProgram.ToTrainingProgramResponse();
+        var response = enrollment.ToTrainingEnrollmentResponse(_dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue);
+        response.TrainingProgram = enrollment.TrainingProgram.ToTrainingProgramResponse(_dbContext.Entry(enrollment.TrainingProgram).Property<uint>("xmin").CurrentValue);
         return response;
     }
 

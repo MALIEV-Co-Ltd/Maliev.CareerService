@@ -47,7 +47,7 @@ public class DevelopmentGoalService(
             goal.Id,
             idpId);
 
-        return goal.ToDevelopmentGoalResponse();
+        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
     }
     /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalAsync(
@@ -72,15 +72,9 @@ public class DevelopmentGoalService(
             throw new InvalidOperationException("Cannot edit goals in an Approved IDP. Use status update endpoint to track progress.");
         }
 
-        // Verify row version
-        var currentRowVersion = Convert.ToBase64String(goal.RowVersion);
-        if (currentRowVersion != request.RowVersion)
-        {
-            throw new DbUpdateConcurrencyException(
-                "The goal has been modified by another user. Please refresh and try again.");
-        }
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(goal).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
 
-        // Update fields
         // Update fields
         goal.UpdateDevelopmentGoal(request);
         goal.UpdatedBy = employeeId;
@@ -98,7 +92,7 @@ public class DevelopmentGoalService(
 
         _logger.LogInformation("Updated goal {GoalId}", goalId);
 
-        return goal.ToDevelopmentGoalResponse();
+        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
     }
     /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalStatusAsync(
@@ -117,13 +111,8 @@ public class DevelopmentGoalService(
             throw new UnauthorizedAccessException("You can only update goals in your own IDPs.");
         }
 
-        // Verify row version
-        var currentRowVersion = Convert.ToBase64String(goal.RowVersion);
-        if (currentRowVersion != request.RowVersion)
-        {
-            throw new DbUpdateConcurrencyException(
-                "The goal has been modified by another user. Please refresh and try again.");
-        }
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(goal).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
 
         // Update status
         goal.Status = request.Status;
@@ -157,7 +146,7 @@ public class DevelopmentGoalService(
             goalId,
             request.Status);
 
-        return goal.ToDevelopmentGoalResponse();
+        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
     }
 
     /// <inheritdoc/>
@@ -170,6 +159,6 @@ public class DevelopmentGoalService(
             .OrderBy(g => g.TargetDate)
             .ToListAsync(cancellationToken);
 
-        return goals.Select(g => g.ToDevelopmentGoalResponse()).ToList();
+        return goals.Select(g => g.ToDevelopmentGoalResponse(_dbContext.Entry(g).Property<uint>("xmin").CurrentValue)).ToList();
     }
 }

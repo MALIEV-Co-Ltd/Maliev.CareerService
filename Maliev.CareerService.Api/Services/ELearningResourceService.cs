@@ -33,7 +33,7 @@ public class ELearningResourceService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = resources.Select(r => r.ToELearningResourceResponse()).ToList();
+        var responses = resources.Select(r => r.ToELearningResourceResponse(_dbContext.Entry(r).Property<uint>("xmin").CurrentValue)).ToList();
 
         return new ELearningResourceListResponse
         {
@@ -58,7 +58,7 @@ public class ELearningResourceService(
             return null;
         }
 
-        return resource.ToELearningResourceResponse();
+        return resource.ToELearningResourceResponse(_dbContext.Entry(resource).Property<uint>("xmin").CurrentValue);
     }
 
     /// <inheritdoc />
@@ -93,7 +93,7 @@ public class ELearningResourceService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = resources.Select(r => r.ToELearningResourceResponse()).ToList();
+        var responses = resources.Select(r => r.ToELearningResourceResponse(_dbContext.Entry(r).Property<uint>("xmin").CurrentValue)).ToList();
 
         return new ELearningResourceListResponse
         {

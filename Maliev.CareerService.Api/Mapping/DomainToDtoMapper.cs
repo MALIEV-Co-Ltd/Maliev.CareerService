@@ -23,7 +23,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps JobPosting entity to JobPostingResponse
     /// </summary>
-    public static JobPostingResponse ToJobPostingResponse(this JobPosting jobPosting)
+    public static JobPostingResponse ToJobPostingResponse(this JobPosting jobPosting, uint xmin = 0)
     {
         return new JobPostingResponse
         {
@@ -44,7 +44,7 @@ public static class DomainToDtoMapper
             ApplicationDeadline = jobPosting.ApplicationDeadline,
             CreatedAt = jobPosting.CreatedAt,
             UpdatedAt = jobPosting.UpdatedAt,
-            RowVersion = Convert.ToBase64String(jobPosting.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 
@@ -102,7 +102,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps JobApplication entity to JobApplicationResponse
     /// </summary>
-    public static JobApplicationResponse ToJobApplicationResponse(this JobApplication application)
+    public static JobApplicationResponse ToJobApplicationResponse(this JobApplication application, uint xmin = 0)
     {
         return new JobApplicationResponse
         {
@@ -119,7 +119,7 @@ public static class DomainToDtoMapper
             Status = application.Status,
             AppliedAt = application.AppliedAt,
             UpdatedAt = application.UpdatedAt,
-            RowVersion = Convert.ToBase64String(application.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 
@@ -149,7 +149,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps TrainingProgram entity to TrainingProgramResponse
     /// </summary>
-    public static TrainingProgramResponse ToTrainingProgramResponse(this TrainingProgram program)
+    public static TrainingProgramResponse ToTrainingProgramResponse(this TrainingProgram program, uint xmin = 0)
     {
         return new TrainingProgramResponse
         {
@@ -168,7 +168,7 @@ public static class DomainToDtoMapper
             ValidityMonths = program.ValidityMonths,
             CreatedAt = program.CreatedAt,
             UpdatedAt = program.UpdatedAt,
-            RowVersion = Convert.ToBase64String(program.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 
@@ -216,7 +216,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps EmployeeTrainingEnrollment entity to TrainingEnrollmentResponse
     /// </summary>
-    public static TrainingEnrollmentResponse ToTrainingEnrollmentResponse(this EmployeeTrainingEnrollment enrollment)
+    public static TrainingEnrollmentResponse ToTrainingEnrollmentResponse(this EmployeeTrainingEnrollment enrollment, uint xmin = 0)
     {
         return new TrainingEnrollmentResponse
         {
@@ -232,7 +232,7 @@ public static class DomainToDtoMapper
             MarkedCompleteBy = enrollment.MarkedCompleteBy,
             CreatedAt = enrollment.CreatedAt,
             UpdatedAt = enrollment.UpdatedAt,
-            RowVersion = Convert.ToBase64String(enrollment.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 
@@ -253,7 +253,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps ELearningResource entity to ELearningResourceResponse
     /// </summary>
-    public static ELearningResourceResponse ToELearningResourceResponse(this ELearningResource resource)
+    public static ELearningResourceResponse ToELearningResourceResponse(this ELearningResource resource, uint xmin = 0)
     {
         return new ELearningResourceResponse
         {
@@ -268,7 +268,7 @@ public static class DomainToDtoMapper
             IsActive = resource.IsActive,
             CreatedAt = resource.CreatedAt,
             UpdatedAt = resource.UpdatedAt,
-            RowVersion = Convert.ToBase64String(resource.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 
@@ -276,7 +276,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps IndividualDevelopmentPlan entity to IDPResponse
     /// </summary>
-    public static IDPResponse ToIDPResponse(this IndividualDevelopmentPlan idp)
+    public static IDPResponse ToIDPResponse(this IndividualDevelopmentPlan idp, uint xmin = 0)
     {
         return new IDPResponse
         {
@@ -289,7 +289,7 @@ public static class DomainToDtoMapper
             ApprovedBy = idp.ApprovedBy,
             CreatedAt = idp.CreatedAt,
             UpdatedAt = idp.UpdatedAt,
-            RowVersion = Convert.ToBase64String(idp.RowVersion),
+            RowVersion = xmin.ToString(),
             Goals = idp.Goals?.Select(g => g.ToDevelopmentGoalResponse()).ToList() ?? new List<DevelopmentGoalResponse>()
         };
     }
@@ -310,7 +310,7 @@ public static class DomainToDtoMapper
     /// <summary>
     /// Maps EmployeeDevelopmentGoal entity to DevelopmentGoalResponse
     /// </summary>
-    public static DevelopmentGoalResponse ToDevelopmentGoalResponse(this EmployeeDevelopmentGoal goal)
+    public static DevelopmentGoalResponse ToDevelopmentGoalResponse(this EmployeeDevelopmentGoal goal, uint xmin = 0)
     {
         return new DevelopmentGoalResponse
         {
@@ -326,7 +326,7 @@ public static class DomainToDtoMapper
             ProgressNotes = goal.ProgressNotes,
             CreatedAt = goal.CreatedAt,
             UpdatedAt = goal.UpdatedAt,
-            RowVersion = Convert.ToBase64String(goal.RowVersion)
+            RowVersion = xmin.ToString()
         };
     }
 

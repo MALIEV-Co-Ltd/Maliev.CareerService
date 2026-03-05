@@ -32,8 +32,7 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion).HasColumnName("row_version").IsRequired();
-        builder.Property<uint>("Version").HasColumnName("xmin").HasColumnType("xmin").IsRowVersion().ValueGeneratedOnAddOrUpdate();
+        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasIndex(x => x.PositionCode);
         builder.HasIndex(x => x.IsActive);
@@ -65,9 +64,7 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property(x => x.RowVersion)
-            .HasColumnName("row_version")
-            .IsRequired();
+        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasOne(x => x.JobPosting)
             .WithMany(x => x.Applications)

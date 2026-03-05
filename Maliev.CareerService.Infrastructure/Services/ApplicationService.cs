@@ -254,7 +254,8 @@ public class ApplicationService(
         JobApplication application,
         CancellationToken cancellationToken)
     {
-        var response = application.ToJobApplicationResponse();
+        var xmin = _dbContext.Entry(application).Property<uint>("xmin").CurrentValue;
+        var response = application.ToJobApplicationResponse(xmin);
 
         // Get file URLs from Upload Service
         var fileIds = new List<Guid> { application.ResumeFileId };
@@ -325,8 +326,8 @@ public class ApplicationService(
             .Include(a => a.JobPosting)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken) ?? throw new InvalidOperationException($"Application {applicationId} not found.");
 
-        // Attach RowVersion to the tracked entity for optimistic concurrency
-        _dbContext.Entry(application).Property(e => e.RowVersion).OriginalValue = Convert.FromBase64String(request.RowVersion!);
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(application).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
 
         // Store current status before modifying
         var originalStatus = application.Status;

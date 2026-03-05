@@ -186,9 +186,10 @@ public class JobPostingService(
             return null;
         }
 
+        // Set xmin original value for optimistic concurrency check
+        _dbContext.Entry(posting).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+
         // Map updated fields
-        // Note: RowVersion (xmin) is automatically managed by PostgreSQL
-        // EF Core will detect concurrency conflicts automatically via the Version shadow property
         posting.UpdateJobPosting(request);
         posting.UpdatedBy = updatedBy;
 
@@ -244,7 +245,8 @@ public class JobPostingService(
     /// </summary>
     private JobPostingResponse MapToResponse(JobPosting posting)
     {
-        var response = posting.ToJobPostingResponse();
+        var xmin = _dbContext.Entry(posting).Property<uint>("xmin").CurrentValue;
+        var response = posting.ToJobPostingResponse(xmin);
 
         // Convert Markdown fields to HTML
         response.DescriptionHtml = _markdownService.ToHtml(posting.Description);
