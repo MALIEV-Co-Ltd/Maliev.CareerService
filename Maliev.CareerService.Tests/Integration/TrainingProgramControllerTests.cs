@@ -322,8 +322,7 @@ public class TrainingProgramControllerTests : IClassFixture<TestWebApplicationFa
             TargetRoles = [],
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
-            UpdatedBy = Guid.NewGuid(),
-            RowVersion = new byte[8]
+            UpdatedBy = Guid.NewGuid()
         };
 
         dbContext.TrainingPrograms.Add(program);

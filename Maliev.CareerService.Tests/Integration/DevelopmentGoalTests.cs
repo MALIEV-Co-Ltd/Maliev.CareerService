@@ -1,8 +1,10 @@
 using Maliev.CareerService.Api.Models.DevelopmentGoals;
 using Maliev.CareerService.Domain.Entities;
+using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Maliev.CareerService.Tests.Integration;
 
@@ -122,6 +124,10 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
 
         await SeedDatabaseAsync(idp, goal);
 
+        using var scope1 = Factory.Services.CreateScope();
+        var dbContext1 = scope1.ServiceProvider.GetRequiredService<CareerDbContext>();
+        var reloadedGoal1 = await dbContext1.EmployeeDevelopmentGoals.FindAsync(goal.Id);
+
         var request = new UpdateDevelopmentGoalRequest
         {
             GoalTitle = "Updated Title",
@@ -130,7 +136,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             TargetDate = DateTime.UtcNow.AddMonths(12),
             ActionItems = "New action items",
             ProgressNotes = "Making good progress",
-            RowVersion = Convert.ToBase64String(goal.RowVersion)
+            RowVersion = dbContext1.Entry(reloadedGoal1!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -185,7 +191,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             TargetDate = DateTime.UtcNow.AddMonths(6),
             ActionItems = "New action items",
             ProgressNotes = "Making progress",
-            RowVersion = "InvalidRowVersion=="
+            RowVersion = "9999999999"
         };
 
         // Act
@@ -228,12 +234,16 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
 
         await SeedDatabaseAsync(idp, goal);
 
+        using var scope2 = Factory.Services.CreateScope();
+        var dbContext2 = scope2.ServiceProvider.GetRequiredService<CareerDbContext>();
+        var reloadedGoal2 = await dbContext2.EmployeeDevelopmentGoals.FindAsync(goal.Id);
+
         var request = new UpdateGoalStatusRequest
         {
             Status = "Completed",
             CompletionDate = DateTime.UtcNow,
             ProgressNotes = "Successfully completed certification exam",
-            RowVersion = Convert.ToBase64String(goal.RowVersion)
+            RowVersion = dbContext2.Entry(reloadedGoal2!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -280,12 +290,16 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
 
         await SeedDatabaseAsync(idp, goal);
 
+        using var scope3 = Factory.Services.CreateScope();
+        var dbContext3 = scope3.ServiceProvider.GetRequiredService<CareerDbContext>();
+        var reloadedGoal3 = await dbContext3.EmployeeDevelopmentGoals.FindAsync(goal.Id);
+
         var request = new UpdateGoalStatusRequest
         {
             Status = "Completed",
-            CompletionDate = null, // Missing completion date
+            CompletionDate = null,
             ProgressNotes = "Done",
-            RowVersion = Convert.ToBase64String(goal.RowVersion)
+            RowVersion = dbContext3.Entry(reloadedGoal3!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act

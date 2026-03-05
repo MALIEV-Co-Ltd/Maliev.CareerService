@@ -148,7 +148,7 @@ public class JobApplicationContractTests(TestWebApplicationFactory factory) : IC
             ""coverLetter"": ""I am interested"",
             ""status"": ""Submitted"",
             ""appliedAt"": ""2025-01-01T00:00:00Z"",
-            ""rowVersion"": ""AAAAAAAAB9E="",
+            ""rowVersion"": ""1"",
             ""createdAt"": ""2025-01-01T00:00:00Z"",
             ""updatedAt"": ""2025-01-01T00:00:00Z""
         }";

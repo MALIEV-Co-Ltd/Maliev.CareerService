@@ -203,7 +203,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Completed successfully",
-            RowVersion = Convert.ToBase64String(enrollment!.RowVersion)
+            RowVersion = dbContext.Entry(enrollment!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -238,7 +238,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Trying to mark complete as employee",
-            RowVersion = Convert.ToBase64String(enrollment!.RowVersion)
+            RowVersion = dbContext.Entry(enrollment!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -344,8 +344,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
             EnrollmentType = EnrollmentType.Voluntary,
             Status = TrainingEnrollmentStatus.Enrolled,
             CreatedBy = employeeId,
-            UpdatedBy = employeeId,
-            RowVersion = new byte[8]
+            UpdatedBy = employeeId
         };
 
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);

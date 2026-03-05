@@ -50,7 +50,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "under_review",
             Reason = "Application meets initial criteria",
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -83,7 +83,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "interviewing",
             Reason = "Candidate shortlisted for interview",
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -131,7 +131,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             NewStatus = "under_review",
             Reason = "Interview cancelled - reverting status",
             IsReversal = true,
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -162,7 +162,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "offered", // Invalid: can't go directly from submitted to offered
             Reason = "Skipping review process",
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -183,23 +183,23 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CareerDbContext>();
         
-        // First, get the application and capture its RowVersion
+        // First, get the application and capture its xmin
         var application = await dbContext.JobApplications.FindAsync(applicationId);
-        var oldRowVersion = Convert.ToBase64String(application!.RowVersion);
+        var app = application!;
+        var oldRowVersion = dbContext.Entry(app).Property<uint>("xmin").CurrentValue.ToString();
         
-        // Simulate concurrent update by changing the status (this updates RowVersion in DB)
-        application.Status = "under_review";
-        application.RowVersion = Guid.NewGuid().ToByteArray(); // Generate new RowVersion
+        // Simulate concurrent update by changing the status (this creates new xmin in DB)
+        app.Status = "under_review";
         await dbContext.SaveChangesAsync();
         
-        // Now the database has a new RowVersion, but we still have the old one
+        // Now the database has a new xmin, but we still have the old one
         // Try to update with the stale RowVersion - this should cause a conflict
         
         var request = new UpdateApplicationStatusRequest
         {
             NewStatus = "interviewing",
             Reason = "Using stale RowVersion",
-            RowVersion = oldRowVersion // Old RowVersion will cause conflict
+            RowVersion = oldRowVersion // Old xmin will cause conflict
         };
 
         // Act
@@ -228,7 +228,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "under_review",
             Reason = "Unauthorized attempt",
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -248,7 +248,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "under_review",
             Reason = "Test",
-            RowVersion = "AAAAAAAAB9E="
+            RowVersion = "1"
         };
 
         // Act
@@ -272,7 +272,7 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
         {
             NewStatus = "under_review",
             Reason = new string('A', 1001), // Exceed max length of 1000
-            RowVersion = Convert.ToBase64String(application!.RowVersion)
+            RowVersion = dbContext.Entry(application!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -307,7 +307,6 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             IsActive = true,
             CreatedBy = Guid.NewGuid(),
             UpdatedBy = Guid.NewGuid(),
-            RowVersion = new byte[8]
         };
 
         dbContext.JobPostings.Add(posting);
@@ -328,7 +327,6 @@ public class ApplicationStatusManagementTests : IClassFixture<ApplicationStatusM
             AppliedAt = DateTime.UtcNow,
             CreatedBy = Guid.NewGuid(),
             UpdatedBy = Guid.NewGuid(),
-            RowVersion = new byte[8]
         };
 
         dbContext.JobApplications.Add(application);

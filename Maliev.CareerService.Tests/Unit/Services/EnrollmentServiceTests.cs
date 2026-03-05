@@ -56,11 +56,12 @@ public class EnrollmentServiceTests : BaseUnitTests
             TrainingProgramId = programId,
             Status = TrainingEnrollmentStatus.InProgress,
             EnrolledAt = DateTime.UtcNow.AddDays(-5),
-            EnrollmentType = EnrollmentType.Voluntary,
-            RowVersion = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
+            EnrollmentType = EnrollmentType.Voluntary
         };
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);
         await dbContext.SaveChangesAsync();
+
+        var xmin = dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue;
 
         var service = new EnrollmentService(
             dbContext,
@@ -72,7 +73,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Passed exam with 90%",
-            RowVersion = Convert.ToBase64String(enrollment.RowVersion)
+            RowVersion = xmin.ToString()
         };
 
         TrainingCompletedEvent? capturedEvent = null;
@@ -122,11 +123,12 @@ public class EnrollmentServiceTests : BaseUnitTests
             TrainingProgramId = programId,
             Status = TrainingEnrollmentStatus.InProgress,
             EnrolledAt = DateTime.UtcNow.AddDays(-1),
-            EnrollmentType = EnrollmentType.Voluntary,
-            RowVersion = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
+            EnrollmentType = EnrollmentType.Voluntary
         };
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);
         await dbContext.SaveChangesAsync();
+
+        var xmin = dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue;
 
         var service = new EnrollmentService(
             dbContext,
@@ -138,7 +140,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Attended",
-            RowVersion = Convert.ToBase64String(enrollment.RowVersion)
+            RowVersion = xmin.ToString()
         };
 
         TrainingCompletedEvent? capturedEvent = null;

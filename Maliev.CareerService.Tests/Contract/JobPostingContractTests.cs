@@ -151,7 +151,7 @@ public class JobPostingContractTests(TestWebApplicationFactory factory) : IClass
             ""applicationDeadline"": ""2025-12-31T23:59:59Z"",
             ""publishedAt"": ""2025-01-01T00:00:00Z"",
             ""isActive"": true,
-            ""rowVersion"": ""AAAAAAAAB9E="",
+            ""rowVersion"": ""1"",
             ""createdAt"": ""2025-01-01T00:00:00Z"",
             ""updatedAt"": ""2025-01-01T00:00:00Z""
         }";

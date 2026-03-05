@@ -139,7 +139,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
             TargetRoles = ["All"],
             MaxParticipants = 50,
             IsActive = true,
-            RowVersion = "AAAAAAAAB9E="
+            RowVersion = "1"
         };
 
         // Act
@@ -200,7 +200,7 @@ public class TrainingProgramContractTests(TestWebApplicationFactory factory) : I
             ""maxParticipants"": 30,
             ""currentEnrollmentCount"": 15,
             ""isActive"": true,
-            ""rowVersion"": ""AAAAAAAAB9E="",
+            ""rowVersion"": ""1"",
             ""createdAt"": ""2025-01-01T00:00:00Z"",
             ""updatedAt"": ""2025-01-01T00:00:00Z""
         }";

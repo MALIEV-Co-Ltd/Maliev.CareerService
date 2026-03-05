@@ -198,7 +198,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
 
         var request = new UpdateIDPRequest
         {
-            RowVersion = Convert.ToBase64String(savedIdp!.RowVersion)
+            RowVersion = dbContext.Entry(savedIdp!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -279,7 +279,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var request = new ApproveIDPRequest
         {
             ApprovalNotes = "Approved - looks good!",
-            RowVersion = Convert.ToBase64String(savedIdp2!.RowVersion!)
+            RowVersion = dbContext2.Entry(savedIdp2!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
@@ -315,10 +315,14 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
 
         await SeedDatabaseAsync(idp);
 
+        using var reloadScope = Factory.Services.CreateScope();
+        var reloadDbContext = reloadScope.ServiceProvider.GetRequiredService<CareerDbContext>();
+        var reloadedIdp = await reloadDbContext.IndividualDevelopmentPlans.FindAsync(idp.Id);
+
         var request = new ApproveIDPRequest
         {
             ApprovalNotes = "Trying to approve",
-            RowVersion = Convert.ToBase64String(idp.RowVersion)
+            RowVersion = reloadDbContext.Entry(reloadedIdp!).Property<uint>("xmin").CurrentValue.ToString()
         };
 
         // Act
