@@ -32,7 +32,6 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting>
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasIndex(x => x.PositionCode);
         builder.HasIndex(x => x.IsActive);
@@ -64,7 +63,6 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasOne(x => x.JobPosting)
             .WithMany(x => x.Applications)

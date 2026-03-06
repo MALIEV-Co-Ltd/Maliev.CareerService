@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Services.External;
 using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using TrainingEnrollmentStatus = Maliev.CareerService.Domain.Entities.TrainingEnrollmentStatusConstants;

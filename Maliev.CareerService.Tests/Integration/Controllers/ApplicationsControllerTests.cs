@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Maliev.CareerService.Api.Models.Applications;
+using Maliev.CareerService.Application.Models.Applications;
 using Maliev.CareerService.Domain.Entities;
 using Xunit;
 

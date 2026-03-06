@@ -1,8 +1,8 @@
 using Asp.Versioning;
 using Maliev.Aspire.ServiceDefaults.Authorization;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Api.Models.Reports;
-using Maliev.CareerService.Api.Services;
+using Maliev.CareerService.Application.Models.Reports;
+using Maliev.CareerService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Maliev.CareerService.Api.Controllers;

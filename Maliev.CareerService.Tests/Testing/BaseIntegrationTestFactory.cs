@@ -109,6 +109,9 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
                     throw new InvalidOperationException("PostgreSQL Testcontainer failed to become ready (Ping failed) after 60 seconds.");
                 }
 
+                // Clear migrations history to allow fresh migration run
+                await ClearMigrationsHistoryAsync();
+
                 // Wait for Redis to be ready
                 using (var connection = await StackExchange.Redis.ConnectionMultiplexer.ConnectAsync(_redisContainer.GetConnectionString()))
                 {
@@ -298,8 +301,29 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
     {
         var connectionString = _postgresContainer!.GetConnectionString();
         var optionsBuilder = new DbContextOptionsBuilder<TDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(
+            connectionString,
+            x => x.MigrationsAssembly("Maliev.CareerService.Infrastructure")
+        );
         return (TDbContext)Activator.CreateInstance(typeof(TDbContext), optionsBuilder.Options)!;
+    }
+
+    /// <summary>
+    /// Clears the migrations history table to allow fresh migration run.
+    /// </summary>
+    private async Task ClearMigrationsHistoryAsync()
+    {
+        var connectionString = _postgresContainer!.GetConnectionString();
+        
+        await using var conn = new Npgsql.NpgsqlConnection(connectionString);
+        await conn.OpenAsync();
+        
+        // Clear migrations history if it exists
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            DROP TABLE IF EXISTS ""__EFMigrationsHistory"";
+        ";
+        await cmd.ExecuteNonQueryAsync();
     }
 
     /// <summary>
@@ -308,9 +332,7 @@ public class BaseIntegrationTestFactory<TProgram, TDbContext> : WebApplicationFa
     private async Task ApplyMigrationsAsync()
     {
         await using var context = CreateDbContext();
-        // Use EnsureCreatedAsync instead of MigrateAsync because migrations
-        // are in the wrong directory location and can't be found
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Services.External;
 
 namespace Maliev.CareerService.Tests.Mocks;
 

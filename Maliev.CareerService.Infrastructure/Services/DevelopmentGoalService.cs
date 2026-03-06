@@ -47,7 +47,7 @@ public class DevelopmentGoalService(
             goal.Id,
             idpId);
 
-        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
+        return goal.ToDevelopmentGoalResponse();
     }
     /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalAsync(
@@ -72,8 +72,16 @@ public class DevelopmentGoalService(
             throw new InvalidOperationException("Cannot edit goals in an Approved IDP. Use status update endpoint to track progress.");
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(goal).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Explicit version check for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (goal.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Update fields
         goal.UpdateDevelopmentGoal(request);
@@ -92,7 +100,7 @@ public class DevelopmentGoalService(
 
         _logger.LogInformation("Updated goal {GoalId}", goalId);
 
-        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
+        return goal.ToDevelopmentGoalResponse();
     }
     /// <inheritdoc/>
     public async Task<DevelopmentGoalResponse> UpdateGoalStatusAsync(
@@ -111,8 +119,16 @@ public class DevelopmentGoalService(
             throw new UnauthorizedAccessException("You can only update goals in your own IDPs.");
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(goal).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (goal.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Update status
         goal.Status = request.Status;
@@ -146,7 +162,7 @@ public class DevelopmentGoalService(
             goalId,
             request.Status);
 
-        return goal.ToDevelopmentGoalResponse(_dbContext.Entry(goal).Property<uint>("xmin").CurrentValue);
+        return goal.ToDevelopmentGoalResponse();
     }
 
     /// <inheritdoc/>
@@ -159,6 +175,6 @@ public class DevelopmentGoalService(
             .OrderBy(g => g.TargetDate)
             .ToListAsync(cancellationToken);
 
-        return goals.Select(g => g.ToDevelopmentGoalResponse(_dbContext.Entry(g).Property<uint>("xmin").CurrentValue)).ToList();
+        return goals.Select(g => g.ToDevelopmentGoalResponse()).ToList();
     }
 }

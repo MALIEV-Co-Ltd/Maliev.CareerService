@@ -1,5 +1,6 @@
 using System.Net;
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Services.External;
+using Maliev.CareerService.Infrastructure.Services.External;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;

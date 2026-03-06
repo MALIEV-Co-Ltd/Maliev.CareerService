@@ -105,7 +105,7 @@ public class EnrollmentService(
 
         _logger.LogInformation("Employee {EmployeeId} enrolled in training program {ProgramId}", employeeId, request.TrainingProgramId);
 
-        return enrollment.ToTrainingEnrollmentResponse(_dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue);
+        return enrollment.ToTrainingEnrollmentResponse();
     }
 
     /// <inheritdoc />
@@ -137,8 +137,8 @@ public class EnrollmentService(
 
         var responses = enrollments.Select(e =>
         {
-            var response = e.ToTrainingEnrollmentResponse(_dbContext.Entry(e).Property<uint>("xmin").CurrentValue);
-            response.TrainingProgram = e.TrainingProgram.ToTrainingProgramResponse(_dbContext.Entry(e.TrainingProgram).Property<uint>("xmin").CurrentValue);
+            var response = e.ToTrainingEnrollmentResponse();
+            response.TrainingProgram = e.TrainingProgram.ToTrainingProgramResponse();
             return response;
         }).ToList();
 
@@ -173,8 +173,16 @@ public class EnrollmentService(
             return null;
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(enrollment).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (enrollment.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Update enrollment status
         enrollment.Status = TrainingEnrollmentStatus.Completed;
@@ -232,8 +240,8 @@ public class EnrollmentService(
             throw;
         }
 
-        var response = enrollment.ToTrainingEnrollmentResponse(_dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue);
-        response.TrainingProgram = enrollment.TrainingProgram.ToTrainingProgramResponse(_dbContext.Entry(enrollment.TrainingProgram).Property<uint>("xmin").CurrentValue);
+        var response = enrollment.ToTrainingEnrollmentResponse();
+        response.TrainingProgram = enrollment.TrainingProgram.ToTrainingProgramResponse();
         return response;
     }
 

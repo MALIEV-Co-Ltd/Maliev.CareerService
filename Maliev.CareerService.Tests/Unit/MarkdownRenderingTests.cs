@@ -1,4 +1,5 @@
-using Maliev.CareerService.Api.Services;
+using Maliev.CareerService.Application.Services;
+using Maliev.CareerService.Infrastructure.Services;
 using Xunit;
 
 namespace Maliev.CareerService.Tests.Unit;

@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.DevelopmentPlans;
+using Maliev.CareerService.Application.Models.DevelopmentPlans;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
 using System.Net;
@@ -106,7 +106,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var employeeId = Guid.NewGuid();
 
         // Register employee in mock service
-        Factory.MockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        Factory.MockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Test", "Employee", "test@maliev.com", "Engineering", "Engineer"));
 
         var token = GenerateEmployeeToken(employeeId);
@@ -136,7 +136,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var employeeId = Guid.NewGuid();
 
         // Register employee in mock service
-        Factory.MockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        Factory.MockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Test", "Employee", "test@maliev.com", "Engineering", "Engineer"));
 
         var token = GenerateEmployeeToken(employeeId);
@@ -173,7 +173,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var employeeId = Guid.NewGuid();
 
         // Register employee in mock service
-        Factory.MockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        Factory.MockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Test", "Employee", "test@maliev.com", "Engineering", "Engineer"));
 
         var token = GenerateEmployeeToken(employeeId);
@@ -198,7 +198,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
 
         var request = new UpdateIDPRequest
         {
-            RowVersion = dbContext.Entry(savedIdp!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = savedIdp!.Version.ToString()
         };
 
         // Act
@@ -215,7 +215,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var employeeId = Guid.NewGuid();
 
         // Register employee in mock service
-        Factory.MockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        Factory.MockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Test", "Employee", "test@maliev.com", "Engineering", "Engineer"));
 
         var token = GenerateEmployeeToken(employeeId);
@@ -255,7 +255,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var employeeId = Guid.NewGuid();
 
         // Register employee in mock service
-        Factory.MockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        Factory.MockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Test", "Employee", "test@maliev.com", "Engineering", "Engineer"));
 
         var idp = new IndividualDevelopmentPlan
@@ -279,7 +279,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var request = new ApproveIDPRequest
         {
             ApprovalNotes = "Approved - looks good!",
-            RowVersion = dbContext2.Entry(savedIdp2!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = savedIdp2!.Version.ToString()
         };
 
         // Act
@@ -322,7 +322,7 @@ public class DevelopmentPlanControllerTests : IClassFixture<CustomWebApplication
         var request = new ApproveIDPRequest
         {
             ApprovalNotes = "Trying to approve",
-            RowVersion = reloadDbContext.Entry(reloadedIdp!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = reloadedIdp!.Version.ToString()
         };
 
         // Act
@@ -347,8 +347,8 @@ public class CustomWebApplicationFactory : CareerServiceWebApplicationFactory
         builder.ConfigureTestServices(services =>
         {
             // Replace real IEmployeeServiceClient with mock
-            services.RemoveAll<Api.Services.External.IEmployeeServiceClient>();
-            services.AddSingleton<Api.Services.External.IEmployeeServiceClient>(MockEmployeeService);
+            services.RemoveAll<Application.Services.External.IEmployeeServiceClient>();
+            services.AddSingleton<Application.Services.External.IEmployeeServiceClient>(MockEmployeeService);
         });
     }
 }

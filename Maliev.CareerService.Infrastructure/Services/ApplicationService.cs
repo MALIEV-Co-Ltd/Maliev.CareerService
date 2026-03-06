@@ -254,8 +254,7 @@ public class ApplicationService(
         JobApplication application,
         CancellationToken cancellationToken)
     {
-        var xmin = _dbContext.Entry(application).Property<uint>("xmin").CurrentValue;
-        var response = application.ToJobApplicationResponse(xmin);
+        var response = application.ToJobApplicationResponse();
 
         // Get file URLs from Upload Service
         var fileIds = new List<Guid> { application.ResumeFileId };
@@ -326,8 +325,16 @@ public class ApplicationService(
             .Include(a => a.JobPosting)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken) ?? throw new InvalidOperationException($"Application {applicationId} not found.");
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(application).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (application.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Store current status before modifying
         var originalStatus = application.Status;

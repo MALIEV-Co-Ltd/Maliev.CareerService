@@ -1,6 +1,8 @@
 using Maliev.Aspire.ServiceDefaults;
-using Maliev.CareerService.Api.Services;
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Services;
+using Maliev.CareerService.Application.Services.External;
+using Maliev.CareerService.Infrastructure.Services;
+using Maliev.CareerService.Infrastructure.Services.External;
 using Maliev.CareerService.Infrastructure.Data;
 using MassTransit;
 // Initialize bootstrap logging
@@ -106,7 +108,11 @@ try
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
     // --- Database Migrations ---
-    await app.MigrateDatabaseAsync<CareerDbContext>();
+    // Skip migrations in test environment - test factory uses EnsureCreatedAsync
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        await app.MigrateDatabaseAsync<CareerDbContext>();
+    }
 
     // Configure middleware pipeline
     app.UseStandardMiddleware();

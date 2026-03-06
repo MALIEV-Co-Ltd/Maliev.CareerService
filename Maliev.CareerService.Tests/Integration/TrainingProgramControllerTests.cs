@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.TrainingPrograms;
+using Maliev.CareerService.Application.Models.TrainingPrograms;
 using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Microsoft.Extensions.DependencyInjection;

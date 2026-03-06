@@ -48,8 +48,8 @@ public class EmployeeCreatedEventConsumerTests : IntegrationTestBase
         });
 
         // Update mock employee service to return this employee
-        var mockEmployeeService = (Mocks.MockEmployeeServiceClient)Factory.Services.GetRequiredService<Api.Services.External.IEmployeeServiceClient>();
-        mockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        var mockEmployeeService = (Mocks.MockEmployeeServiceClient)Factory.Services.GetRequiredService<Application.Services.External.IEmployeeServiceClient>();
+        mockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "New", "Employee", "new@maliev.com", "IT", "Security", null, deptId, null));
 
         var harness = Factory.Services.GetRequiredService<ITestHarness>();

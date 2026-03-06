@@ -2,8 +2,8 @@ using Asp.Versioning;
 using Maliev.Aspire.ServiceDefaults.Authorization;
 using Maliev.Aspire.ServiceDefaults.IAM;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Api.Models.Applications;
-using Maliev.CareerService.Api.Services;
+using Maliev.CareerService.Application.Models.Applications;
+using Maliev.CareerService.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

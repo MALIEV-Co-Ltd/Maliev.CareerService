@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Maliev.CareerService.Api.Models.TrainingRecords;
+using Maliev.CareerService.Application.Models.TrainingRecords;
 using Maliev.CareerService.Domain.Entities;
 using Xunit;
 

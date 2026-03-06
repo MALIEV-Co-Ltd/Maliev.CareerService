@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Maliev.CareerService.Api.Models.Reports;
+using Maliev.CareerService.Application.Models.Reports;
 using Xunit;
 
 namespace Maliev.CareerService.Tests.Integration.Controllers;

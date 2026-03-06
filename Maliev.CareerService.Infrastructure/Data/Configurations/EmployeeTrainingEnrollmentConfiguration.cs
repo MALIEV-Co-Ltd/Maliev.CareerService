@@ -28,7 +28,6 @@ public class EmployeeTrainingEnrollmentConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.CreatedBy).HasColumnName("created_by");
         builder.Property(x => x.UpdatedBy).HasColumnName("updated_by");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
-        builder.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
 
         builder.HasOne(x => x.TrainingProgram)
             .WithMany(x => x.Enrollments)

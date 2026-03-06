@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Models.TrainingPrograms;
+using Maliev.CareerService.Application.Models.TrainingPrograms;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;

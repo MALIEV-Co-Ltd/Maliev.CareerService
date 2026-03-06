@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.JobPostings;
+using Maliev.CareerService.Application.Models.JobPostings;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;

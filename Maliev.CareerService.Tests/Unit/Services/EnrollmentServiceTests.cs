@@ -1,6 +1,7 @@
-using Maliev.CareerService.Api.Models.Enrollments;
-using Maliev.CareerService.Api.Services;
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Models.Enrollments;
+using Maliev.CareerService.Application.Services;
+using Maliev.CareerService.Infrastructure.Services;
+using Maliev.CareerService.Application.Services.External;
 using Maliev.CareerService.Infrastructure.Data;
 using Maliev.CareerService.Domain.Entities;
 using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
@@ -61,7 +62,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);
         await dbContext.SaveChangesAsync();
 
-        var xmin = dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue;
+        var version = enrollment.Version;
 
         var service = new EnrollmentService(
             dbContext,
@@ -73,7 +74,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Passed exam with 90%",
-            RowVersion = xmin.ToString()
+            RowVersion = version.ToString()
         };
 
         TrainingCompletedEvent? capturedEvent = null;
@@ -128,7 +129,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         dbContext.EmployeeTrainingEnrollments.Add(enrollment);
         await dbContext.SaveChangesAsync();
 
-        var xmin = dbContext.Entry(enrollment).Property<uint>("xmin").CurrentValue;
+        var version = enrollment.Version;
 
         var service = new EnrollmentService(
             dbContext,
@@ -140,7 +141,7 @@ public class EnrollmentServiceTests : BaseUnitTests
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Attended",
-            RowVersion = xmin.ToString()
+            RowVersion = version.ToString()
         };
 
         TrainingCompletedEvent? capturedEvent = null;

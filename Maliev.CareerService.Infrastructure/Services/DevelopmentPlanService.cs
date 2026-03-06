@@ -46,7 +46,7 @@ public class DevelopmentPlanService(
             .OrderByDescending(idp => idp.PlanYear)
             .ToListAsync(cancellationToken);
 
-        var responses = idps.Select(i => i.ToIDPResponse(_dbContext.Entry(i).Property<uint>("xmin").CurrentValue)).ToList();
+        var responses = idps.Select(i => i.ToIDPResponse()).ToList();
 
         return new IDPListResponse
         {
@@ -69,7 +69,7 @@ public class DevelopmentPlanService(
             return null;
         }
 
-        return idp.ToIDPResponse(_dbContext.Entry(idp).Property<uint>("xmin").CurrentValue);
+        return idp.ToIDPResponse();
     }
     /// <inheritdoc/>
     public async Task<IDPResponse> CreateIDPAsync(
@@ -100,7 +100,7 @@ public class DevelopmentPlanService(
             employeeId,
             request.PlanYear);
 
-        return idp.ToIDPResponse(_dbContext.Entry(idp).Property<uint>("xmin").CurrentValue);
+        return idp.ToIDPResponse();
     }
     /// <inheritdoc/>
     public async Task<IDPResponse> UpdateIDPAsync(
@@ -125,8 +125,16 @@ public class DevelopmentPlanService(
             throw new InvalidOperationException($"Cannot update IDP with status {idp.Status}. Only Draft IDPs can be updated.");
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(idp).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (idp.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         idp.UpdatedBy = employeeId;
         idp.UpdatedAt = DateTime.UtcNow;
@@ -143,7 +151,7 @@ public class DevelopmentPlanService(
 
         _logger.LogInformation("Updated IDP {IdpId}", idpId);
 
-        return idp.ToIDPResponse(_dbContext.Entry(idp).Property<uint>("xmin").CurrentValue);
+        return idp.ToIDPResponse();
     }
     /// <inheritdoc/>
     public async Task<IDPResponse> SubmitIDPAsync(
@@ -176,7 +184,7 @@ public class DevelopmentPlanService(
 
         _logger.LogInformation("Submitted IDP {IdpId} for approval", idpId);
 
-        return idp.ToIDPResponse(_dbContext.Entry(idp).Property<uint>("xmin").CurrentValue);
+        return idp.ToIDPResponse();
     }
     /// <inheritdoc/>
     public async Task<IDPResponse> ApproveIDPAsync(
@@ -195,8 +203,16 @@ public class DevelopmentPlanService(
             throw new InvalidOperationException($"Cannot approve IDP with status {idp.Status}. Only Submitted IDPs can be approved.");
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(idp).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (idp.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         idp.Status = IDPStatus.Approved;
         idp.ApprovedAt = DateTime.UtcNow;
@@ -219,7 +235,7 @@ public class DevelopmentPlanService(
             idpId,
             hrUserId);
 
-        return idp.ToIDPResponse(_dbContext.Entry(idp).Property<uint>("xmin").CurrentValue);
+        return idp.ToIDPResponse();
     }
     /// <inheritdoc/>
     public async Task<bool> CheckDuplicateYearAsync(

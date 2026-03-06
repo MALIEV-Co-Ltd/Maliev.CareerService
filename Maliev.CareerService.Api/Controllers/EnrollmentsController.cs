@@ -1,8 +1,8 @@
 using Asp.Versioning;
 using Maliev.Aspire.ServiceDefaults.Authorization;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Api.Models.Enrollments;
-using Maliev.CareerService.Api.Services;
+using Maliev.CareerService.Application.Models.Enrollments;
+using Maliev.CareerService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

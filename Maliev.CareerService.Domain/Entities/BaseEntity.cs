@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Maliev.CareerService.Domain.Entities;
 
 public abstract class BaseEntity
@@ -13,4 +15,7 @@ public abstract class BaseEntity
     public Guid UpdatedBy { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    [Timestamp]
+    public uint Version { get; set; }
 }

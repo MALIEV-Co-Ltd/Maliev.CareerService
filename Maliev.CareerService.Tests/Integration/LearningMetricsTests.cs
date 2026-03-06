@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.Reports;
+using Maliev.CareerService.Application.Models.Reports;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
 using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;

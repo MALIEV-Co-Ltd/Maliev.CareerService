@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.Enrollments;
+using Maliev.CareerService.Application.Models.Enrollments;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
 using EnrollmentType = Maliev.CareerService.Domain.Entities.EnrollmentTypeConstants;
@@ -203,7 +203,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Completed successfully",
-            RowVersion = dbContext.Entry(enrollment!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = enrollment!.Version.ToString()
         };
 
         // Act
@@ -238,7 +238,7 @@ public class TrainingEnrollmentTests : IClassFixture<TestWebApplicationFactory>
         var request = new MarkTrainingCompleteRequest
         {
             CompletionNotes = "Trying to mark complete as employee",
-            RowVersion = dbContext.Entry(enrollment!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = enrollment!.Version.ToString()
         };
 
         // Act

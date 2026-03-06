@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Maliev.CareerService.Api.Authentication;
-using Maliev.CareerService.Api.Models.Skills;
+using Maliev.CareerService.Application.Models.Skills;
 using Maliev.CareerService.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -53,8 +53,8 @@ public class SkillsAuthorizationTests : IntegrationTestBase
         var employeeId = Guid.NewGuid();
 
         // Setup manager relationship in mock
-        var mockEmployeeService = (Mocks.MockEmployeeServiceClient)Factory.Services.GetRequiredService<Api.Services.External.IEmployeeServiceClient>();
-        mockEmployeeService.AddEmployee(new Api.Services.External.EmployeeResponse(
+        var mockEmployeeService = (Mocks.MockEmployeeServiceClient)Factory.Services.GetRequiredService<Application.Services.External.IEmployeeServiceClient>();
+        mockEmployeeService.AddEmployee(new Application.Services.External.EmployeeResponse(
             employeeId, "Team", "Member", "team@maliev.com", "Engineering", "Developer", managerId));
 
         var token = Factory.CreateTestJwtToken(managerId.ToString(), new[] { CareerPredefinedRoles.Manager }, new[] { CareerPermissions.Trainings.ViewTeam, CareerPermissions.Trainings.ViewOwn });

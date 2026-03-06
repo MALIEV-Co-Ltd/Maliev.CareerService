@@ -34,7 +34,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = programs.Select(p => p.ToTrainingProgramResponse(_dbContext.Entry(p).Property<uint>("xmin").CurrentValue)).ToList();
+        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -59,7 +59,7 @@ public class TrainingProgramService(
             return null;
         }
 
-        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
+        return program.ToTrainingProgramResponse();
     }
 
     /// <inheritdoc />
@@ -94,7 +94,7 @@ public class TrainingProgramService(
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var responses = programs.Select(p => p.ToTrainingProgramResponse(_dbContext.Entry(p).Property<uint>("xmin").CurrentValue)).ToList();
+        var responses = programs.Select(p => p.ToTrainingProgramResponse()).ToList();
 
         return new TrainingProgramListResponse
         {
@@ -130,7 +130,7 @@ public class TrainingProgramService(
 
         _logger.LogInformation("Training program {ProgramId} created with code {ProgramCode}", program.Id, program.ProgramCode);
 
-        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
+        return program.ToTrainingProgramResponse();
     }
 
     /// <inheritdoc />
@@ -153,8 +153,16 @@ public class TrainingProgramService(
             return null;
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(program).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (program.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Map updated fields
         program.UpdateTrainingProgram(request);
@@ -171,6 +179,6 @@ public class TrainingProgramService(
             throw;
         }
 
-        return program.ToTrainingProgramResponse(_dbContext.Entry(program).Property<uint>("xmin").CurrentValue);
+        return program.ToTrainingProgramResponse();
     }
 }

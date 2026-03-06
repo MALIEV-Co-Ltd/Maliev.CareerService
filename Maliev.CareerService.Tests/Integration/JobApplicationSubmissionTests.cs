@@ -1,6 +1,6 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.Applications;
-using Maliev.CareerService.Api.Services.External;
+using Maliev.CareerService.Application.Models.Applications;
+using Maliev.CareerService.Application.Services.External;
 using Maliev.CareerService.Domain.Entities;
 using Maliev.CareerService.Tests.Factories;
 using Maliev.CareerService.Tests.Mocks;

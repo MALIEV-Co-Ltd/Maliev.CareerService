@@ -187,8 +187,16 @@ public class JobPostingService(
             return null;
         }
 
-        // Set xmin original value for optimistic concurrency check
-        _dbContext.Entry(posting).Property("xmin").OriginalValue = uint.Parse(request.RowVersion!);
+        // Check version for optimistic concurrency
+        if (!uint.TryParse(request.RowVersion, out var expectedVersion))
+        {
+            throw new ArgumentException("Invalid RowVersion format. Must be a valid unsigned 32-bit integer.", nameof(request.RowVersion));
+        }
+
+        if (posting.Version != expectedVersion)
+        {
+            throw new DbUpdateConcurrencyException("The entity has been modified by another user. Please refresh and try again.");
+        }
 
         // Map updated fields
         posting.UpdateJobPosting(request);
@@ -246,8 +254,7 @@ public class JobPostingService(
     /// </summary>
     private JobPostingResponse MapToResponse(JobPosting posting)
     {
-        var xmin = _dbContext.Entry(posting).Property<uint>("xmin").CurrentValue;
-        var response = posting.ToJobPostingResponse(xmin);
+        var response = posting.ToJobPostingResponse();
 
         // Convert Markdown fields to HTML
         response.DescriptionHtml = _markdownService.ToHtml(posting.Description);

@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Services;
+using Maliev.CareerService.Application.Services;
 using Maliev.MessagingContracts.Contracts.Employee;
 using MassTransit;
 

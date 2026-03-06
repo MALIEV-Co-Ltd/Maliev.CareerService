@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Maliev.CareerService.Api.Models.Skills;
+using Maliev.CareerService.Application.Models.Skills;
 using Maliev.CareerService.Domain.Entities;
 using Xunit;
 

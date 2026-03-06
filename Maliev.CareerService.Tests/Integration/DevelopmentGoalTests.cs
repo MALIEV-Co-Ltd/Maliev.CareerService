@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Models.DevelopmentGoals;
+using Maliev.CareerService.Application.Models.DevelopmentGoals;
 using Maliev.CareerService.Domain.Entities;
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
 using System.Net;
@@ -136,7 +136,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             TargetDate = DateTime.UtcNow.AddMonths(12),
             ActionItems = "New action items",
             ProgressNotes = "Making good progress",
-            RowVersion = dbContext1.Entry(reloadedGoal1!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = reloadedGoal1!.Version.ToString()
         };
 
         // Act
@@ -191,7 +191,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             TargetDate = DateTime.UtcNow.AddMonths(6),
             ActionItems = "New action items",
             ProgressNotes = "Making progress",
-            RowVersion = "9999999999"
+            RowVersion = "1" // Use a valid but stale RowVersion that doesn't exist in DB
         };
 
         // Act
@@ -243,7 +243,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             Status = "Completed",
             CompletionDate = DateTime.UtcNow,
             ProgressNotes = "Successfully completed certification exam",
-            RowVersion = dbContext2.Entry(reloadedGoal2!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = reloadedGoal2!.Version.ToString()
         };
 
         // Act
@@ -299,7 +299,7 @@ public class DevelopmentGoalTests(CareerServiceWebApplicationFactory factory) : 
             Status = "Completed",
             CompletionDate = null,
             ProgressNotes = "Done",
-            RowVersion = dbContext3.Entry(reloadedGoal3!).Property<uint>("xmin").CurrentValue.ToString()
+            RowVersion = reloadedGoal3!.Version.ToString()
         };
 
         // Act

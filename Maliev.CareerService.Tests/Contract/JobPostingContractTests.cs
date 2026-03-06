@@ -1,4 +1,4 @@
-using Maliev.CareerService.Api.Models.JobPostings;
+using Maliev.CareerService.Application.Models.JobPostings;
 using Maliev.CareerService.Tests.Factories;
 using System.Net;
 using System.Net.Http.Json;

@@ -1,5 +1,5 @@
 using CareerDbContext = Maliev.CareerService.Infrastructure.Data.CareerDbContext;
-using Maliev.CareerService.Api.Models.ELearningResources;
+using Maliev.CareerService.Application.Models.ELearningResources;
 using Maliev.CareerService.Api.Authentication;
 using Maliev.CareerService.Domain.Entities;
 using ELearningResourceType = Maliev.CareerService.Domain.Entities.ELearningResourceTypeConstants;
