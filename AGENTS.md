@@ -14,7 +14,7 @@ This document provides instructions for agentic coding agents working on the Mal
   ```
 - **Database Update**:
   ```bash
-  dotnet ef database update --project Maliev.CareerService.Data --startup-project Maliev.CareerService.Api
+  dotnet ef database update --project Maliev.CareerService.Infrastructure --startup-project Maliev.CareerService.Api
   ```
 
 ### Docker & Infrastructure
@@ -77,3 +77,23 @@ Refer to `.specify/memory/constitution.md` for the full list of non-negotiable a
 - **Service Autonomy**: Own database, no direct access to other service DBs.
 - **Secrets**: No secrets in code. Use environment variables.
 - **Observability**: Metrics and structured logging are mandatory.
+
+
+## Database & EF Core — Mandatory Rules
+
+### EF Core Design Package
+- ❌ `Microsoft.EntityFrameworkCore.Design` MUST NOT be in Api projects
+- ✅ It belongs ONLY in the Infrastructure (or Data) project where migrations live
+- Migration commands must target Infrastructure, not Api:
+  ```
+  dotnet ef migrations add <Name> --project Maliev.<Domain>Service.Infrastructure --startup-project ../Maliev.<Domain>Service.Api
+  ```
+
+### PostgreSQL xmin Concurrency — Mandatory Pattern
+Use shadow property ONLY. Never add a Xmin/xmin property to domain entities.
+```csharp
+entity.Property<uint>("xmin").HasColumnType("xid").IsRowVersion();
+```
+- ❌ Never use `UseXminAsConcurrencyToken()` (removed in Npgsql EF v7)
+- ❌ Never use entity property `public uint Xmin { get; set; }` or `public uint xmin { get; set; }`
+- ❌ Never use `.Ignore(e => e.Xmin)` — remove the entity property instead
