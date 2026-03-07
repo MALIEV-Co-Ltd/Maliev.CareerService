@@ -14,7 +14,7 @@ This document provides instructions for agentic coding agents working on the Mal
   ```
 - **Database Update**:
   ```bash
-  dotnet ef database update --project Maliev.CareerService.Infrastructure --startup-project Maliev.CareerService.Api
+  dotnet ef database update --project Maliev.CareerService.Infrastructure --startup-project Maliev.CareerService.Infrastructure
   ```
 
 ### Docker & Infrastructure
@@ -84,9 +84,9 @@ Refer to `.specify/memory/constitution.md` for the full list of non-negotiable a
 ### EF Core Design Package
 - ❌ `Microsoft.EntityFrameworkCore.Design` MUST NOT be in Api projects
 - ✅ It belongs ONLY in the Infrastructure (or Data) project where migrations live
-- Migration commands must target Infrastructure, not Api:
+- Migration commands must target Infrastructure as both project and startup-project (since EF Core Design package is in Infrastructure):
   ```
-  dotnet ef migrations add <Name> --project Maliev.<Domain>Service.Infrastructure --startup-project ../Maliev.<Domain>Service.Api
+  dotnet ef migrations add <Name> --project Maliev.<Domain>Service.Infrastructure --startup-project Maliev.<Domain>Service.Infrastructure
   ```
 
 ### PostgreSQL xmin Concurrency — Mandatory Pattern
