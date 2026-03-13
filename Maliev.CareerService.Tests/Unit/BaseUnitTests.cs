@@ -7,8 +7,11 @@ namespace Maliev.CareerService.Tests.Unit;
 
 public abstract class BaseUnitTests : IAsyncLifetime
 {
-    protected readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder().WithImage("postgres:18")
+    protected readonly PostgreSqlContainer _dbContainer = 
+                #pragma warning disable CS0618
+        new PostgreSqlBuilder().WithImage("postgres:18")
         .Build();
+#pragma warning restore CS0618
 
     public async Task InitializeAsync()
     {
@@ -31,3 +34,6 @@ public abstract class BaseUnitTests : IAsyncLifetime
         return context;
     }
 }
+
+
+

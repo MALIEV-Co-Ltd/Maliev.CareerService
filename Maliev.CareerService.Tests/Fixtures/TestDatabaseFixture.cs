@@ -31,7 +31,9 @@ public class TestDatabaseFixture : IAsyncLifetime
     {
         if (_initialized) return;
 
-        _postgresContainer = new PostgreSqlBuilder().WithImage("postgres:18-alpine")
+        _postgresContainer = 
+                #pragma warning disable CS0618
+        new PostgreSqlBuilder().WithImage("postgres:18-alpine")
             .WithDatabase("career_service_test")
             .WithUsername("test_user")
             .WithPassword("test_password")
@@ -43,6 +45,7 @@ public class TestDatabaseFixture : IAsyncLifetime
 
         _rabbitmqContainer = new RabbitMqBuilder().WithImage("rabbitmq:4.2-alpine")
             .Build();
+#pragma warning restore CS0618
 
         // Start all containers in parallel
         await Task.WhenAll(
@@ -154,3 +157,7 @@ public class TestDatabaseFixture : IAsyncLifetime
         }
     }
 }
+
+
+
+
