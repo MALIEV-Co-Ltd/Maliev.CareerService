@@ -1,6 +1,6 @@
 using Maliev.CareerService.Infrastructure.Data.Configurations;
 using Maliev.CareerService.Domain.Entities;
-using MassTransit.EntityFrameworkCoreIntegration;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maliev.CareerService.Infrastructure.Data;
@@ -28,17 +28,15 @@ public class CareerDbContext : DbContext
     public DbSet<JobPositionSkill> JobPositionSkills => Set<JobPositionSkill>();
     public DbSet<JobPositionLocation> JobPositionLocations => Set<JobPositionLocation>();
 
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-    public DbSet<OutboxState> OutboxStates => Set<OutboxState>();
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CareerDbContext).Assembly);
 
-        // Configure MassTransit outbox entities as keyless
-        modelBuilder.Entity<OutboxMessage>().HasNoKey();
-        modelBuilder.Entity<OutboxState>().HasNoKey();
+        // Configure MassTransit transactional outbox and inbox tables
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }
