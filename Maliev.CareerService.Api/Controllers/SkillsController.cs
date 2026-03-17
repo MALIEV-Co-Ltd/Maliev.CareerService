@@ -13,7 +13,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// Controller for managing employee skills matrix (Feature 003)
 /// </summary>
 [ApiController]
-[ApiVersion("1.0")]
+[ApiVersion("1")]
 [Route("career/v{version:apiVersion}/employees/{employeeId:guid}/skills")]
 [Produces("application/json")]
 public class SkillsController(

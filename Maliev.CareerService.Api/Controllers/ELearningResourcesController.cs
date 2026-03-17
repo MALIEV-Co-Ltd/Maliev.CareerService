@@ -11,7 +11,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// Controller for managing e-learning resources
 /// </summary>
 [ApiController]
-[ApiVersion("1.0")]
+[ApiVersion("1")]
 [Route("career/v{version:apiVersion}/elearning-resources")]
 [Produces("application/json")]
 public class ELearningResourcesController(

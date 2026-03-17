@@ -11,7 +11,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// Controller for managing mandatory training requirements (Feature 003)
 /// </summary>
 [ApiController]
-[ApiVersion("1.0")]
+[ApiVersion("1")]
 [Route("career/v{version:apiVersion}/mandatory-training")]
 [Produces("application/json")]
 public class MandatoryTrainingController(

@@ -12,7 +12,7 @@ namespace Maliev.CareerService.Api.Controllers;
 /// Controller for managing Development Goals
 /// </summary>
 [ApiController]
-[ApiVersion("1.0")]
+[ApiVersion("1")]
 [Route("career/v{version:apiVersion}")]
 [Produces("application/json")]
 [RequirePermission(CareerPermissions.Development.ViewOwn)]
