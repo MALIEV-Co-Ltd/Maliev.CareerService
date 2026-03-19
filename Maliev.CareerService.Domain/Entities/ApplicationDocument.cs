@@ -6,7 +6,7 @@ public class ApplicationDocument
 {
     public int Id { get; set; }
 
-    public int JobApplicationId { get; set; }
+    public Guid JobApplicationId { get; set; }
 
     [Required]
     [MaxLength(50)]

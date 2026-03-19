@@ -17,7 +17,7 @@ namespace Maliev.CareerService.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -63,10 +63,7 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                     b.Property<bool>("IsRequired")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("JobApplicationId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("JobApplicationId1")
+                    b.Property<Guid>("JobApplicationId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("MimeType")
@@ -84,7 +81,7 @@ namespace Maliev.CareerService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JobApplicationId1");
+                    b.HasIndex("JobApplicationId");
 
                     b.ToTable("ApplicationDocuments");
                 });
@@ -1335,7 +1332,7 @@ namespace Maliev.CareerService.Infrastructure.Migrations
                 {
                     b.HasOne("Maliev.CareerService.Domain.Entities.JobApplication", "JobApplication")
                         .WithMany()
-                        .HasForeignKey("JobApplicationId1")
+                        .HasForeignKey("JobApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
