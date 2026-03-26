@@ -1,4 +1,4 @@
-namespace Maliev.CareerService.Application.Authentication;
+namespace Maliev.CareerService.Application.Authorization;
 
 /// <summary>
 /// Defines granular permission constants for the Career Service.

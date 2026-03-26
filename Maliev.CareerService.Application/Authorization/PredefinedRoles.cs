@@ -1,4 +1,4 @@
-namespace Maliev.CareerService.Application.Authentication;
+namespace Maliev.CareerService.Application.Authorization;
 
 /// <summary>
 /// Defines predefined roles and their associated permissions for the Career Service.

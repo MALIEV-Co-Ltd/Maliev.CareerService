@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SharedLibraryVersion Condition="'$(SharedLibraryVersion)' == ''">1.0.*-*</SharedLibraryVersion>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +31,9 @@
     <Compile Include="Models\**\*.cs" />
     <Compile Include="Services\**\*.cs" />
     <Compile Include="Mapping\*.cs" />
-    <Compile Include="Authentication\*.cs" />
+    <Compile Include="Authorization\**\*.cs" />
   </ItemGroup>
+
+
 
 </Project>

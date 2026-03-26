@@ -1,6 +1,6 @@
 
 using Maliev.CareerService.Application.Services.External;
-using Maliev.CareerService.Application.Authentication;
+using Maliev.CareerService.Application.Authorization;
 using Maliev.Aspire.ServiceDefaults.IAM;
 
 namespace Maliev.CareerService.Infrastructure.Services.External;
