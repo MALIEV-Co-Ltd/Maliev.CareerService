@@ -1,42 +1,53 @@
+# syntax=docker/dockerfile:1.4
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore as distinct layers
+# Copy project files and nuget.config (exclude Tests - filtered by .dockerignore)
+COPY nuget.config ./
 COPY ["Maliev.CareerService.Api/Maliev.CareerService.Api.csproj", "Maliev.CareerService.Api/"]
-COPY ["Maliev.CareerService.Data/Maliev.CareerService.Data.csproj", "Maliev.CareerService.Data/"]
-RUN dotnet restore "Maliev.CareerService.Api/Maliev.CareerService.Api.csproj"
+COPY ["Maliev.CareerService.Application/Maliev.CareerService.Application.csproj", "Maliev.CareerService.Application/"]
+COPY ["Maliev.CareerService.Domain/Maliev.CareerService.Domain.csproj", "Maliev.CareerService.Domain/"]
+COPY ["Maliev.CareerService.Infrastructure/Maliev.CareerService.Infrastructure.csproj", "Maliev.CareerService.Infrastructure/"]
+
+# Restore dependencies with private NuGet feed credentials
+RUN --mount=type=secret,id=nuget_username \
+    --mount=type=secret,id=nuget_password \
+    NUGET_USERNAME=$(cat /run/secrets/nuget_username) \
+    NUGET_PASSWORD=$(cat /run/secrets/nuget_password) \
+    dotnet restore "Maliev.CareerService.Api/Maliev.CareerService.Api.csproj"
 
 # Copy everything and build
 COPY . .
 WORKDIR "/src/Maliev.CareerService.Api"
 RUN dotnet build "Maliev.CareerService.Api.csproj" -c Release -o /app/build
 
-# Publish stage  
+# Publish stage
 FROM build AS publish
 RUN dotnet publish "Maliev.CareerService.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Create non-root user for security
-RUN adduser --disabled-password --gecos "" --uid 10001 appuser
-
-# Create logs directory and set permissions
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
-
-# Copy published app
-COPY --from=publish /app/publish .
+# Ensure 'app' owns the workdir (app user already exists in ASP.NET runtime image)
+RUN chown -R app:app /app
 
 # Switch to non-root user
-USER appuser
+USER app
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/careers/liveness || exit 1
+# Copy published application (now owned by app)
+COPY --chown=app:app --from=publish /app/publish .
 
 # Expose port
 EXPOSE 8080
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/career/liveness || exit 1
 
 ENTRYPOINT ["dotnet", "Maliev.CareerService.Api.dll"]

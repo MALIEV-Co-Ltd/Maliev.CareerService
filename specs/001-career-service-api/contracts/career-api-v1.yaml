@@ -1,0 +1,2004 @@
+openapi: 3.0.3
+info:
+  title: Career Service Web API
+  description: |
+    RESTful API for managing external job applications, employee training programs,
+    e-learning resources, and individual development plans (IDPs).
+
+    ## Features
+    - External job application submission and tracking
+    - Training program enrollment and completion tracking
+    - E-learning resource management
+    - Individual development plan (IDP) creation and approval
+    - Role-based access control (Applicants, Employees, HR Staff)
+    - Prometheus metrics endpoint
+
+    ## Authentication
+    - JWT Bearer token required for authenticated endpoints
+    - Public endpoints: job posting listings, anonymous job applications
+    - Role-based authorization enforced on all protected resources
+  version: 1.0.0
+  contact:
+    name: MALIEV Co. Ltd.
+    url: https://maliev.com
+
+servers:
+  - url: https://api.maliev.com/career/api/v1
+    description: Production
+  - url: https://staging-api.maliev.com/career/api/v1
+    description: Staging
+  - url: http://localhost:8080/career/api/v1
+    description: Local Development
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Job Postings
+    description: External job opportunity management
+  - name: Job Applications
+    description: External applicant submission and tracking
+  - name: Training Programs
+    description: Employee training program management
+  - name: Training Enrollments
+    description: Employee training enrollment and completion
+  - name: E-Learning Resources
+    description: Self-paced learning material access
+  - name: Development Plans
+    description: Individual development plan (IDP) management
+  - name: Development Goals
+    description: IDP goal tracking and updates
+  - name: Metrics
+    description: Prometheus metrics endpoint
+
+paths:
+  # ===== Job Postings =====
+  /job-postings:
+    get:
+      tags: [Job Postings]
+      summary: List all active job postings
+      description: |
+        Retrieve paginated list of active job postings with optional filters.
+        Public endpoint - no authentication required.
+      operationId: listJobPostings
+      security: []  # Public endpoint
+      parameters:
+        - name: department
+          in: query
+          schema:
+            type: string
+          example: Engineering
+        - name: location
+          in: query
+          schema:
+            type: string
+          example: Bangkok
+        - name: employment_type
+          in: query
+          schema:
+            type: string
+            enum: [Full-time, Part-time, Contract, Intern]
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [published_at, application_deadline, position_title]
+            default: published_at
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPostingListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags: [Job Postings]
+      summary: Create a new job posting
+      description: HR Staff only - create a new job opportunity posting
+      operationId: createJobPosting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobPostingRequest'
+      responses:
+        '201':
+          description: Job posting created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPostingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /job-postings/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Job Postings]
+      summary: Get job posting details
+      description: Retrieve detailed information about a specific job posting. Public endpoint.
+      operationId: getJobPosting
+      security: []  # Public endpoint
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPostingResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    put:
+      tags: [Job Postings]
+      summary: Update job posting
+      description: HR Staff only - update existing job posting
+      operationId: updateJobPosting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobPostingRequest'
+      responses:
+        '200':
+          description: Job posting updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPostingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    delete:
+      tags: [Job Postings]
+      summary: Delete job posting
+      description: HR Staff only - soft delete a job posting
+      operationId: deleteJobPosting
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Job posting deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Job Applications =====
+  /job-applications:
+    get:
+      tags: [Job Applications]
+      summary: List all job applications
+      description: HR Staff only - retrieve all applications with filters
+      operationId: listJobApplications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: job_posting_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [submitted, under_review, interviewing, offered, accepted, rejected, withdrawn]
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags: [Job Applications]
+      summary: Submit job application
+      description: |
+        External applicants submit application. Public endpoint - no authentication required.
+        Applicant email must be unique per job posting.
+      operationId: submitJobApplication
+      security: []  # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitJobApplicationRequest'
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Duplicate application - email already applied to this posting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /job-applications/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Job Applications]
+      summary: Get application details
+      description: Retrieve application details. HR Staff can view any; applicants can view own.
+      operationId: getJobApplication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /job-applications/{id}/status:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    patch:
+      tags: [Job Applications]
+      summary: Update application status
+      description: HR Staff only - change application status with audit trail
+      operationId: updateApplicationStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApplicationStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /job-applications/{id}/status-history:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Job Applications]
+      summary: Get application status history
+      description: Retrieve full audit trail of status changes
+      operationId: getApplicationStatusHistory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Training Programs =====
+  /training-programs:
+    get:
+      tags: [Training Programs]
+      summary: List all training programs
+      description: Retrieve paginated list of active training programs
+      operationId: listTrainingPrograms
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: is_mandatory
+          in: query
+          schema:
+            type: boolean
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgramListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags: [Training Programs]
+      summary: Create training program
+      description: HR Staff only - create new training program
+      operationId: createTrainingProgram
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingProgramRequest'
+      responses:
+        '201':
+          description: Training program created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgramResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /training-programs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Training Programs]
+      summary: Get training program details
+      description: Retrieve detailed training program information
+      operationId: getTrainingProgram
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgramResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    put:
+      tags: [Training Programs]
+      summary: Update training program
+      description: HR Staff only - update training program details
+      operationId: updateTrainingProgram
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingProgramRequest'
+      responses:
+        '200':
+          description: Training program updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgramResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Training Enrollments =====
+  /training-enrollments:
+    get:
+      tags: [Training Enrollments]
+      summary: Get employee's training enrollments
+      description: Retrieve authenticated employee's training enrollments
+      operationId: listMyTrainingEnrollments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [enrolled, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingEnrollmentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags: [Training Enrollments]
+      summary: Enroll in training program
+      description: Employee enrolls in a training program
+      operationId: enrollInTraining
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollInTrainingRequest'
+      responses:
+        '201':
+          description: Enrollment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingEnrollmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Already enrolled in this program
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /training-enrollments/{id}/complete:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    patch:
+      tags: [Training Enrollments]
+      summary: Mark training as completed
+      description: HR Staff only - manually mark training enrollment as completed
+      operationId: markTrainingComplete
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkTrainingCompleteRequest'
+      responses:
+        '200':
+          description: Training marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingEnrollmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== E-Learning Resources =====
+  /elearning-resources:
+    get:
+      tags: [E-Learning Resources]
+      summary: List e-learning resources
+      description: Retrieve paginated list of available e-learning materials
+      operationId: listELearningResources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: resource_type
+          in: query
+          schema:
+            type: string
+            enum: [video, document, interactive, quiz]
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ELearningResourceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /elearning-resources/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [E-Learning Resources]
+      summary: Get e-learning resource details
+      description: Retrieve detailed information and external LMS URL
+      operationId: getELearningResource
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ELearningResourceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Individual Development Plans (IDPs) =====
+  /idps:
+    get:
+      tags: [Development Plans]
+      summary: Get employee's IDPs
+      description: Retrieve authenticated employee's IDPs
+      operationId: listMyIDPs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: plan_year
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, submitted, approved, in_progress, completed]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags: [Development Plans]
+      summary: Create IDP
+      description: Employee creates a new Individual Development Plan
+      operationId: createIDP
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIDPRequest'
+      responses:
+        '201':
+          description: IDP created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: IDP already exists for this year
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /idps/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Development Plans]
+      summary: Get IDP details
+      description: Retrieve IDP with all goals
+      operationId: getIDP
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    put:
+      tags: [Development Plans]
+      summary: Update IDP
+      description: Employee updates IDP (only if status is draft)
+      operationId: updateIDP
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIDPRequest'
+      responses:
+        '200':
+          description: IDP updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /idps/{id}/submit:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    patch:
+      tags: [Development Plans]
+      summary: Submit IDP for approval
+      description: Employee submits IDP to HR for review
+      operationId: submitIDP
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: IDP submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /idps/{id}/approve:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    patch:
+      tags: [Development Plans]
+      summary: Approve IDP
+      description: HR Staff approves employee's IDP
+      operationId: approveIDP
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveIDPRequest'
+      responses:
+        '200':
+          description: IDP approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IDPResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Development Goals =====
+  /idps/{idpId}/goals:
+    parameters:
+      - name: idpId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      tags: [Development Goals]
+      summary: Add goal to IDP
+      description: Employee adds a development goal to their IDP
+      operationId: addGoalToIDP
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDevelopmentGoalRequest'
+      responses:
+        '201':
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentGoalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /goals/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      tags: [Development Goals]
+      summary: Update development goal
+      description: Employee updates goal details
+      operationId: updateDevelopmentGoal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDevelopmentGoalRequest'
+      responses:
+        '200':
+          description: Goal updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentGoalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /goals/{id}/status:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    patch:
+      tags: [Development Goals]
+      summary: Update goal status
+      description: Employee updates goal progress and status
+      operationId: updateGoalStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGoalStatusRequest'
+      responses:
+        '200':
+          description: Goal status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentGoalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  # ===== Metrics =====
+  /metrics:
+    get:
+      tags: [Metrics]
+      summary: Prometheus metrics
+      description: Expose Prometheus-compatible metrics for business analytics
+      operationId: getMetrics
+      security: []  # Public endpoint for monitoring
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                # HELP career_job_applications_total Total number of job applications by status
+                # TYPE career_job_applications_total counter
+                career_job_applications_total{status="submitted"} 42
+                career_job_applications_total{status="under_review"} 15
+
+                # HELP career_training_enrollments_total Total training enrollments
+                # TYPE career_training_enrollments_total counter
+                career_training_enrollments_total{status="completed"} 128
+
+# ===== Component Schemas =====
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token from Auth Service
+
+  schemas:
+    # ===== Job Posting Schemas =====
+    JobPostingResponse:
+      type: object
+      required:
+        - id
+        - position_title
+        - position_code
+        - department
+        - location
+        - employment_type
+        - description
+        - requirements
+        - responsibilities
+        - application_deadline
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        position_title:
+          type: string
+          maxLength: 200
+        position_code:
+          type: string
+          maxLength: 50
+        department:
+          type: string
+          maxLength: 100
+        location:
+          type: string
+          maxLength: 200
+        employment_type:
+          type: string
+          enum: [Full-time, Part-time, Contract, Intern]
+        salary_min:
+          type: number
+          format: decimal
+          nullable: true
+        salary_max:
+          type: number
+          format: decimal
+          nullable: true
+        currency:
+          type: string
+          maxLength: 3
+          default: THB
+        description:
+          type: string
+          description: Markdown formatted job description
+        requirements:
+          type: string
+          description: Markdown formatted requirements
+        responsibilities:
+          type: string
+          description: Markdown formatted responsibilities
+        description_html:
+          type: string
+          description: Sanitized HTML rendered from Markdown description
+        requirements_html:
+          type: string
+          description: Sanitized HTML rendered from Markdown requirements
+        responsibilities_html:
+          type: string
+          description: Sanitized HTML rendered from Markdown responsibilities
+        application_deadline:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+          description: Base64-encoded row version for optimistic concurrency
+
+    CreateJobPostingRequest:
+      type: object
+      required:
+        - position_title
+        - position_code
+        - department
+        - location
+        - employment_type
+        - description
+        - requirements
+        - responsibilities
+        - application_deadline
+      properties:
+        position_title:
+          type: string
+          maxLength: 200
+        position_code:
+          type: string
+          maxLength: 50
+        department:
+          type: string
+          maxLength: 100
+        location:
+          type: string
+          maxLength: 200
+        employment_type:
+          type: string
+          enum: [Full-time, Part-time, Contract, Intern]
+        salary_min:
+          type: number
+          format: decimal
+        salary_max:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          maxLength: 3
+          default: THB
+        description:
+          type: string
+          description: Markdown formatted job description
+        requirements:
+          type: string
+          description: Markdown formatted requirements
+        responsibilities:
+          type: string
+          description: Markdown formatted responsibilities
+        application_deadline:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+
+    UpdateJobPostingRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateJobPostingRequest'
+        - type: object
+          required:
+            - row_version
+          properties:
+            row_version:
+              type: string
+              description: Base64-encoded row version for optimistic concurrency
+            is_active:
+              type: boolean
+
+    JobPostingListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+        - offset
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobPostingResponse'
+        total_count:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    # ===== Job Application Schemas =====
+    JobApplicationResponse:
+      type: object
+      required:
+        - id
+        - job_posting_id
+        - applicant_first_name
+        - applicant_last_name
+        - applicant_email
+        - applicant_phone
+        - applicant_country_code
+        - resume_file_id
+        - status
+        - applied_at
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        job_posting_id:
+          type: string
+          format: uuid
+        job_posting:
+          $ref: '#/components/schemas/JobPostingResponse'
+        applicant_first_name:
+          type: string
+          maxLength: 100
+        applicant_last_name:
+          type: string
+          maxLength: 100
+        applicant_email:
+          type: string
+          format: email
+        applicant_phone:
+          type: string
+          maxLength: 20
+        applicant_country_code:
+          type: string
+          maxLength: 2
+        applicant_country_name:
+          type: string
+          description: Country name from Country Service
+        resume_file_id:
+          type: string
+          format: uuid
+        resume_file_url:
+          type: string
+          description: Download URL from Upload Service
+        cover_letter:
+          type: string
+          nullable: true
+        additional_file_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 4
+        additional_file_urls:
+          type: array
+          items:
+            type: string
+          description: Download URLs from Upload Service
+        status:
+          type: string
+          enum: [submitted, under_review, interviewing, offered, accepted, rejected, withdrawn]
+        applied_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    SubmitJobApplicationRequest:
+      type: object
+      required:
+        - job_posting_id
+        - applicant_first_name
+        - applicant_last_name
+        - applicant_email
+        - applicant_phone
+        - applicant_country_code
+        - resume_file_id
+      properties:
+        job_posting_id:
+          type: string
+          format: uuid
+        applicant_first_name:
+          type: string
+          maxLength: 100
+        applicant_last_name:
+          type: string
+          maxLength: 100
+        applicant_email:
+          type: string
+          format: email
+        applicant_phone:
+          type: string
+          maxLength: 20
+        applicant_country_code:
+          type: string
+          maxLength: 2
+        resume_file_id:
+          type: string
+          format: uuid
+        cover_letter:
+          type: string
+        additional_file_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 4
+
+    UpdateApplicationStatusRequest:
+      type: object
+      required:
+        - new_status
+        - row_version
+      properties:
+        new_status:
+          type: string
+          enum: [under_review, interviewing, offered, accepted, rejected, withdrawn]
+        reason:
+          type: string
+          description: Optional reason for status change
+        is_reversal:
+          type: boolean
+          default: false
+        row_version:
+          type: string
+
+    JobApplicationListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+        - offset
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobApplicationResponse'
+        total_count:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    StatusChangeRecord:
+      type: object
+      required:
+        - id
+        - from_status
+        - to_status
+        - changed_by
+        - changed_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        from_status:
+          type: string
+          nullable: true
+        to_status:
+          type: string
+        changed_by:
+          type: string
+          format: uuid
+        changed_by_name:
+          type: string
+        changed_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        is_reversal:
+          type: boolean
+
+    StatusHistoryResponse:
+      type: object
+      required:
+        - application_id
+        - changes
+      properties:
+        application_id:
+          type: string
+          format: uuid
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusChangeRecord'
+
+    # ===== Training Program Schemas =====
+    TrainingProgramResponse:
+      type: object
+      required:
+        - id
+        - program_code
+        - program_name
+        - description
+        - category
+        - duration_hours
+        - is_mandatory
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        program_code:
+          type: string
+        program_name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        duration_hours:
+          type: integer
+        provider:
+          type: string
+          nullable: true
+        external_lms_url:
+          type: string
+          nullable: true
+        is_mandatory:
+          type: boolean
+        target_roles:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    CreateTrainingProgramRequest:
+      type: object
+      required:
+        - program_code
+        - program_name
+        - description
+        - category
+        - duration_hours
+      properties:
+        program_code:
+          type: string
+          maxLength: 50
+        program_name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        category:
+          type: string
+          maxLength: 100
+        duration_hours:
+          type: integer
+          minimum: 1
+        provider:
+          type: string
+        external_lms_url:
+          type: string
+        is_mandatory:
+          type: boolean
+        target_roles:
+          type: array
+          items:
+            type: string
+
+    UpdateTrainingProgramRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateTrainingProgramRequest'
+        - type: object
+          required:
+            - row_version
+          properties:
+            row_version:
+              type: string
+            is_active:
+              type: boolean
+
+    TrainingProgramListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+        - offset
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingProgramResponse'
+        total_count:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    # ===== Training Enrollment Schemas =====
+    TrainingEnrollmentResponse:
+      type: object
+      required:
+        - id
+        - training_program_id
+        - employee_id
+        - enrolled_at
+        - enrollment_type
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        training_program_id:
+          type: string
+          format: uuid
+        training_program:
+          $ref: '#/components/schemas/TrainingProgramResponse'
+        employee_id:
+          type: string
+          format: uuid
+        enrolled_at:
+          type: string
+          format: date-time
+        enrollment_type:
+          type: string
+          enum: [voluntary, mandatory, assigned]
+        status:
+          type: string
+          enum: [enrolled, in_progress, completed, cancelled]
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        completion_notes:
+          type: string
+          nullable: true
+        marked_complete_by:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    EnrollInTrainingRequest:
+      type: object
+      required:
+        - training_program_id
+      properties:
+        training_program_id:
+          type: string
+          format: uuid
+
+    MarkTrainingCompleteRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        completion_notes:
+          type: string
+        row_version:
+          type: string
+
+    TrainingEnrollmentListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingEnrollmentResponse'
+        total_count:
+          type: integer
+
+    # ===== E-Learning Resource Schemas =====
+    ELearningResourceResponse:
+      type: object
+      required:
+        - id
+        - resource_code
+        - title
+        - description
+        - resource_type
+        - category
+        - external_lms_url
+        - estimated_minutes
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        resource_code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        resource_type:
+          type: string
+          enum: [video, document, interactive, quiz]
+        category:
+          type: string
+        external_lms_url:
+          type: string
+        estimated_minutes:
+          type: integer
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    ELearningResourceListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+        - offset
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ELearningResourceResponse'
+        total_count:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    # ===== IDP Schemas =====
+    IDPResponse:
+      type: object
+      required:
+        - id
+        - employee_id
+        - plan_year
+        - status
+        - goals
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          format: uuid
+        plan_year:
+          type: integer
+        status:
+          type: string
+          enum: [draft, submitted, approved, in_progress, completed]
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_by:
+          type: string
+          format: uuid
+          nullable: true
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevelopmentGoalResponse'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    CreateIDPRequest:
+      type: object
+      required:
+        - plan_year
+      properties:
+        plan_year:
+          type: integer
+
+    UpdateIDPRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: string
+
+    ApproveIDPRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        approval_notes:
+          type: string
+        row_version:
+          type: string
+
+    IDPListResponse:
+      type: object
+      required:
+        - items
+        - total_count
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IDPResponse'
+        total_count:
+          type: integer
+
+    # ===== Development Goal Schemas =====
+    DevelopmentGoalResponse:
+      type: object
+      required:
+        - id
+        - idp_id
+        - goal_title
+        - goal_description
+        - category
+        - target_date
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        idp_id:
+          type: string
+          format: uuid
+        goal_title:
+          type: string
+        goal_description:
+          type: string
+        category:
+          type: string
+          enum: [technical, leadership, soft_skills, certification]
+        target_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [not_started, in_progress, completed, deferred]
+        completion_date:
+          type: string
+          format: date
+          nullable: true
+        action_items:
+          type: string
+          nullable: true
+        progress_notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        row_version:
+          type: string
+
+    CreateDevelopmentGoalRequest:
+      type: object
+      required:
+        - goal_title
+        - goal_description
+        - category
+        - target_date
+      properties:
+        goal_title:
+          type: string
+          maxLength: 200
+        goal_description:
+          type: string
+        category:
+          type: string
+          enum: [technical, leadership, soft_skills, certification]
+        target_date:
+          type: string
+          format: date
+        action_items:
+          type: string
+
+    UpdateDevelopmentGoalRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        goal_title:
+          type: string
+        goal_description:
+          type: string
+        category:
+          type: string
+          enum: [technical, leadership, soft_skills, certification]
+        target_date:
+          type: string
+          format: date
+        action_items:
+          type: string
+        progress_notes:
+          type: string
+        row_version:
+          type: string
+
+    UpdateGoalStatusRequest:
+      type: object
+      required:
+        - status
+        - row_version
+      properties:
+        status:
+          type: string
+          enum: [not_started, in_progress, completed, deferred]
+        completion_date:
+          type: string
+          format: date
+        progress_notes:
+          type: string
+        row_version:
+          type: string
+
+    # ===== Common Schemas =====
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Bad request - validation errors
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: VALIDATION_ERROR
+            message: Invalid request payload
+            details:
+              applicant_email: Must be a valid email address
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: UNAUTHORIZED
+            message: Missing or invalid authentication token
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: FORBIDDEN
+            message: User does not have permission to perform this action
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: NOT_FOUND
+            message: Resource not found
+
+    Conflict:
+      description: Conflict - optimistic concurrency or duplicate resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: CONCURRENCY_CONFLICT
+            message: Resource has been modified by another user
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error_code: RATE_LIMIT_EXCEEDED
+            message: Too many requests - please try again later

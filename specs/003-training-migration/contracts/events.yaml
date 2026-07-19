@@ -1,0 +1,397 @@
+# Integration Events Schema
+# Training Records and Skills Migration
+# Date: 2025-12-28
+
+## Events Published by Career Service
+
+### TrainingCompletedEvent
+**Topic**: `career.training.completed`
+**Description**: Published when an employee completes a training course
+**Consumers**: Notification Service, Analytics Service
+
+```yaml
+TrainingCompletedEvent:
+  type: object
+  required:
+    - trainingRecordId
+    - employeeId
+    - courseName
+    - completionDate
+  properties:
+    trainingRecordId:
+      type: string
+      format: uuid
+      description: Training record unique identifier
+      example: "123e4567-e89b-12d3-a456-426614174000"
+    employeeId:
+      type: string
+      format: uuid
+      description: Employee who completed the training
+      example: "123e4567-e89b-12d3-a456-426614174001"
+    courseName:
+      type: string
+      description: Name of the completed training
+      example: "Workplace Safety Training"
+    completionDate:
+      type: string
+      format: date-time
+      description: When the training was completed
+      example: "2025-01-15T14:30:00Z"
+    certificationExpiration:
+      type: string
+      format: date-time
+      nullable: true
+      description: When the certification expires (if applicable)
+      example: "2026-01-15T00:00:00Z"
+```
+
+**Example Message**:
+```json
+{
+  "trainingRecordId": "123e4567-e89b-12d3-a456-426614174000",
+  "employeeId": "123e4567-e89b-12d3-a456-426614174001",
+  "courseName": "Workplace Safety Training",
+  "completionDate": "2025-01-15T14:30:00Z",
+  "certificationExpiration": "2026-01-15T00:00:00Z"
+}
+```
+
+---
+
+### MandatoryTrainingOverdueEvent
+**Topic**: `career.training.overdue`
+**Description**: Published when mandatory training becomes overdue
+**Consumers**: Notification Service, Compliance Service
+
+```yaml
+MandatoryTrainingOverdueEvent:
+  type: object
+  required:
+    - employeeId
+    - trainingProgramId
+    - trainingName
+    - dueDate
+    - daysOverdue
+  properties:
+    employeeId:
+      type: string
+      format: uuid
+      description: Employee with overdue training
+      example: "123e4567-e89b-12d3-a456-426614174001"
+    trainingProgramId:
+      type: string
+      format: uuid
+      description: Training program that is overdue
+      example: "123e4567-e89b-12d3-a456-426614174002"
+    trainingName:
+      type: string
+      description: Name of the overdue training
+      example: "Security Awareness Training"
+    dueDate:
+      type: string
+      format: date-time
+      description: Original due date
+      example: "2025-01-01T00:00:00Z"
+    daysOverdue:
+      type: integer
+      description: Number of days past the due date
+      example: 14
+```
+
+**Example Message**:
+```json
+{
+  "employeeId": "123e4567-e89b-12d3-a456-426614174001",
+  "trainingProgramId": "123e4567-e89b-12d3-a456-426614174002",
+  "trainingName": "Security Awareness Training",
+  "dueDate": "2025-01-01T00:00:00Z",
+  "daysOverdue": 14
+}
+```
+
+---
+
+### CertificationExpiringEvent
+**Topic**: `career.training.expiring`
+**Description**: Published when a certification is approaching expiration
+**Consumers**: Notification Service
+
+```yaml
+CertificationExpiringEvent:
+  type: object
+  required:
+    - trainingRecordId
+    - employeeId
+    - courseName
+    - expirationDate
+    - daysUntilExpiration
+  properties:
+    trainingRecordId:
+      type: string
+      format: uuid
+      description: Training record with expiring certification
+      example: "123e4567-e89b-12d3-a456-426614174000"
+    employeeId:
+      type: string
+      format: uuid
+      description: Employee with expiring certification
+      example: "123e4567-e89b-12d3-a456-426614174001"
+    courseName:
+      type: string
+      description: Name of the training/certification
+      example: "First Aid Certification"
+    expirationDate:
+      type: string
+      format: date-time
+      description: When the certification expires
+      example: "2025-02-15T00:00:00Z"
+    daysUntilExpiration:
+      type: integer
+      description: Days remaining until expiration
+      example: 30
+```
+
+**Example Message**:
+```json
+{
+  "trainingRecordId": "123e4567-e89b-12d3-a456-426614174000",
+  "employeeId": "123e4567-e89b-12d3-a456-426614174001",
+  "courseName": "First Aid Certification",
+  "expirationDate": "2025-02-15T00:00:00Z",
+  "daysUntilExpiration": 30
+}
+```
+
+---
+
+## Events Consumed by Career Service
+
+### EmployeeCreatedEvent
+**Topic**: `employee.created`
+**Description**: Consumed when a new employee is created in Employee Service
+**Publisher**: Employee Service
+**Purpose**: Automatically assign mandatory training based on department/position
+
+```yaml
+EmployeeCreatedEvent:
+  type: object
+  required:
+    - employeeId
+    - startDate
+  properties:
+    employeeId:
+      type: string
+      format: uuid
+      description: Newly created employee identifier
+      example: "123e4567-e89b-12d3-a456-426614174001"
+    departmentId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Employee's department
+      example: "123e4567-e89b-12d3-a456-426614174003"
+    positionId:
+      type: string
+      format: uuid
+      nullable: true
+      description: Employee's position
+      example: "123e4567-e89b-12d3-a456-426614174004"
+    startDate:
+      type: string
+      format: date-time
+      description: Employee start date (used to calculate training deadlines)
+      example: "2025-01-15T00:00:00Z"
+```
+
+**Example Message**:
+```json
+{
+  "employeeId": "123e4567-e89b-12d3-a456-426614174001",
+  "departmentId": "123e4567-e89b-12d3-a456-426614174003",
+  "positionId": "123e4567-e89b-12d3-a456-426614174004",
+  "startDate": "2025-01-15T00:00:00Z"
+}
+```
+
+**Consumer Behavior**:
+1. Query active mandatory_training_requirements matching department/position
+2. For each requirement, create an enrollment with deadline = startDate + completionDeadlineDays
+3. Queue employee creation event with retry (per FR-019a/b/c from clarifications)
+4. Log failures after max retries for manual intervention
+
+---
+
+## Event Delivery Guarantees
+
+### Published Events
+- **At-Least-Once Delivery**: Events may be delivered multiple times
+- **Retry Policy**: 3 retries with exponential backoff (per FR-014a/b from clarifications)
+- **Dead Letter Queue**: Failed events after 3 retries logged for ops review
+
+### Consumed Events
+- **Idempotency**: EmployeeCreatedEvent consumer must be idempotent
+- **Retry Policy**: MassTransit retry intervals: 1s, 5s, 30s, 1m, 5m
+- **Error Handling**: Log failures and queue for manual intervention (per clarifications)
+
+---
+
+## MassTransit Configuration
+
+```csharp
+// In Program.cs
+builder.AddMassTransitWithRabbitMq(cfg =>
+{
+    // Add consumer
+    cfg.AddConsumer<EmployeeCreatedEventConsumer>();
+
+    // Configure endpoints
+    cfg.UsingRabbitMq((context, rabbitCfg) =>
+    {
+        // Retry policy
+        rabbitCfg.UseMessageRetry(r => r.Intervals(
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(5),
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromMinutes(1),
+            TimeSpan.FromMinutes(5)
+        ));
+
+        rabbitCfg.ConfigureEndpoints(context);
+    });
+});
+```
+
+---
+
+## Event Publishing Example
+
+```csharp
+public class TrainingRecordService
+{
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public async Task RecordCompletionAsync(...)
+    {
+        // Save training record
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Publish event
+        await _publishEndpoint.Publish(new TrainingCompletedEvent(
+            TrainingRecordId: record.Id,
+            EmployeeId: record.EmployeeId,
+            CourseName: record.CourseName,
+            CompletionDate: record.CompletionDate,
+            CertificationExpiration: record.ExpirationDate
+        ), cancellationToken);
+    }
+}
+```
+
+---
+
+## Event Consumer Example
+
+```csharp
+public class EmployeeCreatedEventConsumer : IConsumer<EmployeeCreatedEvent>
+{
+    private readonly CareerDbContext _dbContext;
+    private readonly ILogger<EmployeeCreatedEventConsumer> _logger;
+
+    public async Task Consume(ConsumeContext<EmployeeCreatedEvent> context)
+    {
+        var message = context.Message;
+
+        _logger.LogInformation(
+            "Processing EmployeeCreatedEvent for employee {EmployeeId}",
+            message.EmployeeId);
+
+        // Find applicable mandatory training requirements
+        var requirements = await _dbContext.MandatoryTrainingRequirements
+            .Where(mtr => mtr.IsActive &&
+                         (mtr.DepartmentId == null || mtr.DepartmentId == message.DepartmentId) &&
+                         (mtr.PositionId == null || mtr.PositionId == message.PositionId))
+            .Include(mtr => mtr.TrainingProgram)
+            .ToListAsync(context.CancellationToken);
+
+        // Create enrollments
+        foreach (var req in requirements)
+        {
+            var deadline = message.StartDate.AddDays(req.CompletionDeadlineDays);
+
+            // Check if enrollment already exists (idempotency)
+            var exists = await _dbContext.Enrollments
+                .AnyAsync(e => e.EmployeeId == message.EmployeeId &&
+                              e.TrainingProgramId == req.TrainingProgramId,
+                         context.CancellationToken);
+
+            if (!exists)
+            {
+                _dbContext.Enrollments.Add(new Enrollment
+                {
+                    EmployeeId = message.EmployeeId,
+                    TrainingProgramId = req.TrainingProgramId,
+                    EnrollmentDeadline = deadline,
+                    Status = EnrollmentStatus.Pending
+                });
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
+
+        _logger.LogInformation(
+            "Assigned {Count} mandatory training requirements to employee {EmployeeId}",
+            requirements.Count,
+            message.EmployeeId);
+    }
+}
+```
+
+---
+
+## Testing Events
+
+### Publishing Events (Integration Test)
+```csharp
+[Fact]
+public async Task RecordCompletion_PublishesTrainingCompletedEvent()
+{
+    // Arrange
+    var harness = _testFixture.Harness;
+    var service = _testFixture.GetService<ITrainingRecordService>();
+
+    // Act
+    await service.RecordCompletionAsync(...);
+
+    // Assert
+    Assert.True(await harness.Published.Any<TrainingCompletedEvent>());
+
+    var published = harness.Published.Select<TrainingCompletedEvent>().First();
+    Assert.Equal(employeeId, published.Context.Message.EmployeeId);
+}
+```
+
+### Consuming Events (Integration Test)
+```csharp
+[Fact]
+public async Task EmployeeCreated_AssignsMandatoryTraining()
+{
+    // Arrange
+    var harness = _testFixture.Harness;
+
+    // Act
+    await harness.Bus.Publish(new EmployeeCreatedEvent(
+        EmployeeId: employeeId,
+        DepartmentId: departmentId,
+        PositionId: null,
+        StartDate: DateTime.UtcNow));
+
+    // Assert
+    Assert.True(await harness.Consumed.Any<EmployeeCreatedEvent>());
+
+    var enrollments = await _dbContext.Enrollments
+        .Where(e => e.EmployeeId == employeeId)
+        .ToListAsync();
+
+    Assert.NotEmpty(enrollments);
+}
+```

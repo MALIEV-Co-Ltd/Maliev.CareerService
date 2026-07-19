@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <SharedLibraryVersion Condition="'$(SharedLibraryVersion)' == ''">1.0.*-*</SharedLibraryVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit.Abstractions" Version="[8.5.10, 9.0.0)" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="[8.5.10, 9.0.0)" />
+    <PackageReference Include="Markdig" Version="1.1.1" />
+    <PackageReference Include="HtmlSanitizer" Version="9.1.949-beta" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Maliev.CareerService.Application\Maliev.CareerService.Application.csproj" />
+    <ProjectReference Include="..\Maliev.CareerService.Domain\Maliev.CareerService.Domain.csproj" />
+    <ProjectReference Include="..\..\Maliev.MessagingContracts\generated\csharp\Maliev.MessagingContracts.csproj" Condition="'$(GITHUB_ACTIONS)' != 'true'" />
+    <ProjectReference Include="..\..\Maliev.Aspire\Maliev.Aspire.ServiceDefaults\Maliev.Aspire.ServiceDefaults.csproj" Condition="'$(GITHUB_ACTIONS)' != 'true'" />
+    <PackageReference Include="Maliev.MessagingContracts" Version="$(SharedLibraryVersion)" Condition="'$(GITHUB_ACTIONS)' == 'true'" />
+    <PackageReference Include="Maliev.Aspire.ServiceDefaults" Version="$(SharedLibraryVersion)" Condition="'$(GITHUB_ACTIONS)' == 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="GlobalUsings.cs" />
+    <Compile Include="Data\CareerDbContext.cs" />
+    <Compile Include="Data\CareerDbContextFactory.cs" />
+    <Compile Include="Data\SnakeCaseNamingHelper.cs" />
+    <Compile Include="Data\Configurations\*.cs" />
+    <Compile Include="Migrations\*.cs" />
+    <Compile Include="Services\**\*.cs" />
+  </ItemGroup>
+
+</Project>

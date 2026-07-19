@@ -6,30 +6,51 @@ on:
 permissions:
   contents: read
 
+env:
+  SharedLibraryVersion: 1.0.0-career-ci
+
 jobs:
   validate:
     name: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
 
+      - name: Checkout exact MessagingContracts source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          repository: MALIEV-Co-Ltd/Maliev.MessagingContracts
+          ref: 9c41d6524a485bf03ba022b8170f47366ab1a77a
+          path: .ci-sources/Maliev.MessagingContracts
+          persist-credentials: false
+
+      - name: Checkout exact ServiceDefaults source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          repository: MALIEV-Co-Ltd/Maliev.Aspire
+          ref: 979e1bcb3c3ed9c414f652c94b56297543c031b2
+          path: .ci-sources/Maliev.Aspire
+          persist-credentials: false
+
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore Maliev.CareerService.sln --configfile nuget.validation.config --locked-mode
+        run: |
+          bash scripts/prepare-career-ci-packages.sh
+          dotnet restore Maliev.CareerService.slnx --configfile nuget.validation.config /p:GITHUB_ACTIONS=true /p:SharedLibraryVersion=${{ env.SharedLibraryVersion }}
 
       - name: Audit dependencies
-        run: dotnet list Maliev.CareerService.sln package --vulnerable --include-transitive
+        run: dotnet list Maliev.CareerService.slnx package --vulnerable --include-transitive --no-restore --configfile nuget.validation.config
 
       - name: Build
-        run: dotnet build Maliev.CareerService.sln --configuration Release --no-restore
+        run: dotnet build Maliev.CareerService.slnx --configuration Release --no-restore /p:GITHUB_ACTIONS=true /p:SharedLibraryVersion=${{ env.SharedLibraryVersion }}
 
       - name: Test
-        run: dotnet test Maliev.CareerService.sln --configuration Release --no-build --no-restore --verbosity normal
+        run: dotnet test Maliev.CareerService.slnx --configuration Release --no-build --no-restore --verbosity normal /p:GITHUB_ACTIONS=true /p:SharedLibraryVersion=${{ env.SharedLibraryVersion }}

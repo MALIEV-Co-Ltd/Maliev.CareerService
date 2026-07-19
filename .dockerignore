@@ -1,16 +1,27 @@
-# .NET
+# .NET Build outputs
 **/bin/
 **/obj/
+**/out/
 **/.vs/
 **/.vscode/
 
-# Build artifacts
-**/publish/
+# Test results
 **/TestResults/
+**/*.trx
 
-# OS files
+# NuGet packages
+**/*.nupkg
+**/*.snupkg
+**/packages/
+
+# IDE and editor files
+**/.idea/
+**/.vscode/
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
 **/.DS_Store
-**/Thumbs.db
 
 # Git
 **/.git/
@@ -19,26 +30,23 @@
 
 # Documentation
 **/README.md
-**/CHANGELOG.md
-**/*.md
+**/docs/
 
-# IDE
-**/.idea/
-**/.vs/
-**/.vscode/
-
-# Logs
-**/logs/
-**/*.log
+# Docker
+**/.dockerignore
+**/Dockerfile*
+**/docker-compose*
 
 # Temporary files
-**/tmp/
-**/temp/
-**/.tmp/
+**/*~
+**/*.swp
+**/*.tmp
+**/*.log
 
-# Node modules (if any)
-**/node_modules/
+# Specification and planning
+**/specs/
+**/.specify/
+**/CLAUDE.md
 
-# Package files
-**/*.nupkg
-**/*.snupkg
+# CI/CD
+**/.github/

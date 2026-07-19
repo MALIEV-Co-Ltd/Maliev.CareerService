@@ -1,0 +1,461 @@
+openapi: 3.0.3
+info:
+  title: Mandatory Training API
+  description: API for managing mandatory training requirements and compliance
+  version: 1.0.0
+  contact:
+    name: MALIEV Co., Ltd.
+    url: https://maliev.com
+
+servers:
+  - url: https://api.maliev.com/career/v1
+    description: Production
+  - url: https://api-staging.maliev.com/career/v1
+    description: Staging
+  - url: http://localhost:8080/career/v1
+    description: Local Development
+
+tags:
+  - name: Mandatory Training
+    description: Mandatory training requirements management
+  - name: Compliance
+    description: Training compliance reporting
+
+paths:
+  /mandatory-training:
+    get:
+      summary: List mandatory training requirements
+      description: Retrieve all active mandatory training requirements
+      operationId: getMandatoryRequirements
+      tags:
+        - Mandatory Training
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          description: Filter by department
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: isActive
+          in: query
+          description: Filter by active status
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Requirements retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MandatoryTrainingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create mandatory training requirement
+      description: Create a new mandatory training requirement
+      operationId: createMandatoryRequirement
+      tags:
+        - Mandatory Training
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMandatoryRequirementRequest'
+      responses:
+        '201':
+          description: Requirement created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MandatoryTrainingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /mandatory-training/{id}:
+    get:
+      summary: Get mandatory training requirement
+      description: Retrieve a specific mandatory training requirement
+      operationId: getMandatoryRequirement
+      tags:
+        - Mandatory Training
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequirementIdPath'
+      responses:
+        '200':
+          description: Requirement retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MandatoryTrainingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update mandatory training requirement
+      description: Update an existing mandatory training requirement
+      operationId: updateMandatoryRequirement
+      tags:
+        - Mandatory Training
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequirementIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMandatoryRequirementRequest'
+      responses:
+        '200':
+          description: Requirement updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MandatoryTrainingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Deactivate mandatory training requirement
+      description: Mark a mandatory training requirement as inactive
+      operationId: deactivateMandatoryRequirement
+      tags:
+        - Mandatory Training
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequirementIdPath'
+      responses:
+        '204':
+          description: Requirement deactivated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reports/training-compliance:
+    get:
+      summary: Get training compliance report
+      description: Generate comprehensive compliance report across organization
+      operationId: getComplianceReport
+      tags:
+        - Compliance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          description: Filter by specific department
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Compliance report generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingComplianceReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RequirementIdPath:
+      name: id
+      in: path
+      required: true
+      description: Mandatory training requirement unique identifier
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CreateMandatoryRequirementRequest:
+      type: object
+      required:
+        - trainingProgramId
+        - completionDeadlineDays
+      properties:
+        trainingProgramId:
+          type: string
+          format: uuid
+          description: Training program that is mandatory
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        departmentId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Target department (null = all departments)
+        positionId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Target position (null = all positions)
+        completionDeadlineDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 30
+          description: Days from hire date to complete training
+          example: 30
+        recertificationMonths:
+          type: integer
+          minimum: 1
+          maximum: 120
+          nullable: true
+          description: Months until recertification required
+          example: 12
+
+    UpdateMandatoryRequirementRequest:
+      type: object
+      properties:
+        completionDeadlineDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        recertificationMonths:
+          type: integer
+          minimum: 1
+          maximum: 120
+          nullable: true
+        isActive:
+          type: boolean
+
+    MandatoryTrainingResponse:
+      type: object
+      required:
+        - id
+        - trainingProgramId
+        - completionDeadlineDays
+        - isActive
+      properties:
+        id:
+          type: string
+          format: uuid
+        trainingProgramId:
+          type: string
+          format: uuid
+        trainingProgramName:
+          type: string
+          description: Populated from TrainingProgram
+          example: "Workplace Safety Certification"
+        departmentId:
+          type: string
+          format: uuid
+          nullable: true
+        departmentName:
+          type: string
+          nullable: true
+          description: Populated from Employee Service
+        positionId:
+          type: string
+          format: uuid
+          nullable: true
+        positionName:
+          type: string
+          nullable: true
+          description: Populated from Employee Service
+        completionDeadlineDays:
+          type: integer
+          example: 30
+        recertificationMonths:
+          type: integer
+          nullable: true
+          example: 12
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          format: uuid
+        updatedBy:
+          type: string
+          format: uuid
+
+    TrainingComplianceReportResponse:
+      type: object
+      required:
+        - reportDate
+        - totalEmployees
+        - fullyCompliant
+        - partiallyCompliant
+        - nonCompliant
+        - complianceRate
+      properties:
+        reportDate:
+          type: string
+          format: date-time
+          description: Report generation timestamp
+          example: "2025-01-15T00:00:00Z"
+        totalEmployees:
+          type: integer
+          description: Total number of employees in scope
+          example: 500
+        fullyCompliant:
+          type: integer
+          description: Employees with all mandatory training completed
+          example: 450
+        partiallyCompliant:
+          type: integer
+          description: Employees with some but not all mandatory training
+          example: 35
+        nonCompliant:
+          type: integer
+          description: Employees with no mandatory training completed
+          example: 15
+        complianceRate:
+          type: number
+          format: decimal
+          description: Percentage of fully compliant employees
+          example: 90.0
+        byDepartment:
+          type: array
+          description: Compliance breakdown by department
+          items:
+            $ref: '#/components/schemas/DepartmentComplianceResponse'
+        overdueTrainings:
+          type: array
+          description: List of overdue training assignments
+          items:
+            $ref: '#/components/schemas/OverdueTrainingResponse'
+
+    DepartmentComplianceResponse:
+      type: object
+      required:
+        - departmentId
+        - departmentName
+        - totalEmployees
+        - compliant
+        - complianceRate
+      properties:
+        departmentId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        departmentName:
+          type: string
+          example: "Engineering"
+        totalEmployees:
+          type: integer
+          example: 100
+        compliant:
+          type: integer
+          example: 95
+        complianceRate:
+          type: number
+          format: decimal
+          example: 95.0
+
+    OverdueTrainingResponse:
+      type: object
+      required:
+        - employeeId
+        - employeeName
+        - trainingName
+        - dueDate
+        - daysOverdue
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        employeeName:
+          type: string
+          example: "John Doe"
+        trainingName:
+          type: string
+          example: "Security Awareness Training"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+        daysOverdue:
+          type: integer
+          example: 14
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
