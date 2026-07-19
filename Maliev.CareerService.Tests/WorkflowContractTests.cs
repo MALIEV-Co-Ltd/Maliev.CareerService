@@ -41,7 +41,14 @@ public sealed class WorkflowContractTests
         Assert.Contains("name: validate", source, StringComparison.Ordinal);
         Assert.Contains("actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0", source, StringComparison.Ordinal);
         Assert.Contains("actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68", source, StringComparison.Ordinal);
-        Assert.Contains("dotnet-version: 9.0.x", source, StringComparison.Ordinal);
+        Assert.Contains("dotnet-version: 10.0.x", source, StringComparison.Ordinal);
+        Assert.Contains("repository: MALIEV-Co-Ltd/Maliev.MessagingContracts", source, StringComparison.Ordinal);
+        Assert.Contains("ref: 9c41d6524a485bf03ba022b8170f47366ab1a77a", source, StringComparison.Ordinal);
+        Assert.Contains("repository: MALIEV-Co-Ltd/Maliev.Aspire", source, StringComparison.Ordinal);
+        Assert.Contains("ref: 979e1bcb3c3ed9c414f652c94b56297543c031b2", source, StringComparison.Ordinal);
+        Assert.Contains("bash scripts/prepare-career-ci-packages.sh", source, StringComparison.Ordinal);
+        Assert.Contains("SharedLibraryVersion: 1.0.0-career-ci", source, StringComparison.Ordinal);
+        Assert.Contains("dotnet restore Maliev.CareerService.slnx", source, StringComparison.Ordinal);
         AssertSafe(source);
     }
 
@@ -80,7 +87,8 @@ public sealed class WorkflowContractTests
              directory is not null;
              directory = directory.Parent)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "Maliev.CareerService.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "Maliev.CareerService.slnx")) ||
+                File.Exists(Path.Combine(directory.FullName, "Maliev.CareerService.sln")))
             {
                 return directory.FullName;
             }
