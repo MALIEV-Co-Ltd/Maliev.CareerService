@@ -1,0 +1,19 @@
+{
+  "serviceName": "CareerService",
+  "permissions": [
+    {
+      "name": "career.trainings.create",
+      "description": "Create training programs"
+    },
+    {
+      "name": "career.trainings.read",
+      "description": "Read training details"
+    }
+  ],
+  "roles": [
+    {
+      "name": "career-admin",
+      "permissions": ["career.*"]
+    }
+  ]
+}
